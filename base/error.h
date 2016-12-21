@@ -1,14 +1,10 @@
 #ifndef __BASE_ERROR_H__
 #define __BASE_ERROR_H__
 
-#define LOG_ERR_PATH "/data/mds/log/error.log"
 #define LOG_ERR_MAX_COUNT		50
-#define LOG_CRITICAL_PATH "/data/mds/log/critical.log"
 #define LOG_CRITICAL_MAX_COUNT	10
-#define DAT_ERR_PATH "/data/mds/log//error.dat"
-#define FLG_ERR_PATH "/tmp/.nomon"
-#define MAX_RETRY_EXIT		3
-#define MAX_RETRY_REBOOT	3
+#define MAX_RETRY_EXIT			3
+#define MAX_RETRY_REBOOT		3
 //jwrho ++
 #pragma pack(push, 1)
 

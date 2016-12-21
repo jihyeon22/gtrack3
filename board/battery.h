@@ -1,7 +1,7 @@
 #ifndef __BOARD_BATTERY_H__
 #define __BOARD_BATTERY_H__
 
-#include "mds_board.h"
+#include "board_system.h"
 
 typedef struct battLevel battLevel_t;
 struct battLevel

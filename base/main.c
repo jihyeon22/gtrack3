@@ -9,6 +9,7 @@
 #include <time.h>
 #include <errno.h>
 
+#include <board/board_system.h>
 #include <base/config.h>
 #ifdef USE_GPS_MODEL
 #include <base/gpstool.h>
@@ -233,7 +234,7 @@ void _initial_btn_check(void)
 			sleep(5);
 		
 			//reset data
-			tools_rm_all("/data");
+			tools_rm_all(USER_DATA_DIR);
 
 			crit_init();
 			crit_clear_write();
@@ -277,6 +278,17 @@ int main(int argc, char** argv)
 	pid_t pid = -1;
 	configurationBase_t *conf_base = NULL;
 
+	//user directory create ++
+	while(1) {
+		if(tools_check_exist_file(USER_DATA_DIR, 2) >= 0) {
+			break;
+		}
+		printf("User dir : %s can't find\n");
+		system(MKDIR_USER_DIR);
+		sleep(1);
+	}
+	//user directory create --
+
 	stackdump_init();
 	logd_init();
 
@@ -301,7 +313,7 @@ int main(int argc, char** argv)
 
 	//at_open(e_DEV_TX500, NULL, NULL, NULL);
 	//at_open(e_DEV_TX500, NULL, NULL, "console");
-	at_open(e_DEV_TX500, NULL, sms_proc, "console");
+	at_open(e_DEV_TX501_BASE, NULL, sms_proc, "console");
 	
 
 	//at_start();

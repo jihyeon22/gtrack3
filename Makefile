@@ -3,7 +3,9 @@
 
 SRCROOT := $(PWD)
 DESTDIR := $(SRCROOT)/out
-BINDIR	:= /data/mds/system/bin
+BASE_DIR := /system/mds/system 
+BINDIR	:= $(BASE_DIR)/bin
+USER_DATA_DIR := /data/mds/data
 
 CONFIG_FILE	:= config.ini
 CONFIG_USER_FILE	:= user.ini
@@ -11,13 +13,13 @@ DM_FILE	:= dm.ini
 
 CONFIG_USR_MON_INI := mon.ini
 
-PATHRUN_BIN := $(DESTDIR)/system/sbin/pathrun2
-RSSH_BIN := $(DESTDIR)/system/sbin/rssh2
-DLPKG_BIN := $(DESTDIR)/system/sbin/dlpkg2
-EMER_BIN := $(DESTDIR)/system/sbin/emer2
-MONCHK_BIN := $(DESTDIR)/system/sbin/monchk2
-CHKPROG_BIN := $(DESTDIR)/system/sbin/chkprog2
-WDPROG_BIN := $(DESTDIR)/system/sbin/wdprog2
+PATHRUN_BIN := $(DESTDIR)/system/sbin/pathrun3
+RSSH_BIN := $(DESTDIR)/system/sbin/rssh3
+DLPKG_BIN := $(DESTDIR)/system/sbin/dlpkg3
+EMER_BIN := $(DESTDIR)/system/sbin/emer3
+MONCHK_BIN := $(DESTDIR)/system/sbin/monchk3
+CHKPROG_BIN := $(DESTDIR)/system/sbin/chkprog3
+WDPROG_BIN := $(DESTDIR)/system/sbin/wdprog3
 ###############################################################################
 # Compile
 
@@ -34,7 +36,7 @@ LDFLAGS	:= $(EXTRA_LDFLAGS)
 ###############################################################################
 # common src package
 ###############################################################################
-COMMON_SRC_PATH = ../common-src2
+COMMON_SRC_PATH = ../common-src3
 COMMON_SRC_PKG = logd mon
 ###############################################################################
 # Board
@@ -102,10 +104,10 @@ endef
 DEBUG_MODE  ?= 0
 VER   ?= 0
 
-WORK_PATH   := /system/$(VER)
-SOCK_PATH   := /var/log
-MODEL_PATH	:= model/$(SERVER)
-PACKAGE_FILE = /data/mds/system/bin/PACKAGE
+WORK_PATH    := /system/$(VER)
+SOCK_PATH    := /var/log
+MODEL_PATH   := model/$(SERVER)
+PACKAGE_FILE = $(BINDIR)/PACKAGE
 
 ###############################################################################
 # Target rules
@@ -116,16 +118,16 @@ REPO_NAME	= `git rev-parse --abbrev-ref HEAD`
 REPO_REV	= `git log --pretty=format:'' | wc -l`
 
 CFLAGS	+= -Wall -g -rdynamic
-CFLAGS	+= -I./ -Imodel/$(SERVER) -I../common-src2/
+CFLAGS	+= -I./ -Imodel/$(SERVER) -I../common-src3/
 CFLAGS	+= -D_REENTRANT -DCONFIG_FILE_PATH=\"$(BINDIR)/$(CONFIG_FILE)\" -DDM_FILE_PATH=\"$(BINDIR)/$(DM_FILE)\"
-CFLAGS	+= -DCONFIG_USER_FILE_PATH=\"/data/mds/data/$(CONFIG_USER_FILE)\" -DCONFIG_USER_ORG_FILE_PATH=\"$(BINDIR)/$(CONFIG_USER_FILE)\" 
+CFLAGS	+= -DCONFIG_USER_FILE_PATH=\"$(USER_DATA_DIR)/$(CONFIG_USER_FILE)\" -DCONFIG_USER_ORG_FILE_PATH=\"$(BINDIR)/$(CONFIG_USER_FILE)\" 
 CFLAGS	+= -DDATE=\"$(DATE)\" -DCOMMIT_NUM=\"$(COMMIT_NUM)\" -DREPO_NAME=\"$(REPO_NAME)\" -DREPO_REV=\"$(REPO_REV)\"
 CFLAGS	+= -DPRG_VER=\"$(VER)\" -DPACKAGE_NAME=\"$(CORP_ABBR)-MDT.$(SERVER_ABBR)-$(MODEM)-$(VER)\"
 CFLAGS	+= -DPACKAGE_FILE=\"$(PACKAGE_FILE)\"
 CFLAGS	+= -DBOARD_$(BOARD)
 CFLAGS	+= -DCORP_ABBR_$(CORP_ABBR) -DSERVER_ABBR_$(SERVER_ABBR)
 CFLAGS  += -DUSE_NET_THREAD2
-LIBS	= -lpthread -liniparser -ljansson -lm -lrt -ldm -lcurl -lz -lat2  -llogd -g -rdynamic
+LIBS	= -lpthread -liniparser -ljansson -lm -lrt -ldm -lcurl -lz -lat3  -llogd -g -rdynamic
 
 # net-kti model don't use USE_NET_THREAD2 
 #ifeq ($(SERVER_ABBR), NKTI)
@@ -159,7 +161,7 @@ endif
 
 export CROSS_COMPILE CC AR RANLIB BOARD CFLAGS LDFLAGS DESTDIR WORK_PATH SOCK_PATH MODEL_PATH
 
-APP	:= gtrack2
+APP	:= gtrack3
 
 # webdm pathrun rssh dmlib dlpkg 
 all: check common-src $(APP)
@@ -190,8 +192,8 @@ rssh :
 	make -C $(PWD)/../rssh install || exit $?; \
 
 dlpkg :
-	make -C $(PWD)/../dlpkg	|| exit $?; \
-	make -C $(PWD)/../dlpkg install || exit $?; \
+	make -C $(PWD)/../dlpkg3	|| exit $?; \
+	make -C $(PWD)/../dlpkg3 install || exit $?; \
 
 $(APP):		$(OBJS)
 	$(Q)$(CC) $(CFLAGS) -o $@ $^ $(LDFLAGS) $(LIBS)
@@ -258,7 +260,7 @@ install: check install-binary install-script install-pathrun install-rssh instal
 
 		@echo ""
 		@rm -f $(DESTDIR)/system/bin
-		@ln -sf /data/mds/system/$(VER) $(DESTDIR)/system/bin
+		@ln -sf $(BASE_DIR)/$(VER) $(DESTDIR)/system/bin
 		@echo -e '\033[1;36m'
 		@echo [Filesystem]-------------------------------------------
 		@tree $(DESTDIR)/system

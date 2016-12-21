@@ -9,7 +9,7 @@
 #include <sys/time.h>
 #include <time.h>
 
-
+#include <board/board_system.h>
 #include <base/devel.h>
 #include <base/thread.h>
 #include <board/led.h>

@@ -137,7 +137,7 @@ int transfer_packet_recv(const transferSetting_t *setting, const unsigned char *
 	fcntl(hsock, F_SETFL, sflag | O_NONBLOCK);
 #endif
 
-	LOGI(LOG_TARGET, "network connectin....\n");
+	LOGI(LOG_TARGET, "network connecting....\n");
 	while(1) {
 		if(nettool_connect_timeo(hsock, (struct sockaddr*)&c_addr, sizeof(c_addr), setting->timeout_secs) < 0) 
 		{

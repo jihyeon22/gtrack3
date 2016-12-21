@@ -9,6 +9,7 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
+#include <board/board_system.h>
 #include <logd_rpc.h>
 
 #include "tools.h"
@@ -359,6 +360,6 @@ void tools_rm_all(char *dir)
 
 void tools_alive_end(void)
 {
-	system("/system/sbin/alive.notifier end");
+	system(ALIVE_END_CMD);
 }
 

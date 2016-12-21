@@ -6,21 +6,21 @@ check_process_interval=60
 
 [program_0]
 path=/data/mds/system/bin
-name=dlpkg2
+name=dlpkg3
 command_argc=0
 make_deamon=no
 check_process=no
 
 [program_1]
 path=/data/mds/system/bin
-name=gtrack2
+name=gtrack3
 command_argc=0
 make_deamon=no
 check_process=yes
 
 [program_2]
 path=/data/mds/system/bin
-name=wdprog2
+name=wdprog3
 command_argc=0
 make_deamon=no
 check_process=no

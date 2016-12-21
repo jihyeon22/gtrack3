@@ -1,7 +1,7 @@
 #ifndef __BOARD_CRIT_DATA_H__
 #define __BOARD_CRIT_DATA_H__
 
-#include "mds_board.h"
+#include "board_system.h"
 
 #define MAX_CRITICAL_DATA         512
 /*

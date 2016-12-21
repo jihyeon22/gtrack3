@@ -7,6 +7,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include "board_system.h"
 
 #include "gpio.h"
 
@@ -34,7 +35,7 @@ int gpio_get_value(const int gpio)
 		goto err;
 	}
 
-	sprintf(buf, "/sys/class/gpio/gpio%d/value", gpio);
+	sprintf(buf, GPIO_VALUE, gpio);
 
 	/* open gpio sysfs */
 	fd = open(buf, O_RDWR);
@@ -66,7 +67,7 @@ int gpio_set_value(const int gpio, const int value)
 		return -1;
 	}
 
-	sprintf(buf, "/sys/class/gpio/gpio%d/value", gpio);
+	sprintf(buf, GPIO_VALUE, gpio);
 
 	fd = open(buf, O_RDWR);
 	if(fd < 0) {
@@ -96,7 +97,7 @@ int gpio_set_direction(const int gpio, gpioDirection_t direction)
 		return -1;
 	}
 
-	sprintf(buf, "/sys/class/gpio/gpio%d/direction", gpio);
+	sprintf(buf, GPIO_DIRECTION, gpio);
 
 	fd = open(buf, O_RDWR);
 	if(fd < 0) {
@@ -132,10 +133,10 @@ int init_gpioinput_module(const char* gpio_list)
 
 	g_gpioinput_module_stat = 0;
 
-	if (tools_check_exist_file("/system/bin/gpio_input_keys.ko", 2) < 0)
+	if (tools_check_exist_file(INPUT_KEY_MODULE_NAME, 2) < 0)
 		return -1;
 
-	sprintf(cmd,"/sbin/insmod /system/bin/gpio_input_keys.ko set_gpio=%s &",gpio_list);
+	sprintf(cmd,"%s %s set_gpio=%s &",INSMODE_CMD, INPUT_KEY_MODULE_NAME, gpio_list);
 
 	while( max_retry-- > 0 )
 	{

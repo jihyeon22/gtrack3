@@ -4,7 +4,6 @@
 #include <execinfo.h>
 #include <signal.h>
 
-#define CALLSTACK_LOG_PATH "/data/mds/log/abort.log"
 #define SIZE_STACKDUMP 100*1024
 
 typedef struct _sig_ucontext {

@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include <board/board_system.h>
 #include "stackdump.h"
 
 unsigned int get_log_file_size(void);

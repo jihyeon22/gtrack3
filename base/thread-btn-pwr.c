@@ -8,6 +8,7 @@ typedef unsigned long kernel_ulong_t;
 #include <string.h>
 #include <errno.h>
 
+#include <board/board_system.h>
 #include <base/config.h>
 #include <at/at_util.h>
 #include <base/devel.h>
@@ -523,7 +524,7 @@ void *thread_btn_pwr(void *args)
 
 	btn_1_push_time = btn_2_push_time = tools_get_kerneltime();
 
-	fd_evt[0] = open("/dev/input/event0", O_RDONLY | O_NONBLOCK);
+	fd_evt[0] = open(EVENT0_DEV_NAME, O_RDONLY | O_NONBLOCK);
 	if(fd_evt[0] < 0) {
 		LOGE(LOG_TARGET, "%s(): open() error\n", __func__);
 		error_critical(eERROR_REBOOT, "thread_btn_pwr open Error");
@@ -532,7 +533,7 @@ void *thread_btn_pwr(void *args)
 #ifdef USE_EXTGPIO_EVT
 	if (get_gpioinput_module_stat() == 1)
 	{
-		fd_evt[1] = open("/dev/input/event1", O_RDONLY | O_NONBLOCK);
+		fd_evt[1] = open(EVENT1_DEV_NAME, O_RDONLY | O_NONBLOCK);
 		if(fd_evt[1] < 0) {
 			LOGE(LOG_TARGET, "%s(): open() error\n", __func__);
 			error_critical(eERROR_REBOOT, "thread_btn_pwr open Error");

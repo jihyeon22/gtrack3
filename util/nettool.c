@@ -18,6 +18,7 @@
 #include <pthread.h>
 
 #include <include/defines.h>
+#include <board/board_system.h>
 #include <util/validation.h>
 #include <util/tools.h>
 #include <base/devel.h>

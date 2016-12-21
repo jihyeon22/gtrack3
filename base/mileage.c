@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <time.h>
 
+#include <board/board_system.h>
 #include <base/config.h>
 #include <board/crit-data.h>
 #include <util/storage.h>

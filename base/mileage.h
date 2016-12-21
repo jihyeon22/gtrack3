@@ -3,7 +3,6 @@
 
 #include <base/gpstool.h>
 
-#define MILEAGE_PATH "/data/mileage.dat"
 #define MILEAGE_CHECK_INTERVAL_SECS 10
 
 typedef struct mileageData mileageData_t;

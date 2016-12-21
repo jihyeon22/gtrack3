@@ -5,22 +5,22 @@ run_retry=10
 check_process_interval=60
 
 [program_0]
-path=/data/mds/system/bin
-name=dlpkg2
+path=/system/mds/system/bin
+name=dlpkg3
 command_argc=0
 make_deamon=no
 check_process=no
 
 [program_1]
-path=/data/mds/system/bin
-name=gtrack2
+path=/system/mds/system/bin
+name=gtrack3
 command_argc=0
 make_deamon=no
 check_process=yes
 
 [program_2]
-path=/data/mds/system/bin
-name=wdprog2
+path=/system/mds/system/bin
+name=wdprog3
 command_argc=0
 make_deamon=no
 check_process=no

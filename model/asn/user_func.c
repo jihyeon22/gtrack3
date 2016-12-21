@@ -3,6 +3,7 @@
 #include <string.h>
 #include <errno.h>
 
+#include <board/board_system.h>
 #include <base/config.h>
 #ifdef USE_GPS_MODEL
 #include <base/gpstool.h>
@@ -32,7 +33,7 @@
 
 
 #define UART_BUFFER_MAX_SIZE	(1024*1024)
-static char *g_uart_dev_name = "/dev/ttyHSL2";
+static char *g_uart_dev_name = UART0_DEV_NAME;
 static int g_uart_br = 57600;
 static char g_phone_number[20] = {0, };
 static int g_uart_buffer_idx = 0;
@@ -239,4 +240,7 @@ void dump_data(char *debug_title, unsigned char *data, int data_len)
 		printf("%s\n", dump_buf);
 		LOGI(eSVC_MODEL, "%s\n", dump_buf);
 	}
+
+	//if(data[0] == '7' && data[1] == '4')
+	//	dmmgr_send(eEVENT_LOG, "Alive", 0);
 }

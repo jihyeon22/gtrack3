@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-
+#include <board/board_system.h>
 #include <at/at_util.h>
 #include <base/config.h>
 #ifdef USE_GPS_MODEL
