@@ -1,0 +1,7 @@
+[user]
+model_name=asn
+date=161116
+report_ip=118.32.191.131
+report_port=14300
+HUBID=00000000
+NetNotUseWarnTime=10800

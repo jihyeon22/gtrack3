@@ -1,0 +1,176 @@
+#1/bin/bash
+DESTDIR=PACKAGE
+OUTDIR=$1/system
+DATE=`date +%H%M%S`
+
+type_package_input(){
+	echo -e "Select package type. 1-OLDDM 2-NEWDM)"
+	read TYPE_PACKAGE
+	case $TYPE_PACKAGE in
+		1)
+			echo Select old dm.
+		;;
+		2)
+			echo Select new dm.
+		;;
+		*)
+			echo select error.
+			exit
+		;;
+	esac
+}
+
+corp_input() {
+        echo -e "Coporation = (mds, asn...) "
+        read CORPMODEL
+        case $CORPMODEL in
+                mds)
+                        CORPMODEL="mds"
+                        CORPABBR="MDS"
+                ;;
+		asn)
+                        CORPMODEL="asn"
+                        CORPABBR="ASN"
+                ;;
+                *)
+                        echo  $CORPMODEL invalid
+                        exit
+                ;;
+
+        esac
+}
+
+version_check() {
+  if [ -z $VER ]; then
+  	VER=00.01
+  fi
+}
+
+version_input() {
+	echo -e "Version = (default 00.01)"
+	read VER
+	version_check
+}
+
+modem_input() {
+	echo -e "Modem Model = (tx500s, tx500k, tx500l) "
+	read MODEMABBRMODEL
+	case $MODEMABBRMODEL in
+		tx500s)
+			MODEMABBRMODEL="tx500s"
+			MODEMABBR="TX500S"
+		;;
+		tx500k)
+			MODEMABBRMODEL="tx500k"
+			MODEMABBR="TX500K"
+		;;
+		tx500l)
+			MODEMABBRMODEL="TX500L"
+			MODEMABBR="TX500L"
+		;;
+		*)
+			echo DEVICE_MODEL $MODEMABBRMODEL invalid
+			exit
+		;;
+
+	esac
+}
+
+server_input() {
+	echo -e "Server Model = (skel,asn...)"
+	echo -e "               (if sub model, sub model name have to input)"
+	read SRVMODEL
+	case $SRVMODEL in
+		skel)
+			SRVMODEL="skel"
+			SERVABBR="SKEL"
+		;;
+		asn)
+			SRVMODEL="asn"
+			SERVABBR="ASN"
+		;;
+		*)
+			echo SERVER_MODEL $SRVMODEL invalid
+			exit
+		;;
+
+	esac
+}
+
+make_package() {
+	echo "$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER 업데이트 패키지 이미지 생성중입니다."
+	echo $OUTDIR
+
+	if [ ! -d $OUTDIR/$VER ]; then
+		echo "====================================================================="
+		echo "Error!!! Build first $VER application before running make_package."
+		echo "====================================================================="
+		exit
+	fi
+
+	if [ ! -d $DESTDIR/system ]; then mkdir -p $DESTDIR/system
+	fi
+	
+	if [ $TYPE_PACKAGE == "2" ]; then
+		mkdir -p $DESTDIR/system/NEW
+		echo new dm!!
+		cp $OUTDIR/$VER/* $DESTDIR/system/NEW -a
+	else
+		cp $OUTDIR/$VER $DESTDIR/system -a
+	fi
+	
+
+	if [ "$FWF"  != "0" ]; then 
+		echo "====================================================================="
+		echo "예외적인 패키지 생성은 work/app/expkg 아래 파일을 Copy해 넣으면 된다."
+		echo "예를 들어 sbin에 webdm를 업데이트하려면..."
+		echo "work/app/expkg 아래 sbin 폴더 생성 후 webdm을 복사해 놓으면 된다."
+		echo "====================================================================="
+		read 
+		cp -r work/app/expkg/* $DESTDIR/system/
+		#cp -r work/app/dtgfw/taco_update $DESTDIR/system/
+		#touch $DESTDIR/system/$VER/emergency_flag
+	fi
+
+	if [ $TYPE_PACKAGE == "2" ]; then
+		cd $DESTDIR/system/NEW
+	else
+		cd $DESTDIR/system/$VER
+	fi	
+
+	ls | xargs -I {} -t sh -c "md5sum {} > {}.md5"
+	cd ../..
+
+##### tx500 의 경우 data/mds 밑에 있어야한다.
+	mkdir -p data/mds
+	mv system data/mds/
+###############################################
+	tar -czf PACKAGE.$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER.tgz data
+	md5sum PACKAGE.$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER.tgz > PACKAGE.$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER.tgz.md5
+	rm -vrf data/*
+	cd ..
+
+
+#	cat $OUTDIR/$VER/PACKAGE
+#	echo "패키지 파일 생성이 완료되었습니다."
+}
+
+do_make_package() {
+	type_package_input
+	corp_input
+	version_input
+	modem_input
+	server_input
+	make_package
+}
+
+echo "Gtrack Package...."
+echo "DESTDIR=$DESTDIR"
+if [ -d $DESTDIR ]; then mv $DESTDIR $DESTDIR.$DATE 
+fi
+do_make_package
+rm -vrf $DESTDIR/system
+tree $DESTDIR
+
+
+
