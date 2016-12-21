@@ -311,8 +311,8 @@ int main(int argc, char** argv)
 		error_critical(eERROR_EXIT, "sender_init Error");
 	}
 
-	//at_open(e_DEV_TX500, NULL, NULL, NULL);
-	//at_open(e_DEV_TX500, NULL, NULL, "console");
+	//at_open(e_DEV_TX501_BASE, NULL, NULL, NULL);
+	//at_open(e_DEV_TX501_BASE, NULL, NULL, "console");
 	at_open(e_DEV_TX501_BASE, NULL, sms_proc, "console");
 	
 

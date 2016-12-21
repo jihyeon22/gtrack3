@@ -55,8 +55,8 @@ USE_BUTTON_THREAD=y
 # ************************************
 
 ## MODEM CFG #####################
-ifeq ($(BOARD),TX500S)
-MODEM := TX500S
+ifeq ($(BOARD),TX501S)
+MODEM := TX501S
 USE_GPS_MODEL=n
 USE_BUTTON_THREAD=n
 else

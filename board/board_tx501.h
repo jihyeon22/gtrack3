@@ -26,7 +26,7 @@
 #define ALIVE_NOTIFIER_DEV_NUM			255
 #define ALIVE_NOTIFIER_DEV_NAME			"/dev/alive"
 #define MDS_DEVICE_UTIL_MAJOR_NUMBER	255
-#define ALIVE_END_CMD					CONCAT_STR(SYSTEM_DIR, "/sbin/alive.notifier end &")
+#define ALIVE_END_CMD					CONCAT_STR(SYSTEM_DIR, "/sbin/alive2.notifier end &")
 
 #define LOG_PWR_PATH					CONCAT_STR(SYSTEM_DIR, "/log/power.log")
 #define LOG_ERR_PATH					CONCAT_STR(SYSTEM_DIR, "/log/error.log")

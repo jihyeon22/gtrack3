@@ -10,13 +10,13 @@
 
 int power_get_ignition_status(void)
 {
-	// tx500 is always..
+	// tx501 is always..
 	return POWER_IGNITION_ON;
 }
 
 int power_get_power_source(void)
 {
-	// tx500 is always..
+	// tx501 is always..
 	return POWER_SRC_DC;
 
 }

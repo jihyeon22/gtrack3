@@ -23,7 +23,7 @@ int gpio_get_value(const int gpio)
 	char status[2] = {0};
 	char buf[32] = {0};
 
-	// TODO : TX500 is not gpio support
+	// TODO : TX501 is not gpio support
 	if (gpio == GPIO_SRC_NUM_IGNITION)
 		return 0;
 	if (gpio == GPIO_SRC_NUM_POWER)

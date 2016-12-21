@@ -53,20 +53,20 @@ version_input() {
 }
 
 modem_input() {
-	echo -e "Modem Model = (tx500s, tx500k, tx500l) "
+	echo -e "Modem Model = (tx501s, tx501k, tx501l) "
 	read MODEMABBRMODEL
 	case $MODEMABBRMODEL in
-		tx500s)
-			MODEMABBRMODEL="tx500s"
-			MODEMABBR="TX500S"
+		tx501s)
+			MODEMABBRMODEL="tx501s"
+			MODEMABBR="TX501S"
 		;;
-		tx500k)
-			MODEMABBRMODEL="tx500k"
-			MODEMABBR="TX500K"
+		tx501k)
+			MODEMABBRMODEL="tx501k"
+			MODEMABBR="TX501K"
 		;;
-		tx500l)
-			MODEMABBRMODEL="TX500L"
-			MODEMABBR="TX500L"
+		tx501l)
+			MODEMABBRMODEL="TX501L"
+			MODEMABBR="TX501L"
 		;;
 		*)
 			echo DEVICE_MODEL $MODEMABBRMODEL invalid
@@ -141,13 +141,13 @@ make_package() {
 	ls | xargs -I {} -t sh -c "md5sum {} > {}.md5"
 	cd ../..
 
-##### tx500 의 경우 data/mds 밑에 있어야한다.
-	mkdir -p data/mds
-	mv system data/mds/
+##### tx501 의 경우 system/mds 밑에 있어야한다.
+	mkdir -p system/mds
+	mv system system/mds/
 ###############################################
-	tar -czf PACKAGE.$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER.tgz data
+	tar -czf PACKAGE.$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER.tgz system
 	md5sum PACKAGE.$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER.tgz > PACKAGE.$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER.tgz.md5
-	rm -vrf data/*
+	rm -vrf system/*
 	cd ..
 
 
