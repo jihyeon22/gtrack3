@@ -3,7 +3,7 @@
 
 SRCROOT := $(PWD)
 DESTDIR := $(SRCROOT)/out
-BASE_DIR := /system/mds/system 
+BASE_DIR := /system/mds/system
 BINDIR	:= $(BASE_DIR)/bin
 USER_DATA_DIR := /data/mds/data
 
