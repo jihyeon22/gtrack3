@@ -99,7 +99,10 @@ server_input() {
 
 make_package() {
 	echo "$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER 업데이트 패키지 이미지 생성중입니다."
-	echo $OUTDIR
+
+	echo " - pwd :: ${PWD}"
+	echo " - output dir :: $OUTDIR"
+	echo " - dest dir :: $DESTDIR"
 
 	if [ ! -d $OUTDIR/$VER ]; then
 		echo "====================================================================="
@@ -142,8 +145,9 @@ make_package() {
 	cd ../..
 
 ##### tx501 의 경우 system/mds 밑에 있어야한다.
-	mkdir -p system/mds
-	mv system system/mds/
+	mv system tmp
+	mkdir -p system/mds/
+	mv tmp system/mds/system/
 ###############################################
 	tar -czf PACKAGE.$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER.tgz system
 	md5sum PACKAGE.$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER.tgz > PACKAGE.$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER.tgz.md5
