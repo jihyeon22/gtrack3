@@ -19,7 +19,7 @@
 #include <config.h>
 
 #include <dm/dm.h>
-
+#include <base/error.h>
 // ----------------------------------------
 //  LOGD Target
 // ----------------------------------------
@@ -109,6 +109,7 @@ void devel_log_poweroff(const char *log, const int log_len)
 
 	snprintf(buff, sizeof(buff)-1, "%.63s%.120s\n", buff_date, log);
 
-	tools_write_data(LOG_PWR_PATH, (unsigned char *)buff, strlen(buff), true);
+	//tools_write_data(LOG_PWR_PATH, (unsigned char *)buff, strlen(buff), true);
+	insert_log_msg(LOG_PWR_PATH, buff, LOG_ERR_MAX_COUNT);
 }
 
