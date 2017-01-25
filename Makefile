@@ -79,6 +79,8 @@ else ifeq ($(SERVER),asn)
 SERVER_ABBR := ASN
 else ifeq ($(SERVER),mds)
 SERVER_ABBR := MDS
+else ifeq ($(SERVER),cl-temp)
+SERVER_ABBR := CLT
 else
 $(error SERVER is not registerd in Makefile, please input registred server)
 endif
@@ -91,6 +93,8 @@ ifeq ($(CORP),mds)
 CORP_ABBR := MDS
 else ifeq ($(CORP),asn)
 CORP_ABBR := ASN
+else ifeq ($(CORP),cl)
+CORP_ABBR := CL
 else ifeq ($(CORP),corp)
 CORP_ABBR := CORP
 else
@@ -147,6 +151,7 @@ CFLAGS  += -DMDS_FEATURE_USE_NMEA_UDP_IPC
 OBJS	:= base/config.o base/main.o base/sender.o 
 OBJS	+= base/thread-network.o base/devel.o base/error.o base/thread.o base/dmmgr.o base/watchdog.o
 OBJS	+= board/gpio.o board/power.o board/led.o board/battery.o board/uart.o board/modem-time.o board/app-ver.o board/crit-data.o
+OBJS	+= board/rfidtool.o board/thermometer.o
 OBJS	+= util/stackdump.o util/list.o util/debug.o util/poweroff.o util/pipe.o
 OBJS	+= util/nettool.o util/tools.o util/transfer.o util/validation.o util/crc16.o util/storage.o
 
