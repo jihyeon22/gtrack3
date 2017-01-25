@@ -313,7 +313,7 @@ int main(int argc, char** argv)
 
 	//at_open(e_DEV_TX501_BASE, NULL, NULL, NULL);
 	//at_open(e_DEV_TX501_BASE, NULL, NULL, "console");
-	at_open(e_DEV_TX501_BASE, NULL, sms_proc, "console");
+	at_open(AT_LIB_TARGET_DEV, NULL, sms_proc, "console");
 	
 
 	//at_start();

@@ -25,6 +25,9 @@
 
 #include <netcom.h>
 
+#include <board/board_system.h>
+#include <mdsapi/mds_api.h>
+
 // ----------------------------------------
 //  LOGD Target
 // ----------------------------------------
@@ -34,8 +37,11 @@
 
 static int _check_gps_data(gpsData_t *gpsdata);
 
+#ifdef MDS_FEATURE_USE_NMEA_PORT
 int gps_fd = GPS_INVALID_HANDLE;
 char gps_dev_file[32] = GPS_DEV_FILE;
+#endif // MDS_FEATURE_USE_NMEA_PORT
+
 
 int gps_dbg_msg_count = 0;
 int g_skip_gps_when_error = 0;
@@ -63,65 +69,32 @@ pthread_mutex_t gps_last_mutex = PTHREAD_MUTEX_INITIALIZER;
 // ----------------------------------------------------------
 int gps_addr_agps()
 {
-#ifdef BOARD_NEO_W200K
-	char buf[255] = {0};
-	int n_try = 3;
-	
-	at_get_agps(buf, sizeof(buf));
-	printf("cur addr : %s\n", buf);
-	if(strcmp(buf, "supl.google.com:7276") == 0)
-	{
-		printf("addr is same\n");
-		return 0;
-	}
-	
-	while(n_try-- > 0)
-	{
-		printf("set new agps\n");
-		at_set_agps("supl.google.com:7276");
-		
-		memset(buf, 0, sizeof(buf));
-		at_get_agps(buf, sizeof(buf));
-		
-		if(strcmp(buf, "supl.google.com:7276") == 0)
-		{
-			printf("setting addr is success!\n");
-			break;
-		}
-		
-		sleep(1);
-	}
-	
-	if(n_try < 0)
-	{
-		return -1;
-	}
-#endif
-	
+	// no support 
 	return 0;
 }
 
 void gps_on(int type) {
-	if(gps_addr_agps() < 0)
-	{
-		at_gps_on(GPS_TYPE_SGPS, GPS_BOOT_WARM);
-		return;
-	}
 
-	at_gps_on(type, GPS_BOOT_WARM);
+	if ( type == GPS_BOOT_WARM )
+		gpsd_start(MDS_API_GPS_TOOLS__TYPE_WARM);
+
+	if ( type == GPS_BOOT_COLD )
+		gpsd_start(MDS_API_GPS_TOOLS__TYPE_COLD);
 }
 
 void gps_reset(int type)
 {
-	at_gps_off();
-	gps_clear(gps_fd);
-	at_gps_on(type, GPS_BOOT_COLD);	
+	if ( type == GPS_BOOT_WARM)
+		gpsd_reset(MDS_API_GPS_TOOLS__TYPE_WARM);
+	if ( type == GPS_BOOT_COLD)
+		gpsd_reset(MDS_API_GPS_TOOLS__TYPE_COLD);
 }
 
 void gps_off() {
-	at_gps_off();
+	gpsd_stop();
 }
 
+#ifdef MDS_FEATURE_USE_NMEA_PORT
 void gps_clear(int fd) {
 	char buf[100] = {0};
 	int stime = tools_get_kerneltime();
@@ -155,6 +128,7 @@ void gps_clear(int fd) {
 		}
 	}
 }
+#endif
 
 int gps_set_pipe_for_emul(void)
 {
@@ -163,9 +137,10 @@ int gps_set_pipe_for_emul(void)
 		return -1;
 	}
 
+#ifdef MDS_FEATURE_USE_NMEA_PORT
 	flag_gps_pipe_emul = 1;
 	snprintf(gps_dev_file, sizeof(gps_dev_file)-1, "%s", GPS_PIPE_PATH);
-	
+#endif
 	return 0;
 }
 
@@ -1030,7 +1005,7 @@ int gps_start_utc_adjust(void)
 	if(time_utc == 0)
 	{
 		LOGT(LOG_TARGET, "modem utc fail\n");
-		if(at_get_modemtime(&time_utc) < 0)
+		if(at_get_modemtime(&time_utc,0) < 0)
 		{
 			error_critical(eERROR_LOG, "get modem time error");
 			return -1;

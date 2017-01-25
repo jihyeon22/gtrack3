@@ -6,7 +6,6 @@
 #define GPS_PARSE_FALSE -1
 #define GPS_PARSE_TRUE  0
 
-#define GPS_DEV_FILE	"/dev/nmea"
 #define GPS_MAX_BUFF_SIZE	2048
 
 #define GPS_INVALID_HANDLE		(0xFFABCDEF)

@@ -1,12 +1,7 @@
 #ifndef __BOARD_GPIO_H__
 #define __BOARD_GPIO_H__
 
-typedef enum gpioDirection gpioDirection_t;
-enum gpioDirection
-{
-	eGpioInput = 0,
-	eGpioOutput
-};
+#include <mdsapi/mds_api.h>
 
 int gpio_get_value(const int gpio);
 int gpio_set_value(const int gpio, const int value);

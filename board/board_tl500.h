@@ -6,8 +6,8 @@
 #define USER_DATA_DIR					"/data/mds/data"
 #define GPIO_ROOT_DIR					"/sys/class/gpio"
 #define NETTOOL_NETIF					"rmnet_data0"
-#define EVENT0_DEV_NAME					"/dev/input/event0"
-#define EVENT1_DEV_NAME					"/dev/input/event1"
+#define EVENT0_DEV_NAME					"/dev/input/event1"
+// #define EVENT1_DEV_NAME					"/dev/input/event1" // external gpio input dev is not support yet.
 
 #define UART0_DEV_NAME					"/dev/ttyHSL2"
 #define UART1_DEV_NAME					"/dev/ttyHSL2"
@@ -17,11 +17,16 @@
 #define GPIO_DIRECTION					CONCAT_STR(GPIO_ROOT_DIR, "/gpio%d/direction")
 
 
-#define GPIO_NO_MIN						1
+#define GPIO_NO_MIN						9
 #define GPIO_NO_MAX						66
-#define GPIO_SRC_NUM_POWER				6
-#define GPIO_SRC_NUM_IGNITION			30
 
+#define GPIO_SRC_NUM_POWER				6
+#define POWER_SRC_DC				(1)
+#define POWER_SRC_BATTERY			(0)
+
+#define GPIO_SRC_NUM_IGNITION			30
+#define POWER_IGNITION_ON		(0)
+#define POWER_IGNITION_OFF		(1)
 
 #define ALIVE_NOTIFIER_DEV_NUM			255
 #define ALIVE_NOTIFIER_DEV_NAME			"/dev/alive"
@@ -42,14 +47,18 @@
 	#define INSMODE_CMD					"/sbin/insmod"
 #endif
 
+
 #define AT_LIB_TARGET_DEV   e_DEV_TX501_BASE
 
-#define LED_ROOT_DIR				"/sys/class/leds"
-#define LED_ROOT_PROC_TRIGER		CONCAT_STR(LED_ROOT_DIR, "/neow200::%s/trigger")
-#define LED_ROOT_PROC_DELAY_ON		CONCAT_STR(LED_ROOT_DIR, "/neow200::%s/delay_on")
-#define LED_ROOT_PROC_DELAY_OFF		CONCAT_STR(LED_ROOT_DIR, "/neow200::%s/delay_off")
-#define LED_ROOT_PROC_COLOR			CONCAT_STR(LED_ROOT_DIR, "/neow200::%s/color")
-#define LED_ROOT_PROC_BRIGHTNESS	CONCAT_STR(LED_ROOT_DIR, "/neow200::%s/brightness")
-// TODO :: check..
-#define LED_ROOT_PROC_MANAGE		CONCAT_STR(LED_ROOT_DIR, "/neow200::%s/manage")
+#define LED_NAME_PWR	"power"
+#define LED_NAME_WCDMA	"wcdma"
+#define LED_NAME_GPS	"gps"
+
+#define LED_COLOR_GREEN		"green"
+#define LED_COLOR_RED		"red"
+#define LED_COLOR_YELLO		"yellow"
+#define LED_COLOR_BLUE		"blue"
+#define LED_COLOR_MAGENTA	"magenta"
+#define LED_COLOR_CYAN		"cyan"
+#define LED_COLOR_WHITE		"white"
 

@@ -67,7 +67,7 @@ void _check_btn_pwr_event(const struct input_event ev_input)
 	wd_dbg[eWdPwr] = 21;
 	
 	time_t cur_time = 0;
-	if(ev_input.type == 0x01 && ev_input.code == 0x1de && ev_input.value == 0x01)
+	if(ev_input.type == 0x01 && ev_input.code == 0x1d3 && ev_input.value == 0x01)
 	{
 		wd_dbg[eWdPwr] = 22;
 		int hold_time;
@@ -99,7 +99,7 @@ void _check_btn_pwr_event(const struct input_event ev_input)
 		}
 	}
 
-	else if(ev_input.type == 0x01 && ev_input.code == 0x1df && ev_input.value == 0x01)
+	else if(ev_input.type == 0x01 && ev_input.code == 0x1d2 && ev_input.value == 0x01)
 	{
 		wd_dbg[eWdPwr] = 25;
 		int hold_time;
@@ -128,104 +128,6 @@ void _check_btn_pwr_event(const struct input_event ev_input)
 #endif
 		}
 	}
-#ifdef USE_EXTGPIO_EVT
-	else if(ev_input.type == 0x01 && ev_input.code == 0x1d2 && ev_input.value == 0x01)
-	{
-		int hold_time;
-		cur_time = tools_get_kerneltime();
-		hold_time = (int)round(difftime(cur_time, btn_2_push_time));
-		if(hold_time > BTN_HOLD_SECS)
-		{
-			LOGT(LOG_TARGET, " press button ext1 on!! [%d]sec\r\n", hold_time);
-			btn_2_push_time = tools_get_kerneltime();
-			led_noti(eLedcmd_KEY_NOTI);
-			key_led_start = tools_get_kerneltime();
-			key_led_noti = 1;
-
-			button_ext1_callback();
-		}
-	}
-	else if(ev_input.type == 0x01 && ev_input.code == 0x1d3 && ev_input.value == 0x01)
-	{
-		int hold_time;
-		cur_time = tools_get_kerneltime();
-		hold_time = (int)round(difftime(cur_time, btn_2_push_time));
-		if(hold_time > BTN_HOLD_SECS)
-		{
-			LOGT(LOG_TARGET, " press button ext2 on!! [%d]sec\r\n", hold_time);
-			btn_2_push_time = tools_get_kerneltime();
-			led_noti(eLedcmd_KEY_NOTI);
-			key_led_start = tools_get_kerneltime();
-			key_led_noti = 1;
-
-			button_ext2_callback();
-		}
-	}
-	else if(ev_input.type == 0x01 && ev_input.code == 0x1e0 && ev_input.value == 0x01)
-	{
-		int hold_time;
-		cur_time = tools_get_kerneltime();
-		hold_time = (int)round(difftime(cur_time, btn_2_push_time));
-		if(hold_time > BTN_HOLD_SECS)
-		{
-			LOGT(LOG_TARGET, " press button ext3 on!! [%d]sec\r\n", hold_time);
-			btn_2_push_time = tools_get_kerneltime();
-			led_noti(eLedcmd_KEY_NOTI);
-			key_led_start = tools_get_kerneltime();
-			key_led_noti = 1;
-
-			button_ext3_callback();
-		}
-	}
-	else if(ev_input.type == 0x01 && ev_input.code == 0x1e1 && ev_input.value == 0x01)
-	{
-		int hold_time;
-		cur_time = tools_get_kerneltime();
-		hold_time = (int)round(difftime(cur_time, btn_2_push_time));
-		if(hold_time > BTN_HOLD_SECS)
-		{
-			LOGT(LOG_TARGET, " press button ext4 on!! [%d]sec\r\n", hold_time);
-			btn_2_push_time = tools_get_kerneltime();
-			led_noti(eLedcmd_KEY_NOTI);
-			key_led_start = tools_get_kerneltime();
-			key_led_noti = 1;
-
-			button_ext4_callback();
-		}
-	}
-	else if(ev_input.type == 0x01 && ev_input.code == 0x1e2 && ev_input.value == 0x01)
-	{
-		int hold_time;
-		cur_time = tools_get_kerneltime();
-		hold_time = (int)round(difftime(cur_time, btn_2_push_time));
-		if(hold_time > BTN_HOLD_SECS)
-		{
-			LOGT(LOG_TARGET, " press button ext5 on!! [%d]sec\r\n", hold_time);
-			btn_2_push_time = tools_get_kerneltime();
-			led_noti(eLedcmd_KEY_NOTI);
-			key_led_start = tools_get_kerneltime();
-			key_led_noti = 1;
-
-			button_ext5_callback();
-		}
-	}
-	else if(ev_input.type == 0x01 && ev_input.code == 0x1e3 && ev_input.value == 0x01)
-	{
-		int hold_time;
-		cur_time = tools_get_kerneltime();
-		hold_time = (int)round(difftime(cur_time, btn_2_push_time));
-		if(hold_time > BTN_HOLD_SECS)
-		{
-			LOGT(LOG_TARGET, " press button ext6 on!! [%d]sec\r\n", hold_time);
-			btn_2_push_time = tools_get_kerneltime();
-			led_noti(eLedcmd_KEY_NOTI);
-			key_led_start = tools_get_kerneltime();
-			key_led_noti = 1;
-
-			button_ext6_callback();
-		}
-	}
-#endif
 	else if(ev_input.type == 0x16)
 	{
 		wd_dbg[eWdPwr] = 28;
@@ -459,8 +361,8 @@ void _check_pwr_onoff(void)
 
 void *thread_btn_pwr(void *args)
 {
-	int fd_evt[2] = {0,};
-	int fd_cnt = 0;
+	int fd_evt = 0;
+//	int fd_cnt = 0;
 	int rc;
 	fd_set  readSet;
 	struct  timeval tv;
@@ -506,9 +408,6 @@ void *thread_btn_pwr(void *args)
 			
 			time_pwr_hold_time = tools_get_kerneltime();
 			pwr_on = POWER_SRC_BATTERY;
-#if defined (BOARD_NEO_W200K) && defined (KT_FOTA_ENABLE)
-			kt_fota_deinit();
-#endif
 			dmmgr_send(eEVENT_PWR_OFF, NULL, 0);
 			power_off_callback();
 		}
@@ -524,40 +423,18 @@ void *thread_btn_pwr(void *args)
 
 	btn_1_push_time = btn_2_push_time = tools_get_kerneltime();
 
-	fd_evt[0] = open(EVENT0_DEV_NAME, O_RDONLY | O_NONBLOCK);
-	if(fd_evt[0] < 0) {
+	fd_evt = open(EVENT0_DEV_NAME, O_RDONLY | O_NONBLOCK);
+	if(fd_evt < 0) {
 		LOGE(LOG_TARGET, "%s(): open() error\n", __func__);
 		error_critical(eERROR_REBOOT, "thread_btn_pwr open Error");
 	}
 
-#ifdef USE_EXTGPIO_EVT
-	if (get_gpioinput_module_stat() == 1)
-	{
-		fd_evt[1] = open(EVENT1_DEV_NAME, O_RDONLY | O_NONBLOCK);
-		if(fd_evt[1] < 0) {
-			LOGE(LOG_TARGET, "%s(): open() error\n", __func__);
-			error_critical(eERROR_REBOOT, "thread_btn_pwr open Error");
-		}
-
-		// for select()
-		fd_cnt ++;
-	}
-
-#endif
 	int val;
 
-	val = fcntl(fd_evt[0], F_GETFD, 0);
+	val = fcntl(fd_evt, F_GETFD, 0);
 	val |= FD_CLOEXEC;
-	fcntl(fd_evt[0], F_SETFD, val);
+	fcntl(fd_evt, F_SETFD, val);
 
-#ifdef USE_EXTGPIO_EVT
-	if (get_gpioinput_module_stat() == 1)
-	{
-		val = fcntl(fd_evt[1], F_GETFD, 0);
-		val |= FD_CLOEXEC;
-		fcntl(fd_evt[1], F_SETFD, val);
-	}
-#endif
 
 	while(flag_run_thread_btn_pwr)
 	{
@@ -567,18 +444,13 @@ void *thread_btn_pwr(void *args)
 		watchdog_process();
 		
 		FD_ZERO(&readSet);
-		FD_SET(fd_evt[0], &readSet);
-#ifdef USE_EXTGPIO_EVT
-		if (get_gpioinput_module_stat() == 1)
-		{
-			FD_SET(fd_evt[1], &readSet);
-		}
-#endif
+		FD_SET(fd_evt, &readSet);
+
 		tv.tv_sec = DEV_BTN_TIMEOUT_SEC;
 		tv.tv_usec = 0;
 		
 		wd_dbg[eWdPwr] = 2;
-		rc = select(fd_evt[fd_cnt] + 1, &readSet, NULL, NULL, &tv);
+		rc = select(fd_evt + 1 , &readSet, NULL, NULL, &tv);
 
 		wd_dbg[eWdPwr] = 3;
 		if(rc < 0)
@@ -599,10 +471,10 @@ void *thread_btn_pwr(void *args)
 			int chk_fd = 0;
 
 			wd_dbg[eWdPwr] = 7;
-			if( FD_ISSET(fd_evt[0], &readSet) )
+			if( FD_ISSET(fd_evt, &readSet) )
 			{
 				wd_dbg[eWdPwr] = 8;
-				if(read(fd_evt[0], &ev_input, sizeof(ev_input)) == sizeof(ev_input))
+				if(read(fd_evt, &ev_input, sizeof(ev_input)) == sizeof(ev_input))
 				{
 					wd_dbg[eWdPwr] = 9;
 					LOGI(LOG_TARGET, "type: 0x%x, code: 0x%x, value: 0x%x\n", ev_input.type, ev_input.code, ev_input.value);
@@ -613,23 +485,7 @@ void *thread_btn_pwr(void *args)
 
 			}
 			wd_dbg[eWdPwr] = 10;
-#ifdef USE_EXTGPIO_EVT
-			if (get_gpioinput_module_stat() == 1)
-			{
-				wd_dbg[eWdPwr] = 11;
-				if(FD_ISSET(fd_evt[1], &readSet))
-				{
-					wd_dbg[eWdPwr] = 12;
-					if(read(fd_evt[1], &ev_input, sizeof(ev_input)) == sizeof(ev_input))
-					{
-						wd_dbg[eWdPwr] = 13;
-						LOGI(LOG_TARGET, "type: 0x%x, code: 0x%x, value: 0x%x\n", ev_input.type, ev_input.code, ev_input.value);
-						_check_btn_pwr_event(ev_input);
-					}
-				}
-				chk_fd = 1;
-			}
-#endif
+
 			if (chk_fd == 0)
 			{
 				wd_dbg[eWdPwr] = 14;
@@ -647,11 +503,9 @@ void *thread_btn_pwr(void *args)
 	}
 
 	wd_dbg[eWdPwr] = 19;
-	close(fd_evt[0]);
+	close(fd_evt);
 	wd_dbg[eWdPwr] = 20;
-#ifdef USE_EXTGPIO_EVT
-	close(fd_evt[1]);
-#endif
+
 
 	return NULL;
 }

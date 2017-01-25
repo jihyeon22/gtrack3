@@ -59,6 +59,10 @@ ifeq ($(BOARD),TX501S)
 MODEM := TX501S
 USE_GPS_MODEL=n
 USE_BUTTON_THREAD=n
+else ifeq ($(BOARD),TL500S)
+MODEM := TL500S
+USE_GPS_MODEL=y
+USE_BUTTON_THREAD=y
 else
 $(error BOARD is not correct, please define correct BOARD)
 endif
@@ -73,6 +77,8 @@ else ifeq ($(SERVER),app1)
 SERVER_ABBR := APP1
 else ifeq ($(SERVER),asn)
 SERVER_ABBR := ASN
+else ifeq ($(SERVER),mds)
+SERVER_ABBR := MDS
 else
 $(error SERVER is not registerd in Makefile, please input registred server)
 endif
@@ -127,8 +133,10 @@ CFLAGS	+= -DPACKAGE_FILE=\"$(PACKAGE_FILE)\"
 CFLAGS	+= -DBOARD_$(BOARD)
 CFLAGS	+= -DCORP_ABBR_$(CORP_ABBR) -DSERVER_ABBR_$(SERVER_ABBR)
 CFLAGS  += -DUSE_NET_THREAD2
-LIBS	= -lpthread -liniparser -ljansson -lm -lrt -ldm -lcurl -lz -lat3  -llogd -g -rdynamic
+LIBS	= -lpthread -liniparser -ljansson -lm -lrt -ldm -lcurl -lz -lat3  -llogd -g -rdynamic -lmdsapi
 
+
+CFLAGS  += -DMDS_FEATURE_USE_NMEA_UDP_IPC 
 # net-kti model don't use USE_NET_THREAD2 
 #ifeq ($(SERVER_ABBR), NKTI)
 #CFLAGS  :=$(filter-out -DUSE_NET_THREAD2 ,$(CFLAGS))

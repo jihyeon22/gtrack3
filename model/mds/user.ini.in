@@ -1,0 +1,9 @@
+[user]
+model_name=mds
+date=160212
+report_ip=211.253.14.17
+report_port=9282
+collect_interval_keyon = 1
+report_interval_keyon = 60
+collect_interval_keyoff = 600
+report_interval_keyoff = 600
