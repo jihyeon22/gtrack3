@@ -311,7 +311,7 @@ void *thread_gps(void *args)
 		count_wd++;
 
 #ifdef MDS_FEATURE_USE_NMEA_UDP_IPC
-		read_size = gpsd_get_nmea(pbufferin, GPS_MAX_BUFF_SIZE);
+		read_size = mds_api_gpsd_get_nmea(pbufferin, GPS_MAX_BUFF_SIZE);
 		// printf("gps recv udp ipc ::> [%s] [%d]\r\n", pbufferin, read_size);
 
 		if(read_size > 0)

@@ -306,6 +306,9 @@ void _check_pwr_onoff(void)
 			wd_dbg[eWdPwr] = 56;
 			dmmgr_send(eEVENT_PWR_OFF, NULL, 0);
 			wd_dbg[eWdPwr] = 57;
+			// critical data backup. for simulation
+			crit_backup_simul();
+			
 			power_off_callback();
 			wd_dbg[eWdPwr] = 58;
 

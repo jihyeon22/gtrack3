@@ -73,5 +73,6 @@ int crit_set_data_gps_write(float lat, float lon, unsigned int utc_sec);
 int crit_set_data_mileage_detail_write(unsigned int mileage, int lastyear, int lastmon, int lastday, float lastlat, float lastlon);
 int crit_clear_write(void);
 
+void crit_backup_simul(void);
 #endif
 

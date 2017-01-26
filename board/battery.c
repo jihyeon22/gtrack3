@@ -8,6 +8,10 @@
 #include <util/tools.h>
 #include <logd_rpc.h>
 
+
+#include <mdsapi/mds_api.h>
+#include <at/at_util.h>
+
 static int _adjust_battlevel_car(const unsigned char val);
 
 int fd_adc = -1;
@@ -29,13 +33,28 @@ void battery_deinit_adc(void)
 
 int battery_get_battlevel_car(void)
 {
-	return 12000;
+	int batt_volt = 0;
+	if (at_get_adc_main_pwr(&batt_volt) == AT_RET_SUCCESS)
+		return batt_volt*1000;
+	else
+		return 0;
 	//return _adjust_battlevel_car(adc_raw);
 }
 
 int battery_get_battlevel_internal(void)
 {
+#if defined (BOARD_TX501S) || defined (BOARD_TX500S)
 	return 3000;
+#endif
+
+#if defined (BOARD_TL500S)
+	int batt_volt = 0;
+	if ( mds_api_get_internal_batt_tl500(&batt_volt) == DEFINES_MDS_API_OK )
+		return batt_volt*10;
+	else 
+		return 0;
+#endif
+
 }
 
 static int _adjust_battlevel_car(const unsigned char val)

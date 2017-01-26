@@ -76,22 +76,22 @@ int gps_addr_agps()
 void gps_on(int type) {
 
 	if ( type == GPS_BOOT_WARM )
-		gpsd_start(MDS_API_GPS_TOOLS__TYPE_WARM);
+		mds_api_gpsd_start(MDS_API_GPS_TOOLS__TYPE_WARM);
 
 	if ( type == GPS_BOOT_COLD )
-		gpsd_start(MDS_API_GPS_TOOLS__TYPE_COLD);
+		mds_api_gpsd_start(MDS_API_GPS_TOOLS__TYPE_COLD);
 }
 
 void gps_reset(int type)
 {
 	if ( type == GPS_BOOT_WARM)
-		gpsd_reset(MDS_API_GPS_TOOLS__TYPE_WARM);
+		mds_api_gpsd_reset(MDS_API_GPS_TOOLS__TYPE_WARM);
 	if ( type == GPS_BOOT_COLD)
-		gpsd_reset(MDS_API_GPS_TOOLS__TYPE_COLD);
+		mds_api_gpsd_reset(MDS_API_GPS_TOOLS__TYPE_COLD);
 }
 
 void gps_off() {
-	gpsd_stop();
+	mds_api_gpsd_stop();
 }
 
 #ifdef MDS_FEATURE_USE_NMEA_PORT
