@@ -1,7 +1,7 @@
 #pragma once
 
-#define GEO_FENCE_SETUP_DATA_FILE    "/data/geo_fence.dat"
-#define GEO_FENCE_STATUS_FILE	     "/data/geo_fence_status.dat"
+#define GEO_FENCE_SETUP_DATA_FILE    "/data/mds/data/geo_fence.dat"
+#define GEO_FENCE_STATUS_FILE	     "/data/mds/data/geo_fence_status.dat"
 
 #define GEO_FENCE_MAX_COUNT				100
 //#define WAIT_TIME_UNTIL_NEXT_GEO_EVENT	30	//unit : unit(sec)
