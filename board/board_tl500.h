@@ -48,7 +48,7 @@
 #endif
 
 
-#define AT_LIB_TARGET_DEV   e_DEV_TX501_BASE
+#define AT_LIB_TARGET_DEV   e_DEV_TL500_BASE
 
 #define LED_NAME_PWR	"power"
 #define LED_NAME_WCDMA	"wcdma"

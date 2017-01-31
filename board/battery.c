@@ -50,9 +50,15 @@ int battery_get_battlevel_internal(void)
 #if defined (BOARD_TL500S)
 	int batt_volt = 0;
 	if ( mds_api_get_internal_batt_tl500(&batt_volt) == DEFINES_MDS_API_OK )
+	{
+		printf("internal batt get success [%d]\r\n", batt_volt);
 		return batt_volt*10;
+	}
 	else 
+	{
+		printf("internal batt get fail [%d]\r\n", batt_volt);
 		return 0;
+	}
 #endif
 
 }

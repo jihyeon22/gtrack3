@@ -79,7 +79,7 @@ else ifeq ($(SERVER),asn)
 SERVER_ABBR := ASN
 else ifeq ($(SERVER),mds)
 SERVER_ABBR := MDS
-else ifeq ($(SERVER),cl-temp)
+else ifeq ($(SERVER),cl-thermal)
 SERVER_ABBR := CLT
 else
 $(error SERVER is not registerd in Makefile, please input registred server)

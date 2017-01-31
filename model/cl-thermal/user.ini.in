@@ -1,9 +1,9 @@
 [user]
-model_name=cl
+model_name=cl-thermal
 date=151015
-report_ip=211.115.111.42
+report_ip=61.85.36.56
 report_port=887
-request_ip=211.115.111.42
+request_ip=61.85.36.56
 request_port=887
 interval_time=60
 max_packet=3
