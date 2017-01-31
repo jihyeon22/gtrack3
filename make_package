@@ -21,28 +21,31 @@ type_package_input(){
 }
 
 corp_input() {
-        echo -e "Coporation = (mds, asn...) "
-        read CORPMODEL
-        case $CORPMODEL in
-                mds)
-                        CORPMODEL="mds"
-                        CORPABBR="MDS"
-                ;;
-		asn)
-                        CORPMODEL="asn"
-                        CORPABBR="ASN"
-                ;;
-                *)
-                        echo  $CORPMODEL invalid
-                        exit
-                ;;
-
-        esac
+		echo -e "Coporation = (mds, asn, cl ...) "
+		read CORPMODEL
+		case $CORPMODEL in
+			mds)
+					CORPMODEL="mds"
+					CORPABBR="MDS"
+			;;
+			asn)
+					CORPMODEL="asn"
+					CORPABBR="ASN"
+			;;
+			cl)
+					CORPMODEL="cl"
+					CORPABBR="CL"
+			;;
+			*)
+					echo  $CORPMODEL invalid
+					exit
+			;;
+		esac
 }
 
 version_check() {
   if [ -z $VER ]; then
-  	VER=00.01
+	VER=00.01
   fi
 }
 
@@ -53,7 +56,7 @@ version_input() {
 }
 
 modem_input() {
-	echo -e "Modem Model = (tx501s, tx501k, tx501l) "
+	echo -e "Modem Model = (tx501s, tx501k, tx501l, tl500s, tl500k, tl500l ...) "
 	read MODEMABBRMODEL
 	case $MODEMABBRMODEL in
 		tx501s)
@@ -65,8 +68,20 @@ modem_input() {
 			MODEMABBR="TX501K"
 		;;
 		tx501l)
-			MODEMABBRMODEL="TX501L"
+			MODEMABBRMODEL="tx501l"
 			MODEMABBR="TX501L"
+		;;
+		tl500s)
+			MODEMABBRMODEL="tl500s"
+			MODEMABBR="TL500S"
+		;;
+		tl500k)
+			MODEMABBRMODEL="tl500k"
+			MODEMABBR="TL500K"
+		;;
+		tl500l)
+			MODEMABBRMODEL="tl500l"
+			MODEMABBR="TL500L"
 		;;
 		*)
 			echo DEVICE_MODEL $MODEMABBRMODEL invalid
@@ -77,8 +92,8 @@ modem_input() {
 }
 
 server_input() {
-	echo -e "Server Model = (skel,asn...)"
-	echo -e "               (if sub model, sub model name have to input)"
+	echo -e "Server Model = (skel, asn, cl-thermal ...)"
+	echo -e "				(if sub model, sub model name have to input)"
 	read SRVMODEL
 	case $SRVMODEL in
 		skel)
@@ -88,6 +103,10 @@ server_input() {
 		asn)
 			SRVMODEL="asn"
 			SERVABBR="ASN"
+		;;
+		cl-thermal)
+			SRVMODEL="clt"
+			SERVABBR="CLT"
 		;;
 		*)
 			echo SERVER_MODEL $SRVMODEL invalid
@@ -123,7 +142,7 @@ make_package() {
 	fi
 	
 
-	if [ "$FWF"  != "0" ]; then 
+	if [ "$FWF"	 != "0" ]; then 
 		echo "====================================================================="
 		echo "예외적인 패키지 생성은 work/app/expkg 아래 파일을 Copy해 넣으면 된다."
 		echo "예를 들어 sbin에 webdm를 업데이트하려면..."
