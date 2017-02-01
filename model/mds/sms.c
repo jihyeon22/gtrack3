@@ -114,7 +114,7 @@ int _sms_cmd_proc_set_ip_info(int argc, char* argv[], const char* phonenum)
 	
 	
 	// sms cmd example
-	// &IP,[IP¹øÈ£],[PORT¹øÈ£],0
+	// &IP,[IPï¿½ï¿½È£],[PORTï¿½ï¿½È£],0
 	
 	LOGI(LOG_TARGET, "SMS - set ip routine. \n");
 	
@@ -193,13 +193,7 @@ int _sms_cmd_proc_set_reset(int argc, char* argv[], const char* phonenum)
 	if (1)
 	{
 		LOGE(LOG_TARGET, "SMS --> Power off!!! \n");
-		system("poweroff");
-		LOGE(LOG_TARGET, "SMS --> Power off!!! \n");
-		system("poweroff");
-		LOGE(LOG_TARGET, "SMS --> Power off!!! \n");
-		system("poweroff");
-		LOGE(LOG_TARGET, "SMS --> Power off!!! \n");
-		system("poweroff");
+		poweroff("sms poweroff", strlen("sms poweroff"));
 	}
 	return 0;
 }
@@ -215,7 +209,7 @@ int _sms_cmd_proc_set_packet_interval(int argc, char* argv[], const char* phonen
 	LOGI(LOG_TARGET, "SMS - set interval routine. \n");
 	
 	// sms cmd example
-	// &TIME,[Key On ÁÖ±â(ºÐ)],[Key Off ÁÖ±â(ºÐ)],0
+	// &TIME,[Key On ï¿½Ö±ï¿½(ï¿½ï¿½)],[Key Off ï¿½Ö±ï¿½(ï¿½ï¿½)],0
 	
 	for(i = 0; i <= argc; i++)
 	{
@@ -319,7 +313,7 @@ int _sms_cmd_proc_get_setting(int argc, char* argv[], const char* phonenum)
 	}
 		
 	/*
-	1,MDT,[¼³Á¤µÈ IP¹øÈ£],[¼³Á¤µÈPORT¹øÈ£],[MDT¹öÀüÁ¤º¸],[¼³Á¤µÈ KEY ON ÁÖ±â],[¼³Á¤µÈ KEY OFF ÁÖ±â],0
+	1,MDT,[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ IPï¿½ï¿½È£],[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½PORTï¿½ï¿½È£],[MDTï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½],[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ KEY ON ï¿½Ö±ï¿½],[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ KEY OFF ï¿½Ö±ï¿½],0
 	*/
 	
 	

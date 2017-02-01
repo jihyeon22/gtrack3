@@ -14,6 +14,10 @@ void poweroff(const char *log_buff, const int log_buff_len)
 
 	tools_alive_end(); //njw 150924
 	
+#ifdef BOARD_TL500S	// reset workaround : hw bug
+	gpio_set_value(15, 0);
+#endif
+
 	while(1)
 	{
 		system("poweroff &");
