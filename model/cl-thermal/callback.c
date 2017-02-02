@@ -472,6 +472,9 @@ void _wait_time_sync()
 			break;
 		
 		sleep(1);
+		
+		if ( power_get_power_source() == POWER_SRC_BATTERY)
+			return;
 
 		printf("wait_time_sync : year[%d]\n", cur_gpsdata.year);
 		LOGI(LOG_TARGET, "wait_time_sync : year[%d]\n", cur_gpsdata.year);
