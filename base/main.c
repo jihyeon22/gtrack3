@@ -268,7 +268,7 @@ void _gpio_check(void)
 
 void sms_proc(const char* phone_num, const char* recv_time, const char* msg)
 {
-
+	LOGI(LOG_TARGET, "model sms proc msg ==> [%s]\n", msg);
 	//int parse_model_sms(char *time, char *phonenum, char *sms);
 	parse_model_sms(recv_time, phone_num, msg);
 }

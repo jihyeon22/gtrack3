@@ -22,11 +22,11 @@
 
 #define GPIO_SRC_NUM_POWER				6
 // rev 1
-#define POWER_SRC_DC				(1)
-#define POWER_SRC_BATTERY			(0)
+//#define POWER_SRC_DC				(1)
+//#define POWER_SRC_BATTERY			(0)
 // rev 2
-//#define POWER_SRC_DC                          (0)
-//#define POWER_SRC_BATTERY                     (1)
+#define POWER_SRC_DC                          (0)
+#define POWER_SRC_BATTERY                     (1)
 
 #define GPIO_SRC_NUM_IGNITION			30
 #define POWER_IGNITION_ON		(0)
