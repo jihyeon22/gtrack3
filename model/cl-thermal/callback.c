@@ -31,6 +31,9 @@
 #include "routetool.h"
 
 #include "board/board_system.h"
+
+#include "base/thermtool.h"
+
 // ----------------------------------------
 //  LOGD(LOG_TARGET, LOG_TARGET,  Target
 // ----------------------------------------
@@ -57,6 +60,11 @@ static time_t prev_gps_active_time = 0;
 
 static pthread_mutex_t avg_speed_mutex = PTHREAD_MUTEX_INITIALIZER ;
 
+#define THERMAL_SENSING_CYCLE 	1
+#define THERMAL_DEVICE			"/dev/ttyHSL2"
+
+#define CALC_DISTANCE_INTERVAL_SEC  10
+
 void abort_callback(void)
 {
 	save_geo_fence_status_info();
@@ -71,8 +79,12 @@ void init_model_callback(void)
 	init_geo_fence(eGEN_FENCE_DEBUG_MODE);
 	section_setup_from_config();
 
+	// set_rout_table_port_forward("smd29","ppp1");
 
-	set_rout_table_port_forward("smd29","ppp1");
+	// thermal senser
+	therm_set_sense_cycle(THERMAL_SENSING_CYCLE);
+	therm_set_dev(THERMAL_DEVICE, strlen(THERMAL_DEVICE));
+
 }
 
 void network_on_callback(void)
@@ -246,6 +258,14 @@ void gps_parse_one_context_callback(void)
 	{
 		_send_location_data();
 	}
+
+	// mileage calc test
+	if (cycle_report % CALC_DISTANCE_INTERVAL_SEC == 0 )
+	{
+		//printf("calc distance!!\r\n");
+		mileage_process(&gpsdata);
+	}
+
 }
 
 void main_loop_callback(void)
@@ -256,8 +276,10 @@ void main_loop_callback(void)
 
 	system_on_time = tools_get_kerneltime();
 	
-	rfid_init();
-	
+	// rfid_init();
+
+	therm_sense();
+
 	while(flag_run_thread_main)
 	{
 		unsigned char uid[10] = {0};
@@ -271,6 +293,47 @@ void main_loop_callback(void)
 			_check_device_poweroff();			
 		}
 		
+		therm_sense();
+		
+		{
+			int rec_len = 0;
+			THERMORMETER_DATA tmp_therm;
+
+			if(therm_get_curr_data(&tmp_therm) == 0)
+			{
+				int i = 0;
+
+				for(i=0 ; i < tmp_therm.channel; i++)
+				{
+					switch(tmp_therm.temper[i].status)
+					{
+						case eOK:
+							printf(" tmp data is [%d]\r\n", tmp_therm.temper[i].data);
+							break;
+
+						case eOPEN:
+
+							break;
+
+						case eSHORT:
+
+							break;
+
+						case eUNUSED:
+							break;
+						case eNOK:
+							break;
+						default:
+							break;
+					}
+
+				}
+			}
+			else 
+				printf(" tmp data read fail\r\n");
+
+		}
+		/* // rfid is not support 
 		usleep(800000);
 		rfid_clear_uart();
 		if((len_uid = rfid_find_card(uid)) > 0)
@@ -327,6 +390,8 @@ void main_loop_callback(void)
 		{
 			detach_card = 1;
 		}
+		*/
+		sleep(1);
 	}
 
 	rfid_deinit();

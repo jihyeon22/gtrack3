@@ -16,6 +16,10 @@
 #include <sys/time.h>
 #include "thermometer.h"
 
+#include <logd_rpc.h>
+#define LOG_TARGET eSVC_COMMON
+
+
 #if USE_TYPE_UT1
 static therm_conf_t			g_therm_conf = 
 {
@@ -75,9 +79,9 @@ int _init_uart(char* dev, int baud , int *fd)
 	}
 
 	newtio.c_lflag = 0;
-	//newtio.c_cc[VTIME] = vtime; // timeout 0.1ÃÊ ´ÜÀ§
-	//newtio.c_cc[VMIN] = vmin; // ÃÖ¼Ò n ¹®ÀÚ ¹ÞÀ» ¶§±îÁø ´ë±â
-	newtio.c_cc[VTIME] = 1;
+	//newtio.c_cc[VTIME] = vtime; // timeout 0.1ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	//newtio.c_cc[VMIN] = vmin; // ï¿½Ö¼ï¿½ n ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+	newtio.c_cc[VTIME] = 0;
 	newtio.c_cc[VMIN] = 0;
 	tcflush(*fd, TCIFLUSH);
 	tcsetattr(*fd, TCSANOW, &newtio);
@@ -462,17 +466,56 @@ int get_therm(THERMORMETER_DATA *therm)
 	int result;
 	int len;
 
+	static int thermal_sensor_err_send_info = 0;
+	static int thermal_sensor_success_send_info = 0;
+
 	if(g_therm_conf.msg_type == eUT1)
 	{
 		_init_uart(g_therm_conf.device, g_therm_conf.baudrate, &thermal_fd);
 		result = read_select(thermal_fd, buf, MAX_THERM_BUF, &len, 1);
 		if(result > 0)
 		{
+			
 			//printf("[%s] %s\n", __FUNCTION__, buf);
 			if(parse_temper(buf, len, therm) == -1)
 			{
+				
 				printf("[%s:%d] Parse error!\n", __FUNCTION__, __LINE__);
 				res = -1;
+
+				// -----------------------------------------------
+				// debug info for thermal sensor
+				// -----------------------------------------------
+				{
+					char debug_msg[64] = {0,};
+					int i = 0;
+					int length = 0;
+
+					length += sprintf(debug_msg+length, "THERM SENSOR ERR : ");
+
+					for ( i = 0 ; i < len ; i ++)
+					{
+						length += sprintf(debug_msg+length, "0x%02x ", buf[i]);
+						if (length > (64 - 7) ) // buffer overrun skip
+							break;
+					}
+
+					LOGE(LOG_TARGET, debug_msg);
+
+					if ( thermal_sensor_err_send_info == 0 ) // only one send..
+					{
+						devel_webdm_send_log( debug_msg );
+						thermal_sensor_err_send_info = 1;
+					}
+				}
+			}
+			else
+			{
+				if ( thermal_sensor_success_send_info == 0 )
+				{
+					devel_webdm_send_log( "THERM SENSOR GET SUCCESS" );
+					thermal_sensor_success_send_info = 1;
+				}
 			}
 		}
 		else
@@ -489,12 +532,47 @@ int get_therm(THERMORMETER_DATA *therm)
 		result = read_select(thermal_fd, buf, MAX_THERM_BUF, &len, 1);
 		if(result > 0)
 		{
-			//printf("[%s] %s\n", __FUNCTION__, buf);
+			
 			if(parse_temper(buf, len, therm) == -1)
 			{
 				printf("[%s:%d] Parse error!\n", __FUNCTION__, __LINE__);
 				res = -1;
+
+				// -----------------------------------------------
+				// debug info for thermal sensor
+				// -----------------------------------------------
+				{
+					char debug_msg[64] = {0,};
+					int i = 0;
+					int length = 0;
+
+					length += sprintf(debug_msg+length, "THERM SENSOR ERR : ");
+
+					for ( i = 0 ; i < len ; i ++)
+					{
+						length += sprintf(debug_msg+length, "0x%02x ", buf[i]);
+						if (length > (64 - 7) ) // buffer overrun skip
+							break;
+					}
+
+					LOGE(LOG_TARGET, debug_msg);
+
+					if ( thermal_sensor_err_send_info == 0 ) // only one send..
+					{
+						devel_webdm_send_log( debug_msg );
+						thermal_sensor_err_send_info = 1;
+					}
+				}
 			}
+			else
+			{
+				if ( thermal_sensor_success_send_info == 0 )
+				{
+					devel_webdm_send_log( "THERM SENSOR GET SUCCESS" );
+					thermal_sensor_success_send_info = 1;
+				}
+			}
+			
 		}
 		else
 		{

@@ -150,6 +150,7 @@ CFLAGS  += -DMDS_FEATURE_USE_NMEA_UDP_IPC
 
 OBJS	:= base/config.o base/main.o base/sender.o 
 OBJS	+= base/thread-network.o base/devel.o base/error.o base/thread.o base/dmmgr.o base/watchdog.o
+OBJS	+= base/thermtool.o
 OBJS	+= board/gpio.o board/power.o board/led.o board/battery.o board/uart.o board/modem-time.o board/app-ver.o board/crit-data.o
 OBJS	+= board/rfidtool.o board/thermometer.o
 OBJS	+= util/stackdump.o util/list.o util/debug.o util/poweroff.o util/pipe.o

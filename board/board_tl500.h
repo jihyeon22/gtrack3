@@ -3,6 +3,8 @@
 #define CONCAT_STR(X, Y)				X Y
 #define MAKE_CMD_STR(X, Y)				X " " Y
 #define SYSTEM_DIR						"/system/mds/system"
+#define SYSTEM_LOG_DIR					"/system/mds/log"
+
 #define USER_DATA_DIR					"/data/mds/data"
 #define GPIO_ROOT_DIR					"/sys/class/gpio"
 #define NETTOOL_NETIF					"rmnet_data0"
@@ -37,12 +39,13 @@
 #define MDS_DEVICE_UTIL_MAJOR_NUMBER	255
 #define ALIVE_END_CMD					CONCAT_STR(SYSTEM_DIR, "/sbin/alive2.notifier end &")
 
-#define LOG_PWR_PATH					CONCAT_STR(SYSTEM_DIR, "/log/power.log")
-#define LOG_ERR_PATH					CONCAT_STR(SYSTEM_DIR, "/log/error.log")
-#define LOG_CRITICAL_PATH				CONCAT_STR(SYSTEM_DIR, "/log/critical.log")
-#define DAT_ERR_PATH					CONCAT_STR(SYSTEM_DIR, "/log/error.dat")
+// TODO log folder fix 
+#define LOG_PWR_PATH					CONCAT_STR(SYSTEM_LOG_DIR, "/power.log")
+#define LOG_ERR_PATH					CONCAT_STR(SYSTEM_LOG_DIR, "/error.log")
+#define LOG_CRITICAL_PATH				CONCAT_STR(SYSTEM_LOG_DIR, "/critical.log")
+#define DAT_ERR_PATH					CONCAT_STR(SYSTEM_LOG_DIR, "/error.dat")
 #define FLG_ERR_PATH					"/tmp/.nomon"
-#define CALLSTACK_LOG_PATH				CONCAT_STR(SYSTEM_DIR, "/log/abort.log")
+#define CALLSTACK_LOG_PATH				CONCAT_STR(SYSTEM_LOG_DIR, "/abort.log")
 
 #define MILEAGE_PATH					CONCAT_STR(USER_DATA_DIR, "/mileage.dat")
 #define MKDIR_USER_DIR					MAKE_CMD_STR("mkdir -p", USER_DATA_DIR)

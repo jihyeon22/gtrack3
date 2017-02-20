@@ -120,7 +120,7 @@ enum DEVICE_TYPE
 #define BAUDRATE_UT3 9600
 
 //#define DEV_THERM_PORT			"/dev/ttyMSM"
-#define DEV_THERM_PORT			"/dev/ttyEXT"
+#define DEV_THERM_PORT			"/dev/ttyHSL2"
 #define MAX_THERM_BUF			128
 #define GET_THERM_TRY			3
 #define USE_TYPE_UT1	1

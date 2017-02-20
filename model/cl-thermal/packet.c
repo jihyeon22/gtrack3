@@ -198,6 +198,9 @@ int make_report_packet(unsigned char **pbuf, unsigned short *packet_len)
 			break;
 		}
 		
+		// TODO : 
+		// 여기서 데이터를 수정하도록 한다.
+		// 온도데이터야 어차피 실시간이 필요없으니까 여기서 모두 수정하는것이 어떨까?
 		locData[data_count++] = *temp_period;
 
 		if(temp_period != NULL)
