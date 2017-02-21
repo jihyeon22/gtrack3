@@ -293,6 +293,7 @@ void main_loop_callback(void)
 			_check_device_poweroff();			
 		}
 		
+		#if 0
 		therm_sense();
 		// get_modem_time_utc_sec();
 		{
@@ -331,6 +332,7 @@ void main_loop_callback(void)
 			}
 			else 
 				printf(" tmp data read fail\r\n");
+				#endif
 
 		}
 		/* // rfid is not support 
