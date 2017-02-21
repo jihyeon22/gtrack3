@@ -332,9 +332,9 @@ void main_loop_callback(void)
 			}
 			else 
 				printf(" tmp data read fail\r\n");
-				#endif
 
 		}
+		#endif
 		/* // rfid is not support 
 		usleep(800000);
 		rfid_clear_uart();
