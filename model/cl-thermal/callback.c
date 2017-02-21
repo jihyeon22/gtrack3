@@ -294,7 +294,7 @@ void main_loop_callback(void)
 		}
 		
 		therm_sense();
-		
+		// get_modem_time_utc_sec();
 		{
 			int rec_len = 0;
 			THERMORMETER_DATA tmp_therm;

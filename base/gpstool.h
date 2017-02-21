@@ -16,7 +16,7 @@
 #define GPS_BOOT_WARM 1
 #define GPS_BOOT_COLD 2
 
-#define GPS_DATA_PATH "/data/gps_valid.dat"
+
 #define GPS_PIPE_PATH "/var/tmp/gps"
 
 #define TIME_REFRESH_UTC 60

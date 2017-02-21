@@ -207,8 +207,10 @@ static void _get_essential_data_blocking(void)
 
 void _set_tz(void)
 {
-	setenv("TZ", "KST-9", 1);
-	tzset();
+	// time zone 관련설정은 skip 한다.
+	// 기존에 시스템 세팅값이 꼬이는지 실제 로그를 보면 시간값이 이상하다.
+	//setenv("TZ", "KST-9", 1);
+	//tzset();
 }
 
 void _initial_btn_check(void)

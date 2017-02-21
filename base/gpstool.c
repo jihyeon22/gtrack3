@@ -854,19 +854,21 @@ void gps_parse(char* buff, int size)
 		{
 			if(flag_enabled_modem_time_driver && flag_modem_utc_setted)
 			{
-				tmp_gps_data.utc_sec = get_modem_time_utc_sec();
+				// tmp_gps_data.utc_sec = get_modem_time_utc_sec();
+				tmp_gps_data.utc_sec = get_system_time_utc_sec(conf->gps.gps_time_zone);
+				
 				count_utc_refresh = 0;
 			}
 		}
 		else
 		{
 			int is_set_modem_utc = 0;
-		
 			if(flag_enabled_modem_time_driver && flag_modem_utc_setted)
 			{
 				if(count_utc_refresh++ > TIME_REFRESH_UTC)
 				{
-					time_t temp_mtime  = get_modem_time_utc_sec();
+					//time_t temp_mtime  = get_modem_time_utc_sec();
+					time_t temp_mtime  = get_system_time_utc_sec(conf->gps.gps_time_zone);
 					if(temp_mtime > prev_gps_data.utc_sec)
 					{
 						tmp_gps_data.utc_sec = temp_mtime;
@@ -886,6 +888,7 @@ void gps_parse(char* buff, int size)
 
 			if(is_set_modem_utc == 0)
 			{
+				/*
 				int diff_time = tools_get_kerneltime() - prev_gps_time;
 				if( diff_time >= 2 && prev_gps_time !=0)
 				{
@@ -895,6 +898,9 @@ void gps_parse(char* buff, int size)
 				{
 					tmp_gps_data.utc_sec = ++prev_gps_data.utc_sec;
 				}
+				*/
+				// 1초당 1개씩 들어오는것이 안맞는다. 때문에 강제 시간보정은 하지 않는다.
+				tmp_gps_data.utc_sec  = get_system_time_utc_sec(conf->gps.gps_time_zone);
 			}
 		}
 		
@@ -994,14 +1000,15 @@ void gps_set_time_gpsData(int year, int mon, int day, int hour, int min, int sec
 int gps_start_utc_adjust(void)
 {
 	time_t time_utc = 0;
+	configurationBase_t *conf = get_config_base();
 
 	if(flag_gps_pipe_emul)
 	{
 		return 0;
 	}
 
-	time_utc = get_modem_time_utc_sec();
-	
+	//time_utc = get_modem_time_utc_sec();
+	time_utc = get_system_time_utc_sec(conf->gps.gps_time_zone);
 	if(time_utc == 0)
 	{
 		LOGT(LOG_TARGET, "modem utc fail\n");
@@ -1273,6 +1280,7 @@ int gps_valid_data_write(void)
 	}
 	memcpy(&saved_valid_gpsdata, &last, sizeof(saved_valid_gpsdata));
 	
+	//devel_webdm_send_log("gps_valid_data_write success");
 	return 0;
 }
 

@@ -48,6 +48,9 @@
 #define CALLSTACK_LOG_PATH				CONCAT_STR(SYSTEM_LOG_DIR, "/abort.log")
 
 #define MILEAGE_PATH					CONCAT_STR(USER_DATA_DIR, "/mileage.dat")
+
+#define GPS_DATA_PATH 					CONCAT_STR(USER_DATA_DIR, "/gps_valid.dat")
+
 #define MKDIR_USER_DIR					MAKE_CMD_STR("mkdir -p", USER_DATA_DIR)
 #ifdef USE_EXTGPIO_EVT
 	#define INPUT_KEY_MODULE_NAME		CONCAT_STR(SYSTEM_DIR, "/bin/gpio_input_keys.ko")
