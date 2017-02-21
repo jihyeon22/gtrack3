@@ -26,13 +26,13 @@ void _crit_init_simul()
 {
 	static critStruct_t critical_data_tmp;
 	// critical_data.hd_raw <= DEFAULT_CRITICAL_DATA
-	if ( mds_api_check_exist_file(CRITICAL_DATA_TMP_FS,3) == DEFINES_MDS_API_OK )
+	if ( mds_api_check_exist_file(CRITICAL_DATA_TMP_FS,0) == DEFINES_MDS_API_OK )
 	{
 		mds_api_write_data(CRITICAL_DATA_TMP_FS, &critical_data_tmp, sizeof(critStruct_t), 0);
 		return;
 	}
 	
-	if ( mds_api_check_exist_file(CRITICAL_DATA_NAND_FS,3) == DEFINES_MDS_API_OK )
+	if ( mds_api_check_exist_file(CRITICAL_DATA_NAND_FS,1) == DEFINES_MDS_API_OK )
 	{
 		mds_api_cp(CRITICAL_DATA_NAND_FS, CRITICAL_DATA_TMP_FS, 1);
 		return;
