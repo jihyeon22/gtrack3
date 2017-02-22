@@ -208,6 +208,9 @@ void gps_parse_one_context_callback(void)
 			_make_location_data(&gpsdata, code);
 			_send_location_data();
 			//sender_add_data_to_buffer(PACKET_TYPE_EVENT, &code, ePIPE_2);		
+
+			devel_webdm_send_log("GPS ACTIVATE SUCCESS!");
+
 		}
 		speed = gpsdata.speed;
 
