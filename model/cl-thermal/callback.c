@@ -271,13 +271,18 @@ void gps_parse_one_context_callback(void)
 
 }
 
+#define GPS_ANT_CHK_INTERVAL_SEC	10
 void main_loop_callback(void)
 {
 	static unsigned char uid_prev[10] = {0};
 	int len_uid = 0;
 	int detach_card = 1;
 
+	static int main_loop_cnt = 0;
+
 	system_on_time = tools_get_kerneltime();
+	
+	static int last_gps_ant_stat = -1;
 	
 	// rfid_init();
 
@@ -296,6 +301,16 @@ void main_loop_callback(void)
 			_check_device_poweroff();			
 		}
 		
+		if ( ( main_loop_cnt % GPS_ANT_CHK_INTERVAL_SEC ) == 0 )
+		{
+			int cur_gps_ant_stat = mds_api_gps_util_get_gps_ant();
+
+			if ( cur_gps_ant_stat != last_gps_ant_stat)
+			{
+				devel_webdm_send_log("GPS ANT STAT [%d]", cur_gps_ant_stat);
+			}
+			last_gps_ant_stat = cur_gps_ant_stat;
+		}
 		#if 0
 		therm_sense();
 		// get_modem_time_utc_sec();
@@ -396,6 +411,7 @@ void main_loop_callback(void)
 			detach_card = 1;
 		}
 		*/
+		main_loop_cnt++;
 		sleep(1);
 	}
 
