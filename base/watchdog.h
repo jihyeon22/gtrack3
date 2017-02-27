@@ -34,5 +34,7 @@ void watchdog_process(void);
 
 extern int wd_dbg[eWdLast];
 void get_watchdog_status();
+
+
 #endif
 

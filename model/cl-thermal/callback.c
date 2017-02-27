@@ -176,6 +176,9 @@ void gps_parse_one_context_callback(void)
 {
 	static int flag_fisrt_gps = 0;
 
+	static time_t last_gps_utc_sec = 0;
+	time_t cur_gps_utc_sec = 0;
+
 	configurationModel_t *conf = get_config_model();
 	int interval_time = conf->model.interval_time;
 	int max_packet = conf->model.max_packet;
@@ -186,6 +189,19 @@ void gps_parse_one_context_callback(void)
 	fence_notification_t fence_status = eFENCE_NONE_NOTIFICATION;
 
 	gps_get_curr_data(&gpsdata);
+
+	// debug info
+	cur_gps_utc_sec = gpsdata.utc_sec;
+
+	if ( cur_gps_utc_sec - last_gps_utc_sec >= 2)
+	{
+		char debug_msg_buff[128] = {0,};
+		sprintf(debug_msg_buff,"GPS TIME DIFF [%d]sec", (cur_gps_utc_sec - last_gps_utc_sec));
+		LOGE(LOG_TARGET, "%s\n", debug_msg_buff);
+		//mds_api_write_time_and_log("/system/mds/log/gps_time.log", debug_msg_buff);
+	}
+	
+	last_gps_utc_sec = cur_gps_utc_sec;
 
 	if(gpsdata.year < 2014)
 	{

@@ -73,7 +73,9 @@ int gps_addr_agps()
 	return 0;
 }
 
-void gps_on(int type) {
+void gps_on(int type) 
+{
+	devel_webdm_send_log("GPSD UDP SEND CMD : ON");
 
 	if ( type == GPS_BOOT_WARM )
 		mds_api_gpsd_start(MDS_API_GPS_TOOLS__TYPE_WARM);
@@ -84,13 +86,19 @@ void gps_on(int type) {
 
 void gps_reset(int type)
 {
+	devel_webdm_send_log("GPSD UDP SEND CMD : RESET [%d]", type);
+
 	if ( type == GPS_BOOT_WARM)
 		mds_api_gpsd_reset(MDS_API_GPS_TOOLS__TYPE_WARM);
 	if ( type == GPS_BOOT_COLD)
 		mds_api_gpsd_reset(MDS_API_GPS_TOOLS__TYPE_COLD);
+
+	// shutdown 되는데 오래걸리니 이정도는 쉬어주도록하자.
+	sleep(10);
 }
 
 void gps_off() {
+	devel_webdm_send_log("GPSD UDP SEND CMD : DOWN");
 	mds_api_gpsd_stop();
 }
 

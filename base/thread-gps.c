@@ -37,6 +37,10 @@ static char *pbufferin = NULL;
 static int read_size;
 static int read_error_count = 0;
 
+
+#define MAX_UDP_GPSD_MAX_ERR_1_CNT	15
+#define MAX_UDP_GPSD_MAX_ERR_2_CNT	3
+
 int gps_init()
 {
 	int ret;
@@ -46,14 +50,6 @@ int gps_init()
 	gps_on(GPS_TYPE_AGPS);
 	led_noti(eLedcmd_GPS_SEARCH);
 
-#ifdef MDS_FEATURE_USE_NMEA_PORT
-	// open GPS Cmd Channel
-	ret = open(gps_dev_file, O_RDWR | O_NONBLOCK);
-	if(ret < 0)
-		return -1;
-
-	gps_fd = ret;
-#endif // MDS_FEATURE_USE_NMEA_PORT
 	printf("gps init retrun 0\r\n");
 	return 0;
 }
@@ -62,15 +58,6 @@ void gps_deinit()
 {
 	printf("gps_deinit...1\n");
 	
-#ifdef MDS_FEATURE_USE_NMEA_PORT
-	if(gps_fd != GPS_INVALID_HANDLE)
-	{
-		printf("gps_deinit...2\n");
-		close(gps_fd);
-		printf("gps_deinit...3\n");
-		gps_fd = GPS_INVALID_HANDLE;
-	}
-#endif // MDS_FEATURE_USE_NMEA_PORT
 	printf("gps_deinit...4\n");
 	gps_off();
 	printf("gps_deinit...5\n");
@@ -148,11 +135,9 @@ void _check_gps_read_err(int sms_noti)
 		if(noti_gpsfd_triger < 3 && sms_noti != 0)
 		{
 			char debugbuff[30] = {0,};
-#ifdef MDS_FEATURE_USE_NMEA_PORT
-			sprintf(debugbuff, "GPS Read Error %d %d", read_size, gps_fd);
-#else
+
 			sprintf(debugbuff, "GPS Read Error %d non gps fd mode", read_size);
-#endif // MDS_FEATURE_USE_NMEA_PORT
+
 			devel_send_sms_noti(debugbuff, strlen(debugbuff), 3);
 		}
 		if(noti_gpsfd_triger >= 3)
@@ -259,20 +244,6 @@ void _gps_led_notification(void)
 	}
 }
 
-
-#ifdef MDS_FEATURE_USE_NMEA_PORT
-int is_gps_handle_available()
-{
-	if(gps_fd == GPS_INVALID_HANDLE)
-		return 0;
-
-	return 1;
-}
-#endif // MDS_FEATURE_USE_NMEA_PORT
-
-
-    
-
 /*===========================================================================================*/
 void *thread_gps(void *args)
 {
@@ -296,45 +267,89 @@ void *thread_gps(void *args)
 	_init_thread_gps();
 
 	sleep(1);
-#ifdef MDS_FEATURE_USE_NMEA_PORT
-	gps_clear(gps_fd);
-#endif // MDS_FEATURE_USE_NMEA_PORT
+
 	time_gps_avail = tools_get_kerneltime();
+	// 60sec fix
+	watchdog_set_time(eWdGps, 120);
+
 	while(flag_run_thread_gps)
 	{
 		static int count_wd = 0;
-		if(count_wd == 0  || count_wd >= 60)
+
+		static int udp_gpsd_err_cnt1 = 0;
+		static int udp_gpsd_err_cnt2 = 0;
+
+		wd_dbg[eWdGps] = 1;
+
+		if(count_wd == 0  || count_wd >= 30)
 		{
 			count_wd = 0;
 			watchdog_set_cur_ktime(eWdGps);
 		}
 		count_wd++;
 
-#ifdef MDS_FEATURE_USE_NMEA_UDP_IPC
 		read_size = mds_api_gpsd_get_nmea(pbufferin, GPS_MAX_BUFF_SIZE);
-		// printf("gps recv udp ipc ::> [%s] [%d]\r\n", pbufferin, read_size);
+		//printf("gps recv udp ipc ::> [%s] [%d]\r\n", pbufferin, read_size);
+
+		wd_dbg[eWdGps] = 2;
+
+		// check gps data 1
+		if ( udp_gpsd_err_cnt1 > MAX_UDP_GPSD_MAX_ERR_1_CNT )
+		{
+			LOGE(LOG_TARGET, "get gps data fail 1 : cannot recv form gpsd , gpsd reset\n");
+			devel_webdm_send_log("GPSD req reset 1 : cannot recv gps data");
+			gps_reset(GPS_TYPE_AGPS);
+			udp_gpsd_err_cnt1 = 0;
+			udp_gpsd_err_cnt2++;
+		}
+
+		wd_dbg[eWdGps] = 3;
+
+		// check gps data 2
+		if ( udp_gpsd_err_cnt2 > MAX_UDP_GPSD_MAX_ERR_2_CNT )
+		{
+			LOGE(LOG_TARGET, "get gps data fail 2 : cannot recv form gpsd , gpsd reset\n");
+			devel_webdm_send_log("GPSD req reset 2 : cannot recv gps data");
+			system("killall mds_gpsd3");
+			udp_gpsd_err_cnt1 = 0;
+			udp_gpsd_err_cnt2 = 0;
+		}
+
+		wd_dbg[eWdGps] = 4;
 
 		if(read_size > 0)
 		{
+			wd_dbg[eWdGps] = 5;
 			_check_null_data(pbufferin, read_size, conf->noti.turn_on_sms_enable);
+			wd_dbg[eWdGps] = 6;
 			read_error_count = 0;
+
+			udp_gpsd_err_cnt1 = 0;
+			udp_gpsd_err_cnt2 = 0;
 		}
 		else
 		{
 			LOGE(LOG_TARGET, "gps thread gps read error\n");
+			wd_dbg[eWdGps] = 7;
 			_check_gps_read_err(conf->noti.turn_on_sms_enable);
+
+			udp_gpsd_err_cnt1++;
+			
 			continue;
 		}
+
 		while(1) {
+			wd_dbg[eWdGps] = 8;
 			if(_splite_gps_context() == 0)
 			{
 				break;
 			}
-
+			wd_dbg[eWdGps] = 9;
 			_check_gps_delay_err(time_gps_avail, conf->noti.turn_on_sms_enable);
 			_gps_led_notification();
 			time_gps_avail = tools_get_kerneltime();
 
+			wd_dbg[eWdGps] = 10;
 			if(g_skip_gps_when_error > 0)
 			{
 				LOGT(LOG_TARGET, "GPS Skip - %d", g_skip_gps_when_error);
@@ -343,102 +358,16 @@ void *thread_gps(void *args)
 				continue;
 			}
 			
+			wd_dbg[eWdGps] = 11;
 			gps_parse_one_context_callback();
+			wd_dbg[eWdGps] = 12;
 		}
-#endif // MDS_FEATURE_USE_NMEA_UDP_IPC
+		wd_dbg[eWdGps] = 13;
 
-#ifdef MDS_FEATURE_USE_NMEA_PORT
-		if( !is_gps_handle_available() )
-		{
-			LOGT(LOG_TARGET, "gps_fd : GPS_INVALID_HANDLE status #1\n");
-			sleep(1);
-			continue;
-		}
-
-		timeout.tv_sec = DEV_GPS_TIMEOUT_SEC;
-		timeout.tv_usec = 0;
-		FD_ZERO(&reads);
-		FD_SET(gps_fd, &reads);
-
-		
-		result = select(gps_fd + 1, &reads, NULL, NULL, &timeout);
-		
-		if( !is_gps_handle_available() )
-		{
-			LOGT(LOG_TARGET, "gps_fd : GPS_INVALID_HANDLE status #1\n");
-			sleep(1);
-			continue;
-		}
-
-
-		if(result < 0)
-		{
-			if(errno != EINTR)
-			{
-				LOGE(LOG_TARGET, "gps thread select error!!!!!\n");
-				gps_off();
-				close(gps_fd);
-				error_critical(eERROR_EXIT, "thread_gps select Error");
-			}
-			continue;
-		}
-
-		if(result > 0)
-		{
-			if(!FD_ISSET(gps_fd, &reads))
-			{
-				LOGT(LOG_TARGET, "gps thread fd isn't set\n");
-				continue;
-			}
-			
-			read_size = read(gps_fd, pbufferin, will_read_size);
-
-			if(read_size > 0)
-			{
-				_check_null_data(pbufferin, read_size, conf->noti.turn_on_sms_enable);
-				read_error_count = 0;
-			}
-			else
-			{
-				LOGE(LOG_TARGET, "gps thread gps read error\n");
-				_check_gps_read_err(conf->noti.turn_on_sms_enable);
-				continue;
-			}
-
-			//GPS ���Ƽ�Ʈ�� 1���� �Ľ��ϱ� ���� while��
-			while(1) {
-				if(_splite_gps_context() == 0)
-				{
-					break;
-				}
-
-				_check_gps_delay_err(time_gps_avail, conf->noti.turn_on_sms_enable);
-				_gps_led_notification();
-				time_gps_avail = tools_get_kerneltime();
-
-				if(g_skip_gps_when_error > 0)
-				{
-					LOGT(LOG_TARGET, "GPS Skip - %d", g_skip_gps_when_error);
-					g_skip_gps_when_error--;
-					
-					continue;
-				}
-				
-				gps_parse_one_context_callback();
-			}
-		}
-		else
-		{
-			LOGE(LOG_TARGET, "gps thread gps time-out error\n");
-			_check_gps_timeout_err(time_gps_avail, conf->noti.turn_on_sms_enable);
-		}
-#endif // MDS_FEATURE_USE_NMEA_PORT
 	}
 	
 	gps_off();
-#ifdef MDS_FEATURE_USE_NMEA_PORT
-	close(gps_fd);
-#endif // MDS_FEATURE_USE_NMEA_PORT
+
 	return NULL;
 }
 
@@ -454,9 +383,6 @@ void test_gps_func()
 	fd_set reads;
 	printf("test_gps_func 1++\n");
 
-#ifdef MDS_FEATURE_USE_NMEA_PORT
-	FD_CLR(gps_fd, &reads);
-#endif // MDS_FEATURE_USE_NMEA_PORT
 	printf("test_gps_func 2++\n");
 	sleep(1);
 	gps_deinit();

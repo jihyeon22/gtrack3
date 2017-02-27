@@ -15,6 +15,7 @@
 
 #include <callback.h>
 
+#include <mdsapi/mds_api.h>
 
 // ----------------------------------------
 //  LOGD Target
@@ -198,6 +199,7 @@ void watchdog_process(void)
 
 			error_critical(eERROR_LOG, "%s", str_log);
 			devel_webdm_send_log("%s", str_log);
+
 
 /*
 			error_critical(eERROR_LOG, "%s> %d %d %d %d, %d %d %d, %d/%d",
