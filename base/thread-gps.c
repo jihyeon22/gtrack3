@@ -80,15 +80,22 @@ int _splite_gps_context(void)
 	int res = 0;
 	plastbyte = pbufferin + read_size;
 	pDelimeter = strstr(buffer, "$GPGSA");
+
+	wd_dbg[eWdGps] = 31;
+
 	if(pDelimeter != NULL) {
+		wd_dbg[eWdGps] = 31;
 		pDelimeter = tools_strnchr(pDelimeter, 0x0a, plastbyte - pDelimeter);
+		wd_dbg[eWdGps] = 32;
 	}
 
 	if(pDelimeter == NULL)
 	{
+		wd_dbg[eWdGps] = 33;
 		pbufferin += read_size;
 		if(pbufferin >= buffer + GPS_MAX_BUFF_SIZE - 1)
 		{
+			wd_dbg[eWdGps] = 34;
 			LOGE(LOG_TARGET, "Critical! GPS Logic has been broken.\nClear buffer.\n");
 			error_critical(eERROR_LOG , "GPS Logic broken");
 			pbufferin = buffer;
@@ -97,26 +104,32 @@ int _splite_gps_context(void)
 		}
 		else
 		{
+			wd_dbg[eWdGps] = 35;
 			will_read_size = (buffer + GPS_MAX_BUFF_SIZE - 1) - pbufferin;
 			//LOGT(LOG_TARGET, "%d %d\n", __LINE__, will_read_size);
 		}
 		res = 0;
+		wd_dbg[eWdGps] = 36;
 	}
 	else
 	{
+		wd_dbg[eWdGps] = 37;
 		pDelimeter += 1; //Point at next byte of 0x0a
 		gps_data_size = pDelimeter - buffer;
-
+		wd_dbg[eWdGps] = 38;
 		gps_parse(buffer, gps_data_size);
-
+		wd_dbg[eWdGps] = 39;
 		//Set pointer to point next gps context
 		memmove(buffer, pDelimeter, plastbyte - pDelimeter);
 		read_size = 0;
+		wd_dbg[eWdGps] = 40;
 		memset(buffer + (plastbyte - pDelimeter), 0, (GPS_MAX_BUFF_SIZE - 1) - (plastbyte - pDelimeter));
 		pbufferin = buffer + (plastbyte - pDelimeter);
 		will_read_size = (buffer + GPS_MAX_BUFF_SIZE - 1) - pbufferin;
+		wd_dbg[eWdGps] = 41;
 		res = 1;
 	}
+	wd_dbg[eWdGps] = 42;
 	return res;
 }
 
