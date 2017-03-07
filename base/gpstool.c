@@ -425,6 +425,8 @@ void gps_parse(char* buff, int size)
 	static time_t prev_gps_time = 0;
 	static int count_utc_refresh = 0;
 
+	int gps_parse_max_try_cnt = 10;
+
 	if(g_skip_gps_when_error > 0)
 	{
 		return;
@@ -437,6 +439,12 @@ void gps_parse(char* buff, int size)
 
 	while(buff_p < size)
 	{
+		if ( gps_parse_max_try_cnt-- <= 0 )
+		{
+			LOGE(LOG_TARGET, "GPS PARSER is too many try. break loop... \n");
+			break;
+		}
+		
 		tok_read_cnt = tok_next(&buff, tempbuf, sizeof(tempbuf));
 
 		buff += tok_read_cnt;	// move buff pointer...
