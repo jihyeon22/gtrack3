@@ -62,6 +62,8 @@ void *thread_network(void *args)
 	{
 		if(nettool_get_state() == DEFINES_MDS_OK)
 		{
+			// 바로 시도하니까 네트워크가 안된다.
+			sleep(2);
 			configurationBase_t *conf_base = get_config_base();
 #ifdef USE_GPS_MODEL
 			gps_start_utc_adjust();
@@ -90,8 +92,6 @@ void *thread_network(void *args)
 	warn_timeout_prev_send_time = tools_get_kerneltime();
 
 	// btn thread 와 sync 로 인해 못보냈다면 다시 보내도록.
-	sleep(1);
-	dmmgr_send_incomplete_event();
 
 	while(flag_run_thread_network) {
 		int nfds = 0;

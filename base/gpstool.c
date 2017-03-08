@@ -442,7 +442,7 @@ void gps_parse(char* buff, int size)
 	static time_t prev_gps_time = 0;
 	static int count_utc_refresh = 0;
 
-	int gps_parse_max_try_cnt = 10;
+	int gps_parse_max_try_cnt = 180;
 
 	if(g_skip_gps_when_error > 0)
 	{

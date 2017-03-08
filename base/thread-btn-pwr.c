@@ -380,23 +380,6 @@ void *thread_btn_pwr(void *args)
 		return NULL;
 	}
 
-	if(power_get_ignition_status() == POWER_IGNITION_OFF)
-	{
-		
-		time_ign_hold_time = tools_get_kerneltime();
-		ign_on = POWER_IGNITION_OFF;
-		dmmgr_send(eEVENT_KEY_OFF, NULL, 0);
-		ignition_off_callback();
-	}
-	else
-	{
-		
-		time_ign_hold_time = tools_get_kerneltime();
-		ign_on = POWER_IGNITION_ON;
-		dmmgr_send(eEVENT_KEY_ON, NULL, 0);
-		ignition_on_callback();
-	}
-
 	if(conf->common.first_pwr_status_on == 1)
 	{
 		time_pwr_hold_time = tools_get_kerneltime();
@@ -424,6 +407,22 @@ void *thread_btn_pwr(void *args)
 		}
 	}
 
+	if(power_get_ignition_status() == POWER_IGNITION_OFF)
+	{
+		
+		time_ign_hold_time = tools_get_kerneltime();
+		ign_on = POWER_IGNITION_OFF;
+		dmmgr_send(eEVENT_KEY_OFF, NULL, 0);
+		ignition_off_callback();
+	}
+	else
+	{
+		
+		time_ign_hold_time = tools_get_kerneltime();
+		ign_on = POWER_IGNITION_ON;
+		dmmgr_send(eEVENT_KEY_ON, NULL, 0);
+		ignition_on_callback();
+	}
 	btn_1_push_time = btn_2_push_time = tools_get_kerneltime();
 
 	fd_evt = open(EVENT0_DEV_NAME, O_RDONLY | O_NONBLOCK);
@@ -442,6 +441,9 @@ void *thread_btn_pwr(void *args)
 	while(flag_run_thread_btn_pwr)
 	{
 		wd_dbg[eWdPwr] = 1;
+
+		// 처리하지못한 dm event msg 들을 보내도록한다.
+		dmmgr_send_incomplete_event();
 
 		watchdog_set_cur_ktime(eWdPwr);
 		watchdog_process();
@@ -503,6 +505,8 @@ void *thread_btn_pwr(void *args)
 		wd_dbg[eWdPwr] = 17;
 		_check_pwr_onoff();
 		wd_dbg[eWdPwr] = 18;
+
+		
 	}
 
 	wd_dbg[eWdPwr] = 19;

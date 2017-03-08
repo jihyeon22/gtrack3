@@ -185,6 +185,7 @@ int dmmgr_send(dmEventType_t type, const char *log, int evo_errno)
 		return DM_EV_RESP_OK;
 	}
 
+	
 #ifdef DM_MUTEX_CODE
 	clock_gettime(CLOCK_REALTIME , &abs_time);
     abs_time.tv_sec += 60;
@@ -353,6 +354,27 @@ int dmmgr_send(dmEventType_t type, const char *log, int evo_errno)
 	else if(res != DM_EV_RESP_OK)
 	{
 		LOGE(LOG_TARGET, "DM Server Error Response [%d]\n", res);
+		// error 발생시 아래의 이벤트들은 다시 보내도록한다.
+		// 실제 네트워크등의 문제발생시 해당 이벤트들을 보내지못하면.. 안된다.
+		// 문제는 TL500 의 경우 네트워크 인터페이스가 활성화 됐음에도 실제 네트워크가 안되는경우가 빈번히 발생한다.
+		// 때문에 업데이트가 안되는등의 이슈가 발생할 가능성이 높다. --> key on 이벤트를 보내지못해 업데이트가 계속 안되는 문제발생!
+
+		if ( res == DM_ERR_INVALID_SESSION )
+		{
+			switch(type)
+			{
+				case eEVENT_PWR_ON:
+				case eEVENT_PWR_OFF:
+				case eEVENT_KEY_ON:
+				case eEVENT_KEY_OFF:
+				case eEVENT_STATUS:
+				case eEVENT_UPDATE:
+					incomplete_event_buffer[type] = 1;
+					break;
+				default:
+					break;
+			}
+		}
 	}
 
 FINISH:
@@ -378,6 +400,9 @@ void dmmgr_deinit(void)
 void dmmgr_send_incomplete_event(void)
 {
 	int i = 0;
+
+	if(nettool_get_state() == DEFINES_MDS_NOK)
+		return;
 
 	for(i = 0;i < eEVENT_MAX;i++)
 	{
