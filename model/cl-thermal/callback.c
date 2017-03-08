@@ -288,6 +288,8 @@ void gps_parse_one_context_callback(void)
 }
 
 #define GPS_ANT_CHK_INTERVAL_SEC	10
+#define GET_THERMAL_SENSOR_INTERVAL_SEC	60
+
 void main_loop_callback(void)
 {
 	static unsigned char uid_prev[10] = {0};
@@ -302,7 +304,6 @@ void main_loop_callback(void)
 	
 	// rfid_init();
 
-	therm_sense();
 
 	while(flag_run_thread_main)
 	{
@@ -327,6 +328,10 @@ void main_loop_callback(void)
 			}
 			last_gps_ant_stat = cur_gps_ant_stat;
 		}
+
+		if ( ( main_loop_cnt % GET_THERMAL_SENSOR_INTERVAL_SEC ) == 0 )
+			therm_sense();
+
 		#if 0
 		therm_sense();
 		// get_modem_time_utc_sec();

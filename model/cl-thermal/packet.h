@@ -124,9 +124,9 @@ typedef struct {
 	char longitude[9];  
 	char speed[3];  
   	char direction[3];  
-	char avg_speed[3];      
-  	char acc_status;  
-  	char accumul_dist[6];  
+	char avg_speed[3];  	// v06 : avg speed, v08 : motion sensor
+  	char acc_status;  		// v06 : acc stat , v08 : door sensor
+  	char accumul_dist[6];  	// v06 : accumul dist , v08 : thermal sensor
   	char event_code[2];      
 }__attribute__((packed))CL_LOCATION_BODY;
 
@@ -169,7 +169,8 @@ typedef struct {
 #define CMD_CSS "CSS"
 #define CMD_RST "RST"
 #define CMD_CPO "CPO"
-#define CMD_MPL "MPL"
+#define CMD_MPL "MPL"	// ver 0.6 spec
+#define CMD_MPT "MPT"	// ver 0.8 spec // 주기보고
 #define CMD_MPF "MPF"
 #define CMD_GIO "GIO"
 #define CMD_MGZ "MGZ"

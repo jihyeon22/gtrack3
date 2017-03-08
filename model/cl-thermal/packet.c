@@ -14,6 +14,10 @@
 #include "logd/logd_rpc.h"
 #include <at/at_util.h>
 
+#include "base/thermtool.h"
+
+#define CL_SPEC_06
+//#define CL_SPEC_08	// thermal sensor spec
 // ----------------------------------------
 //  LOGD Target
 // ----------------------------------------
@@ -100,6 +104,102 @@ int _set_location_data(CL_LOCATION_BODY *pdata, locationData_t *loc)
 	return 0;
 }
 
+void _get_thermal_sensor(char* temp_get_sensor)
+{
+	THERMORMETER_DATA tmp_therm;
+	short thermal_sensor[4] = {0,};	// max 4 ch.
+	int idx = 0;
+	int i = 0;
+
+//	char tmp_thermal_sensor_str[6+1] = {0};	// 6byte : each ch size 3byte : total 2byte.
+
+	if(therm_get_curr_data(&tmp_therm) == 0)
+		{
+			int i = 0;
+
+			for(i=0 ; i < tmp_therm.channel; i++)
+			{
+				switch(tmp_therm.temper[i].status)
+				{
+					case eOK:
+						thermal_sensor[idx++] = tmp_therm.temper[i].data;
+						break;
+					case eOPEN:
+						break;
+					case eSHORT:
+						break;
+					case eUNUSED:
+						break;
+					case eNOK:
+						break;
+					default:
+						break;
+				}
+
+			}
+		}
+
+	// -99 이하 값에 대한 처리요망
+	snprintf(temp_get_sensor, 6+1, "%03d%03d", thermal_sensor[0],thermal_sensor[1]);
+}
+
+int _set_location_data_thermal(CL_LOCATION_BODY *pdata, locationData_t *loc)
+{
+	gpsData_t *gpsdata = &(loc->gpsdata);
+
+	char temp_date[sizeof(pdata->date)+1] = {0};
+	snprintf(temp_date, sizeof(pdata->date)+1, "%02d%02d%02d", gpsdata->year % 100, gpsdata->mon, gpsdata->day);
+	memcpy(pdata->date, temp_date, sizeof(pdata->date));
+
+	char temp_time[sizeof(pdata->time)+1] = {0};
+	snprintf(temp_time, sizeof(pdata->time)+1, "%02d%02d%02d", gpsdata->hour, gpsdata->min, gpsdata->sec);
+	memcpy(pdata->time, temp_time, sizeof(pdata->time));
+
+	if(gpsdata->active == 1) {
+		pdata->gps_status = 'A';
+	} else {
+		pdata->gps_status = 'V';
+	}
+
+	char temp_latitude[sizeof(pdata->latitude)+1] = {0};
+	snprintf(temp_latitude, sizeof(pdata->latitude)+1, "%08.05f", gpsdata->lat);
+	memcpy(pdata->latitude, temp_latitude, sizeof(pdata->latitude));
+
+	char temp_longitude[sizeof(pdata->longitude)+1] = {0};
+	snprintf(temp_longitude, sizeof(pdata->longitude)+1, "%09.05f", gpsdata->lon);
+	memcpy(pdata->longitude, temp_longitude, sizeof(pdata->longitude));
+
+	char temp_speed[sizeof(pdata->speed)+1] = {0};
+	snprintf(temp_speed, sizeof(pdata->speed)+1, "%03d", gpsdata->speed);
+	memcpy(pdata->speed, temp_speed, sizeof(pdata->speed));
+
+	char temp_direction[sizeof(pdata->direction)+1] = {0};
+	snprintf(temp_direction, sizeof(pdata->direction)+1, "%03d", (int)(gpsdata->angle));
+	memcpy(pdata->direction, temp_direction, sizeof(pdata->direction));
+
+	// ver 0.8 spec  : avg speed -> motion sensor
+	char temp_avg_speed[sizeof(pdata->avg_speed)+1] = {0};
+	snprintf(temp_avg_speed, sizeof(pdata->avg_speed)+1, "%03d", 0);
+	memcpy(pdata->avg_speed, temp_avg_speed, sizeof(pdata->avg_speed));
+
+	// ver 0.8 spec  : acc status -> door sensor
+	pdata->acc_status = '0';
+	
+	// ver 0.8 spec  : accumul dis -> thermal sensor
+	char temp_accumul_dist[sizeof(pdata->accumul_dist)+1];
+	char temp_get_sensor[sizeof(pdata->accumul_dist)+1];
+	_get_thermal_sensor(temp_get_sensor);
+	snprintf(temp_accumul_dist, sizeof(pdata->accumul_dist)+1, "%6s", temp_get_sensor);
+	memcpy(pdata->accumul_dist, temp_accumul_dist, sizeof(pdata->accumul_dist));
+
+	char temp_event_code[sizeof(pdata->event_code)+1];
+	snprintf(temp_event_code, sizeof(pdata->event_code)+1, "%02d", loc->event_code);
+	memcpy(pdata->event_code, temp_event_code, sizeof(pdata->event_code));	
+
+	return 0;
+}
+
+
 int make_event_packet(unsigned char **pbuf, unsigned short *packet_len, locationData_t *loc)
 {
 	int res = 0;
@@ -128,7 +228,13 @@ int make_event_packet(unsigned char **pbuf, unsigned short *packet_len, location
 	ptail = (CL_PACKET_TAIL *)(packet_buf + sizeof(CL_PACKET_HEAD) + data_len);
 
 	/* phead */
+#ifdef CL_SPEC_06
 	_set_comm_head_data((CL_COMM_HEAD *)phead, CMD_MPL);
+#endif
+
+#ifdef CL_SPEC_08
+	_set_comm_head_data((CL_COMM_HEAD *)phead, CMD_MPT);
+#endif
 
 	int length = *packet_len;
 	char temp_length[sizeof(phead->length)+1] = {0};
@@ -140,8 +246,12 @@ int make_event_packet(unsigned char **pbuf, unsigned short *packet_len, location
 	memcpy(phead->data_count, temp_data_count, sizeof(phead->data_count));
 
 	/* pbody */
+#ifdef CL_SPEC_06
 	_set_location_data(pbody, loc); 
-
+#endif
+#ifdef CL_SPEC_08
+	_set_location_data_thermal(pbody, loc); 
+#endif
 	/* ptail */
 	ptail->check_sum = tools_checksum_xor(packet_buf + sizeof(CL_PACKET_HEAD), checksum_len);
 
@@ -240,7 +350,12 @@ int make_report_packet(unsigned char **pbuf, unsigned short *packet_len)
 	ptail = (CL_PACKET_TAIL *)(packet_buf + sizeof(CL_PACKET_HEAD) + data_len);
 
 	/* phead */
+#ifdef CL_SPEC_06
 	_set_comm_head_data((CL_COMM_HEAD *)phead, CMD_MPL);
+#endif
+#ifdef CL_SPEC_08
+	_set_comm_head_data((CL_COMM_HEAD *)phead, CMD_MPT);
+#endif
 
 	int length = *packet_len;
 	char temp_length[sizeof(phead->length)+1] = {0};
@@ -253,7 +368,12 @@ int make_report_packet(unsigned char **pbuf, unsigned short *packet_len)
 
 	/* pbody */
 	for(i = 0; i < data_count; i++) {
+#ifdef CL_SPEC_06
 		_set_location_data(&pbody[i], &locData[i]);
+#endif
+#ifdef CL_SPEC_08
+		_set_location_data_thermal(&pbody[i], &locData[i]);
+#endif
 	}
 
 	/* ptail */
