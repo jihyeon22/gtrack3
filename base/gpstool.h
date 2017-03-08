@@ -10,8 +10,8 @@
 
 #define GPS_INVALID_HANDLE		(0xFFABCDEF)
 
-#define GPS_TYPE_SGPS 1
-#define GPS_TYPE_AGPS 2
+//#define GPS_TYPE_SGPS 1
+//#define GPS_TYPE_AGPS 2
 
 #define GPS_BOOT_WARM 1
 #define GPS_BOOT_COLD 2
