@@ -16,8 +16,8 @@
 
 #include "base/thermtool.h"
 
-#define CL_SPEC_06
-//#define CL_SPEC_08	// thermal sensor spec
+//#define CL_SPEC_06
+#define CL_SPEC_08	// thermal sensor spec
 // ----------------------------------------
 //  LOGD Target
 // ----------------------------------------
@@ -104,10 +104,15 @@ int _set_location_data(CL_LOCATION_BODY *pdata, locationData_t *loc)
 	return 0;
 }
 
-void _get_thermal_sensor(char* temp_get_sensor)
+void _get_thermal_sensor(char* ret_sensor)
 {
 	THERMORMETER_DATA tmp_therm;
 	short thermal_sensor[4] = {0,};	// max 4 ch.
+
+	short minimum_sensor_val = -99;
+
+	char temp_get_sensor[6+1] = {0,};
+
 	int idx = 0;
 	int i = 0;
 
@@ -122,7 +127,16 @@ void _get_thermal_sensor(char* temp_get_sensor)
 				switch(tmp_therm.temper[i].status)
 				{
 					case eOK:
-						thermal_sensor[idx++] = tmp_therm.temper[i].data;
+						LOGT(LOG_TARGET, "[THERMAL] sensor [%d] => [%d]\n", idx, tmp_therm.temper[i].data);
+						
+						//
+						if ( tmp_therm.temper[i].data < minimum_sensor_val)
+							thermal_sensor[idx] = minimum_sensor_val;
+						else
+							thermal_sensor[idx] = tmp_therm.temper[i].data;
+						
+						idx++;
+
 						break;
 					case eOPEN:
 						break;
@@ -139,8 +153,11 @@ void _get_thermal_sensor(char* temp_get_sensor)
 			}
 		}
 
-	// -99 이하 값에 대한 처리요망
+
 	snprintf(temp_get_sensor, 6+1, "%03d%03d", thermal_sensor[0],thermal_sensor[1]);
+
+	memcpy(ret_sensor, temp_get_sensor, 6+1);
+	LOGT(LOG_TARGET, "[THERMAL] pkt string => [%s] \n", temp_get_sensor);
 }
 
 int _set_location_data_thermal(CL_LOCATION_BODY *pdata, locationData_t *loc)
