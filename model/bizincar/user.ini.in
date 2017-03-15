@@ -1,0 +1,9 @@
+[user]
+model_name=bic
+date=150914
+report_ip=107.167.176.124
+report_port=13094
+collect_interval_keyon = 60
+report_interval_keyon = 60
+collect_interval_keyoff = 3600
+report_interval_keyoff = 3600
