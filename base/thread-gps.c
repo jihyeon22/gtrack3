@@ -351,7 +351,9 @@ void *thread_gps(void *args)
 			read_error_count = 0;
 			// debug msg for test
 			if ( udp_gpsd_err_cnt1 > 0 )
-				devel_webdm_send_log("gps thread debug : gps recovery success. [%d]", udp_gpsd_err_cnt1);
+			{
+				// devel_webdm_send_log("gps thread debug : gps recovery success. [%d]", udp_gpsd_err_cnt1);
+			}
 
 			udp_gpsd_err_cnt1 = 0;
 			udp_gpsd_err_cnt2 = 0;

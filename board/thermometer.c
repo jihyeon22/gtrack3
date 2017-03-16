@@ -491,7 +491,7 @@ int get_therm(THERMORMETER_DATA *therm)
 					int i = 0;
 					int length = 0;
 
-					length += sprintf(debug_msg+length, "THERM SENSOR ERR : ");
+					length += sprintf(debug_msg+length, "THERM SENSOR ERR (UT1) : ");
 
 					for ( i = 0 ; i < len ; i ++)
 					{
@@ -513,7 +513,7 @@ int get_therm(THERMORMETER_DATA *therm)
 			{
 				if ( thermal_sensor_success_send_info == 0 )
 				{
-					devel_webdm_send_log( "THERM SENSOR GET SUCCESS" );
+					devel_webdm_send_log( "THERM SENSOR GET SUCCESS (UT1)" );
 					thermal_sensor_success_send_info = 1;
 				}
 			}
@@ -546,7 +546,7 @@ int get_therm(THERMORMETER_DATA *therm)
 					int i = 0;
 					int length = 0;
 
-					length += sprintf(debug_msg+length, "THERM SENSOR ERR : ");
+					length += sprintf(debug_msg+length, "THERM SENSOR ERR (UT3) : ");
 
 					for ( i = 0 ; i < len ; i ++)
 					{
@@ -568,7 +568,7 @@ int get_therm(THERMORMETER_DATA *therm)
 			{
 				if ( thermal_sensor_success_send_info == 0 )
 				{
-					devel_webdm_send_log( "THERM SENSOR GET SUCCESS" );
+					devel_webdm_send_log( "THERM SENSOR GET SUCCESS (UT3)" );
 					thermal_sensor_success_send_info = 1;
 				}
 			}
