@@ -34,6 +34,8 @@
 
 #include "base/thermtool.h"
 
+#include <at/at_util.h>
+
 // ----------------------------------------
 //  LOGD(LOG_TARGET, LOG_TARGET,  Target
 // ----------------------------------------
@@ -85,6 +87,7 @@ void init_model_callback(void)
 	therm_set_sense_cycle(THERMAL_SENSING_CYCLE);
 	therm_set_dev(THERMAL_DEVICE, strlen(THERMAL_DEVICE));
 
+	at_set_gps_on(e_GPS_ON_TYPE_SET_ENV_AGPS, e_GPS_BOOT_TYPE_NULL);
 }
 
 void network_on_callback(void)
