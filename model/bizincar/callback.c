@@ -86,6 +86,7 @@ void init_model_callback(void)
 		therm_set_sense_cycle(conf->model.tempature_cycle);
 		therm_set_dev(conf->model.tempature_device, strlen(conf->model.tempature_device));
 	}
+
 }
 
 void network_on_callback(void)
