@@ -368,6 +368,9 @@ int main(int argc, char** argv)
 	mileage_read();
 
 	gps_valid_data_read();
+
+	// agps setting for tl500
+	at_set_gps_on(e_GPS_ON_TYPE_SET_ENV_AGPS, e_GPS_BOOT_TYPE_NULL);
 #endif
 
 	if(battery_init_adc() < 0)
@@ -380,12 +383,8 @@ int main(int argc, char** argv)
 
 	stackdump_abort_base_callback = _deinit_essential_functions;
 
-
-	
 //	at_set_alive(conf_base->common.alive_time_sec);
-
 //	_get_essential_data_blocking();
-
 
 	watchdog_set_cur_ktime(eWdMain);
 	watchdog_process();
