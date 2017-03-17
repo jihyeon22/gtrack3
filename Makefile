@@ -82,7 +82,7 @@ SERVER_ABBR := MDS
 else ifeq ($(SERVER),cl-thermal)
 SERVER_ABBR := CLT
 else ifeq ($(SERVER),bizincar)
-SERVER_ABBR := BZIC
+SERVER_ABBR := BIC
 else
 $(error SERVER is not registerd in Makefile, please input registred server)
 endif
@@ -100,7 +100,7 @@ CORP_ABBR := CL
 else ifeq ($(CORP),corp)
 CORP_ABBR := CORP
 else ifeq ($(CORP),bizincar)
-CORP_ABBR := BZIC
+CORP_ABBR := BIC
 else
 $(error CORP is not registerd in Makefile, please input registred corporation)
 endif
