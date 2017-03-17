@@ -1,8 +1,8 @@
 [user]
 model_name=bic
-date=150914
-report_ip=107.167.176.124
-report_port=13094
+date=160318
+report_ip=smartlbs.com
+report_port=30021
 collect_interval_keyon = 60
 report_interval_keyon = 60
 collect_interval_keyoff = 3600
