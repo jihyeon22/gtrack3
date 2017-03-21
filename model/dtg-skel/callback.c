@@ -77,9 +77,12 @@ void gps_parse_one_context_callback(void)
 
 }
 
+void tacoc_run();
+
 void main_loop_callback(void)
 {
 	tacom_init ();
+	tacoc_run();
 	while(flag_run_thread_main)
 	{
 		//printf("gtrack calback ::: main_loop_callback !!!\r\n");

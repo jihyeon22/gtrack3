@@ -111,6 +111,7 @@ int tacom_get_errno()
 int tacom_get_status () {
 	TACOM *tm = tacom_get_cur_context();
 	return tm->status;
+	//return TACOM_IDLE; // force idle.
 }
 
 void tacom_set_status (enum tacom_stat stat)
@@ -131,6 +132,8 @@ TACOM *tacom_init ()
 	int size;
 
 	DTG_LOGD("%s - %d\r\n", __func__, __LINE__);
+	
+	
 	// gtrack feature..
 	tm = tacom_get_cur_context();
 	if ( tm == NULL )

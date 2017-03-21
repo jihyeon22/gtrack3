@@ -21,7 +21,7 @@
 #include <wrapper/dtg_tacoc_wrapper_rpc_clnt.h>
 
 /* Insert Common Client Header */
-#include <taco_rpc.h>
+
 #include <wrapper/dtg_mdmc_wrapper_rpc_clnt.h>
 #include <wrapper/dtg_version.h>
 
@@ -43,9 +43,9 @@
 
 #include <unistd.h>
 
-static int running = 0;
-pthread_mutex_t tacoc_rpc_cmd_mutex; //jwrho
 
+pthread_mutex_t tacoc_rpc_cmd_mutex; //jwrho
+int main_process();
 void tacoc_run(void)
 {
 	DTG_LOGI("RUN");
