@@ -104,10 +104,30 @@ int _set_location_data(CL_LOCATION_BODY *pdata, locationData_t *loc)
 	return 0;
 }
 
+void _thermal_sensor_val_filter(short val, char* buff)
+{
+	short convert_val = val;
+
+	if ( val >= 99 )
+		convert_val = 99;
+
+	if ( val <= -99)
+		convert_val = -99;
+
+	if ( convert_val > 0 )
+		sprintf(buff, "+%02d", convert_val);
+	
+	if ( convert_val <= 0 )
+		sprintf(buff, "%03d", abs(convert_val));
+	
+	
+}
+
 void _get_thermal_sensor(char* ret_sensor)
 {
 	THERMORMETER_DATA tmp_therm;
-	short thermal_sensor[4] = {0,};	// max 4 ch.
+//	short thermal_sensor[4] = {0,};	// max 4 ch.
+	char thermal_sensor_str[4][8] = {0,};
 
 	short minimum_sensor_val = -99;
 
@@ -118,43 +138,54 @@ void _get_thermal_sensor(char* ret_sensor)
 
 //	char tmp_thermal_sensor_str[6+1] = {0};	// 6byte : each ch size 3byte : total 2byte.
 
-	if(therm_get_curr_data(&tmp_therm) == 0)
+	for( i = 0 ; i < 4 ; i ++)
+	{
+		sprintf(thermal_sensor_str[i], "0E1" );
+	}
+
+	idx = 0;
+	if( therm_get_curr_data(&tmp_therm) == 0)
+	{
+		int i = 0;
+		int tmp_val = 0;
+
+		for(i=0 ; i < tmp_therm.channel; i++)
 		{
-			int i = 0;
-
-			for(i=0 ; i < tmp_therm.channel; i++)
+			switch(tmp_therm.temper[i].status)
 			{
-				switch(tmp_therm.temper[i].status)
-				{
-					case eOK:
-						LOGT(LOG_TARGET, "[THERMAL] sensor [%d] => [%d]\n", idx, tmp_therm.temper[i].data);
-						
-						//
-						if ( tmp_therm.temper[i].data < minimum_sensor_val)
-							thermal_sensor[idx] = minimum_sensor_val;
-						else
-							thermal_sensor[idx] = tmp_therm.temper[i].data;
-						
-						idx++;
+				case eOK:
+					LOGT(LOG_TARGET, "[THERMAL] sensor [%d] => [%d]\n", idx, tmp_therm.temper[i].data);
+					
+					_thermal_sensor_val_filter(tmp_therm.temper[i].data, thermal_sensor_str[idx]);
+					
+					idx++;
 
-						break;
-					case eOPEN:
-						break;
-					case eSHORT:
-						break;
-					case eUNUSED:
-						break;
-					case eNOK:
-						break;
-					default:
-						break;
-				}
-
+					break;
+				case eOPEN:
+					sprintf(thermal_sensor_str[idx], "0E1" );
+					idx++;
+					break;
+				case eSHORT:
+					sprintf(thermal_sensor_str[idx], "0E2" );
+					idx++;
+					break;
+				case eUNUSED:
+					sprintf(thermal_sensor_str[idx], "0E1" );
+					idx++;
+					break;
+				case eNOK:
+					sprintf(thermal_sensor_str[idx], "0E3" );
+					idx++;
+					break;
+				default:
+					break;
 			}
+
 		}
+	}
 
 
-	snprintf(temp_get_sensor, 6+1, "%03d%03d", thermal_sensor[0],thermal_sensor[1]);
+	snprintf(temp_get_sensor, 6+1, "%.3s%.3s", thermal_sensor_str[0], thermal_sensor_str[1]);
 
 	memcpy(ret_sensor, temp_get_sensor, 6+1);
 	LOGT(LOG_TARGET, "[THERMAL] pkt string => [%s] \n", temp_get_sensor);
