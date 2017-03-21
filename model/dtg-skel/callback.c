@@ -21,6 +21,7 @@
 #include <callback.h>
 #include <config.h>
 
+
 static int flag_run_thread_main = 1;
 
 void init_model_callback(void)
@@ -29,6 +30,8 @@ void init_model_callback(void)
 
 	printf("gtrack calback ::: init_model_callback !!!\r\n");
 	thread_network_set_warn_timeout(MAX(conf->model.report_interval_keyon, conf->model.report_interval_keyoff) * 2);
+
+	//taco_main();
 }
 
 void network_on_callback(void)
@@ -60,7 +63,6 @@ void ignition_off_callback(void)
 void power_on_callback(void)
 {	
 	printf("gtrack calback ::: power_on_callback !!!\r\n");
-
 }
 
 void power_off_callback(void)
@@ -71,15 +73,16 @@ void power_off_callback(void)
 
 void gps_parse_one_context_callback(void)
 {
-	printf("gtrack calback ::: gps_parse_one_context_callback !!!\r\n");
+	//printf("gtrack calback ::: gps_parse_one_context_callback !!!\r\n");
 
 }
 
 void main_loop_callback(void)
 {
+	tacom_init ();
 	while(flag_run_thread_main)
 	{
-		printf("gtrack calback ::: main_loop_callback !!!\r\n");
+		//printf("gtrack calback ::: main_loop_callback !!!\r\n");
 		watchdog_set_cur_ktime(eWdMain);
 		watchdog_process();
 		sleep(1);
@@ -89,6 +92,10 @@ void main_loop_callback(void)
 void terminate_app_callback(void)
 {
 	printf("gtrack calback ::: terminate_app_callback !!!\r\n");
+	while(1)
+	{
+		sleep(1);
+	}
 }
 
 void exit_main_loop(void)
@@ -97,3 +104,8 @@ void exit_main_loop(void)
 
 	flag_run_thread_main = 0;
 }
+
+// -----------------------
+// dtg callback
+// -----------------------
+

@@ -83,6 +83,8 @@ else ifeq ($(SERVER),cl-thermal)
 SERVER_ABBR := CLT
 else ifeq ($(SERVER),bizincar)
 SERVER_ABBR := BIC
+else ifeq ($(SERVER),dtg-skel)
+SERVER_ABBR := DSKL
 else
 $(error SERVER is not registerd in Makefile, please input registred server)
 endif
