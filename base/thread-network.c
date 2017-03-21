@@ -21,12 +21,12 @@
 #include <logd_rpc.h>
 #include <callback.h>
 
-#if defined (BOARD_NEO_W200K) && defined (KT_FOTA_ENABLE)
+#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
 #include <base/kt_fota.h>
 #include <base/kt_fota_config.h>
 #endif
 
-#if defined (BOARD_NEO_W200K) && defined (KT_FOTA_ENABLE)
+#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
 #define PIPE1_DEV_NET_TIMEOUT_SEC		10
 #else
 #define PIPE1_DEV_NET_TIMEOUT_SEC		30
@@ -97,7 +97,7 @@ void *thread_network(void *args)
 		int nfds = 0;
 		fd_set readfds;
 
-#if defined (BOARD_NEO_W200K) && defined (KT_FOTA_ENABLE)
+#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
 		if(kt_fota_check_cycle() == 1)
 		{
 			kt_fota_send();

@@ -17,7 +17,7 @@
 #include "config.h"
 #include "debug.h"
 
-#if defined (BOARD_NEO_W200K) && defined (KT_FOTA_ENABLE)
+#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
 #include "kt_fota_ver.h"
 #endif
 
@@ -42,7 +42,7 @@ static int _fence_set (int argc, char **argv);
 static int _rpt_cycle2(int argc, char **argv);
 static int _mdt_reset (int argc, char **argv);
 
-#ifdef BOARD_NEO_W200K
+#ifdef BOARD_TL500K
 #ifdef KT_FOTA_ENABLE
 static int _get_version (char *pn);
 #endif
@@ -136,7 +136,7 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 		case eSMS_GEO_FENCE_SET:
 			ret = _fence_set(model_argc, model_argv);
 			break;
-#ifdef BOARD_NEO_W200K
+#ifdef BOARD_TL500K
 #ifdef KT_FOTA_ENABLE
 		case eSMS_GET_VERSION:
 			ret = _get_version(phonenum);
@@ -654,7 +654,7 @@ static int _fence_set (int argc, char **argv)
 	return 0;
 }
 
-#ifdef BOARD_NEO_W200K
+#ifdef BOARD_TL500K
 #ifdef KT_FOTA_ENABLE
 static int _get_version (char *pn)
 {

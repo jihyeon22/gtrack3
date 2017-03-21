@@ -33,7 +33,7 @@ typedef unsigned long kernel_ulong_t;
 #include <callback.h>
 #include <logd_rpc.h>
 
-#if defined (BOARD_NEO_W200K) && defined (KT_FOTA_ENABLE)
+#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
 #include <base/kt_fota.h>
 #endif
 
@@ -300,7 +300,7 @@ void _check_pwr_onoff(void)
 			devel_log_poweroff(__FUNCTION__, sizeof(__FUNCTION__));
 
 			LOGT(LOG_TARGET, "Run power-off process\n");
-#if defined (BOARD_NEO_W200K) && defined (KT_FOTA_ENABLE)
+#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
 			kt_fota_deinit();
 #endif
 			wd_dbg[eWdPwr] = 56;
