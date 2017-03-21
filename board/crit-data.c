@@ -12,7 +12,7 @@
 #include <mdsapi/mds_api.h>
 
 static int _check_crit_data(void);
-static int _check_core_version(void);
+//static int _check_core_version(void);
 
 #define USE_CRIT		1
 

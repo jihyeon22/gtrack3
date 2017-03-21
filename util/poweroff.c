@@ -3,6 +3,8 @@
 
 #include <base/devel.h>
 #include <util/tools.h>
+#include <util/poweroff.h>
+#include <board/gpio.h>
 
 void poweroff(const char *log_buff, const int log_buff_len)
 {

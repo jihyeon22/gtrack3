@@ -256,20 +256,20 @@ void get_watchdog_status()
 		return;
 	}
 
-	sprintf(tmp, "[net1:%d, %u, %d] ", !ktime_wd[eWdNet1]?0:ktime_cur - ktime_wd[eWdNet1], watchdog_time[eWdNet1],num_watchdog[eWdNet1]);
+	sprintf(tmp, "[net1:%d, %u, %u] ", !ktime_wd[eWdNet1]?0:ktime_cur - ktime_wd[eWdNet1], watchdog_time[eWdNet1],num_watchdog[eWdNet1]);
 	strcpy(str_log, tmp);
 #ifdef USE_NET_THREAD2
-	sprintf(tmp, "[net2:%d, %u, %d] ", !ktime_wd[eWdNet2]?0:ktime_cur - ktime_wd[eWdNet2], watchdog_time[eWdNet2],num_watchdog[eWdNet2]);
+	sprintf(tmp, "[net2:%d, %u, %u] ", !ktime_wd[eWdNet2]?0:ktime_cur - ktime_wd[eWdNet2], watchdog_time[eWdNet2],num_watchdog[eWdNet2]);
 	strcat(str_log, tmp);
 #endif
 #ifdef USE_BUTTON_THREAD
-	sprintf(tmp, "[pwr:%d, %u, %d] ", !ktime_wd[eWdPwr]?0:ktime_cur - ktime_wd[eWdPwr], watchdog_time[eWdPwr],num_watchdog[eWdPwr]);
+	sprintf(tmp, "[pwr:%d, %u, %u] ", !ktime_wd[eWdPwr]?0:ktime_cur - ktime_wd[eWdPwr], watchdog_time[eWdPwr],num_watchdog[eWdPwr]);
 	strcat(str_log, tmp);
 #endif
-	sprintf(tmp, "[main:%d, %u, %d] ", !ktime_wd[eWdMain]?0:ktime_cur - ktime_wd[eWdMain], watchdog_time[eWdMain],num_watchdog[eWdMain]); 
+	sprintf(tmp, "[main:%d, %u, %u] ", !ktime_wd[eWdMain]?0:ktime_cur - ktime_wd[eWdMain], watchdog_time[eWdMain],num_watchdog[eWdMain]); 
 	strcat(str_log, tmp);
 #ifdef USE_GPS_MODEL
-	sprintf(tmp, "[Gps:%d, %u, %d] ", !ktime_wd[eWdGps]?0:ktime_cur - ktime_wd[eWdGps], watchdog_time[eWdGps],num_watchdog[eWdGps]);
+	sprintf(tmp, "[Gps:%d, %u, %u] ", !ktime_wd[eWdGps]?0:ktime_cur - ktime_wd[eWdGps], watchdog_time[eWdGps],num_watchdog[eWdGps]);
 	strcat(str_log, tmp);
 #endif
 	devel_webdm_send_log("%s", str_log);

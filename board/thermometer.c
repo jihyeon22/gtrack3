@@ -17,6 +17,8 @@
 #include "thermometer.h"
 
 #include <logd_rpc.h>
+
+#include <base/devel.h>
 #define LOG_TARGET eSVC_COMMON
 
 

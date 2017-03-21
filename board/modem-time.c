@@ -45,7 +45,7 @@ int get_modem_time_tm(struct tm* time_tm)
   	time_t t;
     struct tm *lt;
 
-	struct tm* tm_ptr;
+	//struct tm* tm_ptr;
 
     if((t = time(NULL)) == -1) {
         perror("get_modem_time_tm() call error");
