@@ -111,8 +111,8 @@ void _thermal_sensor_val_filter(short val, char* buff)
 	if ( val >= 99 )
 		convert_val = 99;
 
-	if ( val <= -99)
-		convert_val = -99;
+	if ( val <= -999)
+		convert_val = -999;
 
 	if ( convert_val > 0 )
 		sprintf(buff, "+%02d", convert_val);
