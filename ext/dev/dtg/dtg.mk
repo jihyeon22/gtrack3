@@ -10,6 +10,7 @@ TACOM_SRC += ext/dev/dtg/tacoc/common_sms.o \
 			 ext/dev/dtg/tacoc/common_mdmc.o \
 			 ext/dev/dtg/tacoc/common_debug.o \
 			 ext/dev/dtg/tacoc/tacoc_local.o \
+			 ext/dev/dtg/tacoc/tacoc.o \
 
 TACOM_SRC += ext/dev/dtg/tacoc/model/hnrt/tacoc_api.o \
 			 ext/dev/dtg/tacoc/model/hnrt/dtg_net_com.o \
@@ -20,6 +21,8 @@ TACOM_SRC += ext/dev/dtg/tacoc/model/hnrt/tacoc_api.o \
 			 ext/dev/dtg/tacoc/model/hnrt/vehicle_msg.o \
 			 ext/dev/dtg/tacoc/model/hnrt/sms_msg_process.o \
 			 ext/dev/dtg/tacoc/model/hnrt/rpc_clnt_operation.o \
+			 ext/dev/dtg/tacoc/model/hnrt/tacoc_main_process.o \
+
 
 TACOM_SRC += ext/dev/dtg/wrapper/dtg_atcmd.o \
 		     ext/dev/dtg/wrapper/dtg_convtools.o \

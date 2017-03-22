@@ -16,7 +16,8 @@
 
 
 #include <wrapper/dtg_log.h>
-#include <taco_rpc.h>
+#include <wrapper/dtg_tacoc_wrapper_rpc_clnt.h>
+
 #include "dtg_type.h"
 #include "dtg_data_manage.h"
 #include "dtg_ini_utill.h"
@@ -25,6 +26,8 @@
 #include <base/dmmgr.h>
 
 #include <tacom/tacom_inc.h>
+
+#include <board/power.h>
 
 #include "vehicle_msg.h"
 
@@ -78,7 +81,7 @@ while(1) {
 
 		key_status = power_get_ignition_status();
 		if(key_status == POWER_IGNITION_OFF)
-			ignition_off_process();
+			tacoc_ignition_off_process();
 
 		
 		current_time = get_modem_time_utc_sec();
@@ -216,6 +219,8 @@ int main_process()
 {
 	DTG_LOGT("TACOC HANURI-TIEN MODEL!!");
 	
+	pthread_t p_thread_dtg;
+
 	fprintf(stderr, "check_point============== %s : %d\n", __func__, __LINE__);
 	init_configuration_data();	
 	fprintf(stderr, "check_point============== %s : %d\n", __func__, __LINE__);
@@ -264,7 +269,7 @@ int main_process()
 		sleep(5);
 	}
 #endif
-	pthread_join(p_thread_dtg, (void **) status);
+	pthread_join(p_thread_dtg, NULL);
 	DTG_LOGT("TACOC TRIPOS MODEL Exit");
 
 	return 0;

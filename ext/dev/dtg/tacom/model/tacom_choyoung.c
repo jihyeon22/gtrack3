@@ -934,12 +934,14 @@ int cy_ack_records(int readed_bytes)
 		curr = curr_idx;
 	}
 
+	DTG_LOGT("%s:%d> trace\n", __func__, __LINE__);
 	//jwrho 2015.01.21++
 	unread_bank_cnt = 0;
 	for(i = 0; i < MAX_CY_DATA_PACK; i++)
 		if(recv_bank[i].status == DATA_PACK_FULL)
 			unread_bank_cnt += 1;
 
+			DTG_LOGT("%s:%d> trace\n", __func__, __LINE__);
 	if( (MAX_CY_DATA_PACK - unread_bank_cnt) != recv_avail_cnt)
 	{
 		DTG_LOGE("patch #3 recv_avail_cnt : [%d] -> [%d]", recv_avail_cnt, (MAX_CY_DATA_PACK - unread_bank_cnt));
@@ -947,6 +949,7 @@ int cy_ack_records(int readed_bytes)
 	}
 	//jwrho 2015.01.21--
 
+	DTG_LOGT("%s:%d> finish\n", __func__, __LINE__);
 	return 0;
 }
 
