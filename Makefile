@@ -81,6 +81,8 @@ else ifeq ($(SERVER),mds)
 SERVER_ABBR := MDS
 else ifeq ($(SERVER),cl-thermal)
 SERVER_ABBR := CLT
+else ifeq ($(SERVER),etrace)
+SERVER_ABBR	:=	ETR
 else ifeq ($(SERVER),bizincar)
 SERVER_ABBR := BIC
 else ifeq ($(SERVER),dtg-skel)
@@ -101,11 +103,33 @@ else ifeq ($(CORP),cl)
 CORP_ABBR := CL
 else ifeq ($(CORP),corp)
 CORP_ABBR := CORP
+else ifeq ($(CORP),etrace)
+CORP_ABBR     :=      ETR
 else ifeq ($(CORP),bizincar)
 CORP_ABBR := BIC
 else
 $(error CORP is not registerd in Makefile, please input registred corporation)
 endif
+
+ifeq ($(SUB),)
+else ifeq ($(SUB),hnr0)
+SERVER_ABBR   :=      HNR0
+else ifeq ($(SUB),hnr3)
+SERVER_ABBR   :=      HNR3
+else ifeq ($(SUB),hnr4)
+SERVER_ABBR   :=      HNR4
+else ifeq ($(SUB),hnrf)
+SERVER_ABBR   :=      HNRF
+else ifeq ($(SUB),etrg)
+SERVER_ABBR   :=      ETRG
+else ifeq ($(SUB),etrf)
+SERVER_ABBR   :=      ETRF
+else ifeq ($(SUB),neognp)
+SERVER_ABBR   :=      NEO
+else
+$(error SUB is not registerd in Makefile, please input registred sub-model)
+endif
+
 ifeq ($(CORP),)
 $(error CORP is not found, please define CORP)
 endif
