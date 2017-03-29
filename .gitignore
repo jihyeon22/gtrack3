@@ -1,7 +1,7 @@
 *.o
 PACKAGE/
-config.ini
-gtrack3
-mon.ini
-user.ini
+./config.ini
+./gtrack3
+./mon.ini
+./user.ini
 
