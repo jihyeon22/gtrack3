@@ -211,7 +211,7 @@ void power_off_callback(void)
 	}
 	
 //	if(g_dtg_mode_enable != 1)
-//		_process_poweroff(1, "power_off_callback");
+		_process_poweroff(1, "power_off_callback");
 }
 
 void gps_parse_one_context_callback(void)
