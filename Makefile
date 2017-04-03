@@ -77,6 +77,8 @@ else ifeq ($(SERVER),app1)
 SERVER_ABBR := APP1
 else ifeq ($(SERVER),asn)
 SERVER_ABBR := ASN
+else ifeq ($(SERVER),hnrt)
+SERVER_ABBR	:=	HNR
 else ifeq ($(SERVER),mds)
 SERVER_ABBR := MDS
 else ifeq ($(SERVER),cl-thermal)
@@ -105,6 +107,8 @@ else ifeq ($(CORP),corp)
 CORP_ABBR := CORP
 else ifeq ($(CORP),etrace)
 CORP_ABBR     :=      ETR
+else ifeq ($(CORP),neognp)
+CORP_ABBR     :=      NEO
 else ifeq ($(CORP),bizincar)
 CORP_ABBR := BIC
 else

@@ -21,7 +21,7 @@ type_package_input(){
 }
 
 corp_input() {
-		echo -e "Coporation = (mds, asn, cl, bizincar, etrace ...) "
+		echo -e "Coporation = (mds, asn, cl, bizincar, etrace, neognp ...) "
 		read CORPMODEL
 		case $CORPMODEL in
 			mds)
@@ -39,6 +39,10 @@ corp_input() {
                 etrace)
                         CORPMODEL="etrace"
                         CORPABBR="ETR"
+                ;;
+                neognp)
+                        CORPMODEL="neognp"
+                        CORPABBR="NEO"
                 ;;
 			bizincar)
 					CORPMODEL="bizincar"
@@ -101,7 +105,7 @@ modem_input() {
 }
 
 server_input() {
-	echo -e "Server Model = (skel, asn, cl-thermal, bizincar, etr, etrg, etrf ...)"
+	echo -e "Server Model = (skel, asn, cl-thermal, bizincar, etr, etrg, etrf, neognp ...)"
 	echo -e "				(if sub model, sub model name have to input)"
 	read SRVMODEL
 	case $SRVMODEL in
@@ -128,6 +132,10 @@ server_input() {
 		etrf)
 			SRVMODEL="etrf"
 			SERVABBR="ETRF"
+		;;
+		neognp)
+			SRVMODEL="neognp"
+			SERVABBR="NEO"
 		;;
 		bizincar)
 			SRVMODEL="bizincar"
