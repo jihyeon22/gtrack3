@@ -7,7 +7,7 @@
 #include <tacom/tacom_inc.h>
 
 #define DTG_TTY_DEV_NAME	"/dev/ttyHSL1"
-//#define DTG_TTY_DEV_NAME	"/dev/ttyEXT"
+//#define DTG_TTY_DEV_NAME	"/dev/ttyHSL2"
 
 enum tacom_stat {
 	TACOM_IDLE = 0,

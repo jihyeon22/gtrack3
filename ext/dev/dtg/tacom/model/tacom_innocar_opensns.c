@@ -25,7 +25,7 @@
 #include "taco_store.h"
 
 //#define DTG_TTY_DEV_NAME	"/dev/ttyMSM"
-//#define DTG_TTY_DEV_NAME	"/dev/ttyEXT"
+//#define DTG_TTY_DEV_NAME	"/dev/ttyHSL2"
 
 
 #if defined(SERVER_MODEL_OPENSNS)
