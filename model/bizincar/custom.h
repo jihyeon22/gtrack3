@@ -9,6 +9,6 @@ enum msg_ev_code_custom{
 	eMAX_EVENT_CODE                 = 94, //LAST_EVENT_CODE + 1
 };
 
-#define MILEAGE_FILE	"/data/mds/data/mdt800_model_mileage.dat"
+#define MILEAGE_FILE	"/data/mds/data/mdt800_bic_mileage.dat"
 
 #endif
