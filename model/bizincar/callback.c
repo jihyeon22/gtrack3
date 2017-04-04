@@ -178,6 +178,7 @@ void power_on_callback(void)
 {
 	printf("%s ++\n", __func__);
 	LOGI(LOG_TARGET, "power_on_callback ++\n");
+	sender_add_data_to_buffer(ePOWER_SOURCE_CHANGE_EVT, NULL, ePIPE_2);
 }
 
 void power_off_callback(void)
