@@ -22,7 +22,7 @@
 #endif
 
 
-void print_msg(char *title, char *msg, int len)
+void print_dtg_msg(char *title, char *msg, int len)
 {
 	char dmsg[256];
 	memset(dmsg, 0x00, 256);
@@ -167,8 +167,8 @@ int etrs_dtg_parsing(unsigned char *std_buff, int std_buff_len, unsigned char *p
 		memcpy(p_etr_dtg_hdr->vrn, p_std_hdr->registration_num, 12);
 	}
 
-	print_msg("vin", p_etr_dtg_hdr->vin, sizeof(p_etr_dtg_hdr->vin));
-	print_msg("vrn", p_etr_dtg_hdr->vrn, sizeof(p_etr_dtg_hdr->vrn));
+	print_dtg_msg("vin", p_etr_dtg_hdr->vin, sizeof(p_etr_dtg_hdr->vin));
+	print_dtg_msg("vrn", p_etr_dtg_hdr->vrn, sizeof(p_etr_dtg_hdr->vrn));
 
 	strncpy(p_etr_dtg_hdr->brn, p_std_hdr->business_license_num, sizeof(p_etr_dtg_hdr->brn));
 	for(i = 0; i < 18; i++) {
@@ -177,7 +177,7 @@ int etrs_dtg_parsing(unsigned char *std_buff, int std_buff_len, unsigned char *p
 		else
 			p_etr_dtg_hdr->driver_code[i] = 0x20;
 	}
-	print_msg("driver_code", p_etr_dtg_hdr->driver_code, sizeof(p_etr_dtg_hdr->driver_code));
+	print_dtg_msg("driver_code", p_etr_dtg_hdr->driver_code, sizeof(p_etr_dtg_hdr->driver_code));
 
 	data_size += sizeof(etrace_dtg_hdr_t);
 	

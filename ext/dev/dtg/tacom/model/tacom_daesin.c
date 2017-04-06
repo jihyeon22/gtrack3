@@ -72,7 +72,7 @@ static unsigned int recv_avail_cnt = MAX_DAESIN_DATA_PACK;
 static daesin_data_pack_t recv_bank[MAX_DAESIN_DATA_PACK];
 
 static tacom_daesin_data_t read_curr_buf;
-int daesin_ack_records(TACOM *tm, int readed_bytes);
+int daesin_ack_records(int readed_bytes);
 
 static void store_recv_bank(char *buf, int size)
 {
@@ -240,7 +240,7 @@ void request_dtg_header_info()
 	while(1)
 	{
 		if(dtg_uart_fd < 0) {
-			dtg_uart_fd = uart_open(DTG_TTY_DEV_NAME, 115200);
+			dtg_uart_fd = mds_api_init_uart(DTG_TTY_DEV_NAME, 115200);
 			if(dtg_uart_fd < 0 ) {
 				DTG_LOGE("UART OPEN ERROR DAESIN");
 				sleep(1);
@@ -591,7 +591,7 @@ static void *daesin_recv_data_thread (void *pparam)
 
 pthread_t tid_recv_data;
 
-int daesin_init_process(TACOM *tm)
+int daesin_init_process()
 {
 	memset(recv_bank, 0, sizeof(daesin_data_pack_t) * MAX_DAESIN_DATA_PACK);
 	if (pthread_create(&tid_recv_data, NULL, daesin_recv_data_thread, NULL) < 0){
@@ -601,7 +601,7 @@ int daesin_init_process(TACOM *tm)
 	return 0;
 }
 
-int daesin_unreaded_records_num (TACOM *tm)
+int daesin_unreaded_records_num ()
 {
 	if(MAX_DAESIN_DATA_PACK <= recv_avail_cnt)
 		return 0;
@@ -768,7 +768,7 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 	}
 
 	//jwrho ++
-	unread_count = daesin_unreaded_records_num(tm);
+	unread_count = daesin_unreaded_records_num();
 	DTG_LOGD("std_parsing> daesin_unreaded_records_num = [%d]\n", unread_count);
 	if(unread_count <= 0)
 		return -1;
@@ -816,7 +816,7 @@ printf("\n");
 			{
 				DTG_LOGE("bank status is not full pack...r_num[%d]\n", r_num);
 				if(r_num <= 0) {
-					daesin_ack_records(tm, 0);
+					daesin_ack_records(0);
 				}
 				break;
 			}
@@ -859,13 +859,15 @@ printf("\n");
 	return dest_idx;
 }
 
-int daesin_read_current(TACOM *tm) 
+int daesin_read_current() 
 {
+	TACOM *tm = tacom_get_cur_context();
 	return std_parsing(tm, 1, 0);
 }
 
-int daesin_read_records (TACOM *tm, int r_num) {
+int daesin_read_records (int r_num) {
 	int ret;
+	TACOM *tm = tacom_get_cur_context();
 
 	DTG_LOGD("r_num---------------->[%d]:[%0x%x]\n", r_num, r_num);
 
@@ -881,12 +883,14 @@ int daesin_read_records (TACOM *tm, int r_num) {
 	return ret;
 }
 
-int daesin_ack_records(TACOM *tm, int readed_bytes)
+int daesin_ack_records(int readed_bytes)
 {
 	int r_num = 0;
 	int i;
 	int unread_bank_cnt = 0;
 
+	TACOM *tm = tacom_get_cur_context();
+	
 	r_num = last_read_num;
 	DTG_LOGT("%s:%d> end[%d] curr_idx[%d] : curr[%d] : recv_avail_cnt[%d]\n", __func__, __LINE__, end, curr_idx, curr, recv_avail_cnt);
 

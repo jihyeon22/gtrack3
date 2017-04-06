@@ -273,6 +273,10 @@ void sms_proc(const char* phone_num, const char* recv_time, const char* msg)
 	LOGI(LOG_TARGET, "model sms proc msg ==> [%s]\n", msg);
 	//int parse_model_sms(char *time, char *phonenum, char *sms);
 	parse_model_sms(recv_time, phone_num, msg);
+
+#ifdef DTG_ENABLE
+	tx_sms_to_tacoc(phone_num, msg);
+#endif
 }
 
 int main(int argc, char** argv)
@@ -413,6 +417,11 @@ int main(int argc, char** argv)
 	LOGT(LOG_TARGET, "INIT Complete.\n");
 
 	watchdog_set_init_ktime(eWdMain);
+
+#ifdef DTG_ENABLE 
+	tacom_init();
+	tacoc_run();
+#endif
 
 	main_loop_callback();
 

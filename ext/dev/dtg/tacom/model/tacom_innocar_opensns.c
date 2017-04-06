@@ -48,7 +48,7 @@
 
 extern int dtg_uart_fd;
 
-int inno_ack_records(TACOM *tm, int readed_bytes);
+int inno_ack_records(int readed_bytes);
 static int valid_check(unsigned char *buf, int size);
 struct tacom_setup inno_setup  = {
 	.tacom_dev				= "TACOM INNOCAR : ",
@@ -312,7 +312,7 @@ read_bytes = 512;
 		if(total_error_cnt++ > 10) {
 			close(dtg_uart_fd);
 			dtg_uart_fd = -1;
-			dtg_uart_fd = uart_open(DTG_TTY_DEV_NAME, B115200);
+			dtg_uart_fd = mds_api_init_uart(DTG_TTY_DEV_NAME, B115200);
 			total_error_cnt = 0;
 		}
 
@@ -433,7 +433,7 @@ void request_header_info()
 			break;
 
 		if(dtg_uart_fd < 0) {
-			dtg_uart_fd = uart_open(DTG_TTY_DEV_NAME, B115200);
+			dtg_uart_fd = mds_api_init_uart(DTG_TTY_DEV_NAME, B115200);
 			if(dtg_uart_fd < 0) {
 				DTG_LOGE("UART OPEN ERROR INNOCAR");
 				sleep(1);
@@ -444,7 +444,7 @@ void request_header_info()
 		if(total_error_cnt++ > 10) {
 			close(dtg_uart_fd);
 			dtg_uart_fd = -1;
-			dtg_uart_fd = uart_open(DTG_TTY_DEV_NAME, B115200);
+			dtg_uart_fd = mds_api_init_uart(DTG_TTY_DEV_NAME, B115200);
 			total_error_cnt = 0;
 		}
 
@@ -550,7 +550,7 @@ void request_data_info()
 			break;
 
 		if(dtg_uart_fd < 0) {
-			dtg_uart_fd = uart_open(DTG_TTY_DEV_NAME, B115200);
+			dtg_uart_fd = mds_api_init_uart(DTG_TTY_DEV_NAME, B115200);
 			if(dtg_uart_fd < 0) {
 				DTG_LOGE("UART OPEN ERROR INNOCAR");
 				sleep(1);
@@ -562,7 +562,7 @@ void request_data_info()
 		if(total_error_cnt++ > 10) {
 			close(dtg_uart_fd);
 			dtg_uart_fd = -1;
-			dtg_uart_fd = uart_open(DTG_TTY_DEV_NAME, B115200);
+			dtg_uart_fd = mds_api_init_uart(DTG_TTY_DEV_NAME, B115200);
 			total_error_cnt = 0;
 		}
 /*
@@ -727,7 +727,7 @@ int setup_server_config_data(char *file_name, char *item)
 }
 #endif
 
-int inno_init_process(TACOM *tm)
+int inno_init_process()
 {
 #if defined(SERVER_MODEL_OPENSNS) || defined(SERVER_MODEL_OPENSNS_TB)
 	if(setup_server_config_data(CONFIG_FILE_PATH, CREATE_MDT_PERIOD) < 0) {
@@ -752,7 +752,7 @@ int inno_init_process(TACOM *tm)
 	return 0;
 }
 
-int inno_unreaded_records_num (TACOM *tm)
+int inno_unreaded_records_num ()
 {
 
 #if defined(SERVER_MODEL_OPENSNS) || defined(SERVER_MODEL_OPENSNS_TB)
@@ -883,15 +883,7 @@ void save_record_data()
 	save_record_data_taco("/var/ino_stored_records");
 }
 
-void print_msg(char *title, char *msg, int msg_len)
-{
-	int i;
-	printf("%s> ", title);
-	for(i = 0; i < msg_len; i++)
-		printf("%c", msg[i]);
-	printf("\n");
 
-}
 
 static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 {
@@ -1048,8 +1040,9 @@ static int std_mdt_parsing(TACOM *tm, int request_num)
 }
 #endif
 
-int inno_read_current(TACOM *tm){
+int inno_read_current(){
 	int ret = 0;
+	TACOM *tm = tacom_get_cur_context();
 
 	ret = valid_check((unsigned char *)&read_curr_buf, sizeof(tacom_inno_data_t) - 1);
 	if(ret < 0) {
@@ -1059,7 +1052,7 @@ int inno_read_current(TACOM *tm){
 	return std_parsing(tm, 1, 0);
 }
 
-int inno_read_records (TACOM *tm, int r_num)
+int inno_read_records (int r_num)
 {
 	int ret;
 	int tmp_value;
@@ -1095,7 +1088,7 @@ int inno_read_records (TACOM *tm, int r_num)
 	return ret;
 }
 
-int inno_ack_records(TACOM *tm, int readed_bytes)
+int inno_ack_records(int readed_bytes)
 {
 #if defined(SERVER_MODEL_OPENSNS) || defined(SERVER_MODEL_OPENSNS_TB)
 	if(readed_bytes == 2)

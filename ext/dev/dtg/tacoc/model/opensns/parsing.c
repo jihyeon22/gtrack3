@@ -55,7 +55,7 @@ int get_dtg_key_status()
 
 //0 : ascii
 //1 : binary(hexa)
-void print_msg(unsigned char *msg, int len, int mode)
+void print_dtg_msg(unsigned char *msg, int len, int mode)
 {
 	int i;
 	int j;

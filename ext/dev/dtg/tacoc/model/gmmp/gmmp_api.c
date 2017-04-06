@@ -31,7 +31,7 @@
 */
 
 #ifndef TACOC_STANDALONE
-extern CLIENT *clnt_mdmc;
+
 #endif
 
 pthread_mutex_t mutex;

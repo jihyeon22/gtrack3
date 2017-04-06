@@ -9,7 +9,7 @@
 #include <wrapper/dtg_log.h>
 
 #include <mdsapi/mds_api.h>
-#include <tacom/taco_store.h>
+#include <tacom/tools/taco_store.h>
 
 #include <mdsapi/mds_api.h>
 
@@ -108,7 +108,7 @@ void saved_data_recovery(char *file_name, unsigned char *curr_data)
 	//tacom_dtg_data_type_t buf;
 	unsigned char buf[256] = {0};
 
-	if(mds_api_check_exist_file(file_name) == DEFINES_MDS_API_OK) {
+	if(mds_api_check_exist_file(file_name,1) == DEFINES_MDS_API_OK) {
 		fd = open(file_name, O_RDONLY, 0644 );
 		if(fd > 0) {
 			while(1) {

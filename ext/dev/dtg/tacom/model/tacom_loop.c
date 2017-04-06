@@ -456,7 +456,7 @@ static void *loop_recv_data_thread (void)
 
 pthread_t tid_recv_data;
 
-int loop_init_process(TACOM *tm)
+int loop_init_process()
 {
 	pthread_mutex_init(&loop_hdr_mutex, NULL);
 	recv_bank = (loop_data_pack_t *)malloc(sizeof(loop_data_pack_t) * MAX_LOOP_DATA_PACK);
@@ -468,7 +468,7 @@ int loop_init_process(TACOM *tm)
 	return 0;
 }
 
-int loop_unreaded_records_num (TACOM *tm)
+int loop_unreaded_records_num ()
 {
 	int retry_cnt = 0;
 
@@ -569,7 +569,7 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 
 	
 	//jwrho ++
-	unread_count = loop_unreaded_records_num(tm);
+	unread_count = loop_unreaded_records_num();
 	DTG_LOGD("std_parsing> loop_unreaded_records_num = [%d]\n", unread_count);
 	if(unread_count <= 0)
 		return 0;
@@ -611,7 +611,7 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 			{
 				DTG_LOGE("bank status is not full pack...r_num[%d]\n", r_num);
 				if(r_num <= 0) {
-					loop_ack_records(tm, 0);
+					loop_ack_records(0);
 				}
 				break;
 			}
@@ -655,7 +655,7 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 	return dest_idx;
 }
 
-int loop_read_current(TACOM *tm)
+int loop_read_current()
 {
 	int ret = 0;
 
@@ -681,10 +681,10 @@ int loop_current_record_parsing(char *buf, int buf_len, char *destbuf)
 	return std_parsing(tm, 1, 0);
 }
 
-int loop_read_records (TACOM *tm_arg, int r_num) {
+int loop_read_records (int r_num) {
 
 	int ret;
-
+	TACOM *tm_arg = tacom_get_cur_context();
 	DTG_LOGD("r_num---------------->[%d]:[%0x%x]\n", r_num, r_num);
 	if (r_num == 0x10000000)
 	{
@@ -699,11 +699,14 @@ int loop_read_records (TACOM *tm_arg, int r_num) {
 	return ret;
 }
 
-int loop_ack_records(TACOM *tm, int readed_bytes)
+int loop_ack_records(int readed_bytes)
 {
 	int r_num = 0;
 	int i;
 	int unread_bank_cnt = 0;
+
+	TACOM *tm = tacom_get_cur_context();
+
 	r_num = last_read_num;
 
 	DTG_LOGT("%s:%d> end[%d] curr_idx[%d] : curr[%d] : recv_avail_cnt[%d]\n", __func__, __LINE__, end, curr_idx, curr, recv_avail_cnt);

@@ -309,7 +309,7 @@ static void *cj_recv_data_thread (void)
 						uart_close(dtg_uart_fd);
 						sleep(180);
 						do {
-							dtg_uart_fd = uart_open(DTG_TTY_DEV_NAME, B115200);
+							dtg_uart_fd = mds_api_init_uart(DTG_TTY_DEV_NAME, B115200);
 							if(dtg_uart_fd < 0)
 								perror("uart open fail\n");
 						} while (dtg_uart_fd < 0);
@@ -370,8 +370,10 @@ static void *cj_recv_data_thread (void)
 
 pthread_t tid_recv_data;
 
-int cj_init_process(TACOM *tm)
+int cj_init_process()
 {
+	TACOM *tm = tacom_get_cur_context();
+
 	pthread_mutex_init(&cj_hdr_mutex, NULL);
 	recv_bank = (cj_data_pack_t *)malloc(sizeof(cj_data_pack_t) * MAX_CJ_DATA_PACK);
 	memset(recv_bank, 0, sizeof(cj_data_pack_t) * MAX_CJ_DATA_PACK);
@@ -383,7 +385,7 @@ int cj_init_process(TACOM *tm)
 	return 0;
 }
 
-int cj_unreaded_records_num (TACOM *tm)
+int cj_unreaded_records_num ()
 {
 	int retry_cnt = 0;
 	//jwrho ++
@@ -479,7 +481,7 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 
 	//jwrho ++
 	DTG_LOGD("std_parsing> cj_unreaded_records_num = [%d]\n", cj_unreaded_records_num(tm));
-	if(cj_unreaded_records_num(tm) <= 0)
+	if(cj_unreaded_records_num() <= 0)
 		return -1;
 
 	while (cj_header_status == CJ_HEADER_EMPTY) {
@@ -540,7 +542,7 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 		return dest_idx;
 }
 
-int cj_read_current(TACOM *tm)
+int cj_read_current()
 {
 	int ret = 0;
 
@@ -566,8 +568,9 @@ int cj_current_record_parsing(char *buf, int buf_len, char *destbuf)
 	return std_parsing(tm, 1, 0);
 }
 
-int cj_read_records (TACOM *tm_arg, int r_num) {
+int cj_read_records ( int r_num) {
 	int ret;
+	TACOM *tm_arg = tacom_get_cur_context();
 	/*
 	if (r_num == 0x20000000) //for abort test
 	{
@@ -588,9 +591,11 @@ int cj_read_records (TACOM *tm_arg, int r_num) {
 
 }
 
-int cj_ack_records(TACOM *tm, int readed_bytes)
+int cj_ack_records(int readed_bytes)
 {
 	int r_num = 0;
+	TACOM *tm = tacom_get_cur_context();
+
 	r_num = last_read_num;
 
 	if (curr_idx == curr) {

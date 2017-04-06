@@ -26,7 +26,7 @@
 #include <pthread.h>
 
 #ifndef TACOC_STANDALONE
-extern CLIENT *clnt_taco;
+
 #endif
 
 int init_delivery_timer(void);

@@ -190,5 +190,5 @@ void send_server_error_report(char *packet_type, int server_resp)
 
 void check_update()
 {
-	dmmgr_send(eEVENT_UPDATE, NULL, 0);
+	// dmmgr_send(eEVENT_UPDATE, NULL, 0);
 }

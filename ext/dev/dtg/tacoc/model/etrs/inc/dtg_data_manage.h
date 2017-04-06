@@ -17,12 +17,12 @@
 
 #if defined(SERVER_MODEL_ETRS)
 	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/etrs.ini"
-	#define DTG_CONFIG_FILE_PATH		"/data/etrs.ini"
+	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/etrs.ini"
 	#define SERVER_IP				"218.153.4.33"
 	#define SERVER_PORT				8622
 #elif defined(SERVER_MODEL_ETRS_TB)
 	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/etrs_tb.ini"
-	#define DTG_CONFIG_FILE_PATH		"/data/etrs_tb.ini"
+	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/etrs_tb.ini"
 	#define SERVER_IP				"218.153.4.33"
 	#define SERVER_PORT				7322
 #else

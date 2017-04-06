@@ -22,30 +22,7 @@
 
 int sms_set_mdt_svrip_info(char* sms_msg)
 {
-	char *temp_bp;
-	char token_1[]=",";
-	char token_2[]="\0";
 
-	char ip[64] = {0,};
-	char tmp_str[50] = {0,};
-	int port = -1;
-	char *psms;
-
-	psms=strtok_r(sms_msg,token_1, &temp_bp); //ip
-	if(psms==0) return -1;
-	strcpy(ip,psms);
-
-	psms=strtok_r(NULL,token_2, &temp_bp); //port
-	if(psms==0) return -1;
-	strcpy(tmp_str,psms);
-	port = strtol(tmp_str, NULL, 10);
-
-	DTG_LOGD("%s %d\n", ip, port);
-
-	set_mdt_server_ip_addr(ip);
-	set_mdt_server_port(port);
-
-	save_ini_mdt_server_setting_info();
 	return 0;
 
 }
@@ -80,32 +57,7 @@ int sms_set_dtg_svrip_info(char* sms_msg)
 
 int sms_set_mdt_period(char* sms_msg)
 {
-	char *temp_bp;
-	char token_1[]=",";
-	char token_2[]="\0";
-
-	char tmp_str[50] = {0,};
-	int report_time = 0;
-	int create_time = 0;
-	char *psms;
-
-	psms=strtok_r(sms_msg,token_1, &temp_bp); //report period
-	if(psms==0) return -1;
-	strcpy(tmp_str,psms);
-	report_time = strtol(tmp_str, NULL, 10);
-
-	psms=strtok_r(NULL,token_2, &temp_bp); //create period
-	if(psms==0) return -1;
-	strcpy(tmp_str,psms);
-	create_time = strtol(tmp_str, NULL, 10);
-
-	DTG_LOGD("SMS MDT PERIOD SET : %d, %d\n", report_time, create_time);
-
-	set_mdt_report_period(report_time);
-	set_mdt_create_period(create_time);
-
-	save_ini_mdt_period_info();
-
+	
 	return 0;
 }
 
@@ -423,31 +375,9 @@ int sms_set_dtg_setting_value2(char* sms_msg)
 
 void mdt_ip_info(char *mdt_parse_ip, int size)
 {
-	char *p_temp;
-	int data_len;
-	int mdd_ip_idx = 0;
-	int dot_detect_cnt = 0;
-	int i;
-
-	p_temp = get_mdt_server_ip_addr();
-	if(p_temp != NULL) {
-		data_len = strlen(p_temp);
-
-		for(i = 0; i < data_len; i++) {
-			if(p_temp[i] == '.') {
-				dot_detect_cnt += 1;
-				continue;
-			}
-			if(dot_detect_cnt == 3) {
-				if(mdd_ip_idx < size-3)
-					mdt_parse_ip[mdd_ip_idx++] = p_temp[i];
-			}
-		}
-		mdt_parse_ip[mdd_ip_idx] = 0x00;
-	}
-	
 	return;
 }
+
 int sms_device_status_req(char *sender)
 {
 	char sms_buf[128];
@@ -481,7 +411,7 @@ int sms_device_status_req(char *sender)
 	sms_buf[idx++] = 0x20; //0x20 is space
 
 	mdt_ip_info(mdt_ip, sizeof(mdt_ip));
-	sprintf(tmp, "%s:%d,%s:%d", get_server_ip_addr(), get_server_port(), mdt_ip, get_mdt_server_port());
+	sprintf(tmp, "%s:%d,%s:%d", get_server_ip_addr(), get_server_port(), "null", 0);
 	len = strlen(tmp);
 	strncpy(&sms_buf[idx], tmp, len);
 	idx += len;

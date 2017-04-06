@@ -319,7 +319,7 @@ static void *loop_recv_data_thread (void)
 
 #ifdef UART_REOPEN_ENABLE_FLAG
 		if(dtg_uart_fd < 0) {
-			dtg_uart_fd = uart_open(DTG_TTY_DEV_NAME, 115200);
+			dtg_uart_fd = mds_api_init_uart(DTG_TTY_DEV_NAME, 115200);
 			if(dtg_uart_fd < 0) {
 				DTG_LOGE("UART OPEN ERROR LOOP");
 				sleep(1);
@@ -367,7 +367,7 @@ static void *loop_recv_data_thread (void)
 
 pthread_t tid_recv_data;
 
-int loop2_init_process(TACOM *tm)
+int loop2_init_process()
 {
 	printf("================================================================\n");
 	printf("loop2_init_process\n");
@@ -384,7 +384,7 @@ int loop2_init_process(TACOM *tm)
 	return 0;
 }
 
-int loop2_unreaded_records_num (TACOM *tm)
+int loop2_unreaded_records_num ()
 {
 	if(MAX_LOOP2_DATA_PACK <= recv_avail_cnt)
 		return 0;
@@ -604,7 +604,7 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 	}
 
 	//jwrho ++
-	unread_count = loop2_unreaded_records_num(tm);
+	unread_count = loop2_unreaded_records_num();
 	DTG_LOGD("std_parsing> loop2_unreaded_records_num = [%d]\n", unread_count);
 	if(unread_count <= 0)
 		return -1;
@@ -700,7 +700,7 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 	return dest_idx;
 }
 
-int loop2_read_current(TACOM *tm){
+int loop2_read_current(){
 	int ret = 0;
 
 	if(g_read_curr_buf_enable == 0) {
@@ -711,11 +711,12 @@ int loop2_read_current(TACOM *tm){
 	return std_parsing(tm, 1, 0);
 }
 
-int loop2_read_records (TACOM *tm, int r_num)
+int loop2_read_records (int r_num)
 {
 	
 	int ret;
-	
+	TACOM *tm =  tacom_get_cur_context();
+
 	DTG_LOGD("r_num---------------->[%d]:[%0x%x]\n", r_num, r_num);
 /*	
 	if (r_num == 0x20000000) //for abort test
@@ -736,11 +737,13 @@ int loop2_read_records (TACOM *tm, int r_num)
 	return ret;
 }
 
-int loop2_ack_records(TACOM *tm, int readed_bytes)
+int loop2_ack_records(int readed_bytes)
 {
 	int r_num = 0;
 	int i;
 	int unread_bank_cnt = 0;
+
+	TACOM *tm = tacom_get_cur_context();
 
 	r_num = last_read_num;
 	DTG_LOGT("%s:%d> end[%d] curr_idx[%d] : curr[%d] : recv_avail_cnt[%d]\n", __func__, __LINE__, end, curr_idx, curr, recv_avail_cnt);

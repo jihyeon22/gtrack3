@@ -49,8 +49,10 @@ struct tacom_setup ucar_setup  = {
 
 extern pthread_mutex_t cmd_mutex;
 
-int ucar_read_summary(TACOM *tm)
+int ucar_read_summary()
 {
+	TACOM *tm = tacom_get_cur_context();
+
     DTG_LOGD("%s : %s +++\n", __FILE__, __func__);
     int bytes;
     char *buf = tm->tm_strm.stream;
@@ -77,10 +79,12 @@ int ucar_read_summary(TACOM *tm)
     return bytes;
 }
 
-int ucar_ack_summary(TACOM *tm)
+int ucar_ack_summary()
 {
     DTG_LOGD("%s : %s +++\n", __FILE__, __func__);
     int result;
+
+	TACOM *tm = tacom_get_cur_context();
 
 	pthread_mutex_lock(&cmd_mutex);
 
@@ -385,7 +389,7 @@ static void *ucar_recv_data_thread (void)
 pthread_t tid_recv_data;
 pthread_t tid_send_cmd;
 
-int ucar_init_process(TACOM *tm)
+int ucar_init_process()
 {
 	pthread_mutex_init(&ucar_hdr_mutex, NULL);
 	pthread_mutex_init(&ucar_curr_mutex, NULL);
@@ -404,9 +408,10 @@ int ucar_init_process(TACOM *tm)
 	return 0;
 }
 
-int ucar_unreaded_records_num (TACOM *tm)
+int ucar_unreaded_records_num ()
 {
 	int retry_cnt = 0;
+
 	//jwrho ++
 #if (0) 
 	while ((MAX_UCAR_DATA_PACK <= recv_avail_cnt) && (retry_cnt < 5)) {
@@ -495,8 +500,8 @@ static int std_parsing(TACOM *tm, int request_num)
 	tacom_ucar_data_t *ucar_data;
 
 	//jwrho ++
-	DTG_LOGD("std_parsing> ucar_unreaded_records_num = [%d]\n", ucar_unreaded_records_num(tm));
-	if(ucar_unreaded_records_num(tm) <= 0)
+	DTG_LOGD("std_parsing> ucar_unreaded_records_num = [%d]\n", ucar_unreaded_records_num());
+	if(ucar_unreaded_records_num() <= 0)
 		return -1;
 
 	while (ucar_header_status == UCAR_HEADER_EMPTY) {
@@ -557,8 +562,9 @@ static int std_parsing(TACOM *tm, int request_num)
 		return dest_idx;
 }
 
-int ucar_read_current(TACOM *tm)
+int ucar_read_current()
 {
+	TACOM *tm = tacom_get_cur_context();
 	return std_parsing(tm, 1);
 }
 
@@ -568,13 +574,18 @@ int ucar_current_record_parsing(char *buf, int buf_len, char *destbuf)
 	return ret;
 }
 
-int ucar_read_records (TACOM *tm_arg, int r_num) {
+int ucar_read_records (int r_num) {
+	TACOM *tm_arg = tacom_get_cur_context();
+
 	return std_parsing(tm_arg, r_num);
 }
 
-int ucar_ack_records(TACOM *tm, int readed_bytes)
+int ucar_ack_records(int readed_bytes)
 {
 	int r_num = 0;
+
+	TACOM *tm = tacom_get_cur_context();
+	
 	r_num = last_read_num;
 
 	if (curr_idx == curr) {

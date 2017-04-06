@@ -18,7 +18,7 @@
 #include <errno.h>
 
 #include <wrapper/dtg_log.h>
-#include <taco_rpc.h>
+// #include <taco_rpc.h>
 
 #include <board/board_system.h>
 #include "dtg_data_manage.h"

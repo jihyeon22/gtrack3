@@ -8,8 +8,8 @@
 #ifndef _TACOM_INNNOCAR_PROTOCOL_H_
 #define _TACOM_INNNOCAR_PROTOCOL_H_
 
-#include "taco_store.h"
-#include "mdt_store.h"
+#include "tacom/tools/taco_store.h"
+#include "tacom/tools/mdt_store.h"
 
 #pragma pack(push, 1)
 
@@ -108,8 +108,8 @@ typedef struct {
 	unsigned char gps_h;
 	unsigned char gps_min;
 	unsigned char gps_s;
-	unsigned long latitude;  /* À§µµ */
-	unsigned long longitude; /* °æµµ */
+	unsigned long latitude;  /* ï¿½ï¿½ï¿½ï¿½ */
+	unsigned long longitude; /* ï¿½æµµ */
 	unsigned short azimuth;
 	unsigned char gps_speed;
 	short accelation_x;

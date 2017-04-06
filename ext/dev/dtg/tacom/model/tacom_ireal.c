@@ -244,7 +244,7 @@ static void *ireal_recv_data_thread (void)
 
 pthread_t tid_recv_data;
 
-int ireal_init_process(TACOM *tm)
+int ireal_init_process()
 {
 	pthread_mutex_init(&ireal_hdr_mutex, NULL);
 	pthread_mutex_init(&ireal_cmd_mutex, NULL);
@@ -257,7 +257,7 @@ int ireal_init_process(TACOM *tm)
 	return 0;
 }
 
-int ireal_unreaded_records_num (TACOM *tm)
+int ireal_unreaded_records_num ()
 {
 	int retry_cnt = 0;
 	//jwrho ++
@@ -353,7 +353,7 @@ static int std_parsing(TACOM *tm, int request_num,int file_save_flag)
 
 	//jwrho ++
 	DTG_LOGD("std_parsing> ireal_unreaded_records_num  = [%d]\n", ireal_unreaded_records_num (tm));
-	if(ireal_unreaded_records_num (tm) <= 0)
+	if(ireal_unreaded_records_num () <= 0)
 		return -1;
 
 	while (ireal_header_status == IREAL_HEADER_EMPTY) {
@@ -415,7 +415,7 @@ static int std_parsing(TACOM *tm, int request_num,int file_save_flag)
 		return dest_idx;
 }
 
-int ireal_read_current(TACOM *tm)
+int ireal_read_current()
 {
 	int ret = 0;
 
@@ -426,8 +426,10 @@ int ireal_read_current(TACOM *tm)
 	return ret;
 }
 
-int ireal_read_records (TACOM *tm_arg, int r_num) {
+int ireal_read_records (int r_num) {
 	int ret;
+
+	TACOM *tm_arg = = tacom_get_cur_context();
 	/*
 	if (r_num == 0x20000000) //for abort test
 	{
@@ -447,9 +449,11 @@ int ireal_read_records (TACOM *tm_arg, int r_num) {
 	return ret;
 }
 
-int ireal_ack_records(TACOM *tm, int readed_bytes)
+int ireal_ack_records(int readed_bytes)
 {
 	int r_num = 0;
+	TACOM *tm = tacom_get_cur_context();
+	
 	r_num = last_read_num;
 
 	if (curr_idx == curr) {

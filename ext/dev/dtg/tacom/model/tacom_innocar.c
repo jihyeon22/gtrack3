@@ -16,13 +16,14 @@
 #include <tacom_protocol.h>
 
 #include <tacom_innocar_protocol.h>
-#include <common/crc16.h>
-#include <common/power.h>
-#include <common/w200_led.h>
+//#include <common/crc16.h>
+#include <board/board_system.h>
+#include <board/power.h>
+//#include <common/w200_led.h>
 #include <termios.h>
-#include "uart.h"
-#include "convtools.h"
-#include "taco_store.h"
+//#include "uart.h"
+//#include "convtools.h"
+#include "tacom/tools/taco_store.h"
 
 #if defined(SERVER_MODEL_OPENSNS)
 	#include "iniutill.h"
@@ -44,7 +45,7 @@
 
 extern int dtg_uart_fd;
 
-int inno_ack_records(TACOM *tm, int readed_bytes);
+int inno_ack_records(int readed_bytes);
 static int valid_check(unsigned char *buf, int size);
 struct tacom_setup inno_setup  = {
 	.tacom_dev				= "TACOM INNOCAR : ",
@@ -308,7 +309,7 @@ read_bytes = 512;
 		if(total_error_cnt++ > 10) {
 			close(dtg_uart_fd);
 			dtg_uart_fd = -1;
-			dtg_uart_fd = uart_open(DTG_TTY_DEV_NAME, B115200);
+			dtg_uart_fd = mds_api_init_uart(DTG_TTY_DEV_NAME, B115200);
 			total_error_cnt = 0;
 		}
 
@@ -428,7 +429,7 @@ void request_header_info()
 			break;
 
 		if(dtg_uart_fd < 0) {
-			dtg_uart_fd = uart_open(DTG_TTY_DEV_NAME, B115200);
+			dtg_uart_fd = mds_api_init_uart(DTG_TTY_DEV_NAME, B115200);
 			if(dtg_uart_fd < 0) {
 				DTG_LOGE("UART OPEN ERROR INNOCAR");
 				sleep(1);
@@ -439,7 +440,7 @@ void request_header_info()
 		if(total_error_cnt++ > 10) {
 			close(dtg_uart_fd);
 			dtg_uart_fd = -1;
-			dtg_uart_fd = uart_open(DTG_TTY_DEV_NAME, B115200);
+			dtg_uart_fd = mds_api_init_uart(DTG_TTY_DEV_NAME, B115200);
 			total_error_cnt = 0;
 		}
 
@@ -544,7 +545,7 @@ void request_data_info()
 			break;
 
 		if(dtg_uart_fd < 0) {
-			dtg_uart_fd = uart_open(DTG_TTY_DEV_NAME, B115200);
+			dtg_uart_fd = mds_api_init_uart(DTG_TTY_DEV_NAME, B115200);
 			if(dtg_uart_fd < 0) {
 				DTG_LOGE("UART OPEN ERROR INNOCAR");
 				sleep(1);
@@ -556,7 +557,7 @@ void request_data_info()
 		if(total_error_cnt++ > 10) {
 			close(dtg_uart_fd);
 			dtg_uart_fd = -1;
-			dtg_uart_fd = uart_open(DTG_TTY_DEV_NAME, B115200);
+			dtg_uart_fd = mds_api_init_uart(DTG_TTY_DEV_NAME, B115200);
 			total_error_cnt = 0;
 		}
 /*
@@ -720,7 +721,7 @@ int setup_server_config_data(char *file_name, char *item)
 }
 #endif
 
-int inno_init_process(TACOM *tm)
+int inno_init_process()
 {
 #if defined(SERVER_MODEL_OPENSNS) || defined(SERVER_MODEL_OPENSNS_TB)
 	if(setup_server_config_data(CONFIG_FILE_PATH, CREATE_MDT_PERIOD) < 0) {
@@ -745,7 +746,7 @@ int inno_init_process(TACOM *tm)
 	return 0;
 }
 
-int inno_unreaded_records_num (TACOM *tm)
+int inno_unreaded_records_num ()
 {
 
 #if defined(SERVER_MODEL_OPENSNS) || defined(SERVER_MODEL_OPENSNS_TB)
@@ -881,15 +882,7 @@ void save_record_data()
 	save_record_data_taco("/var/ino_stored_records");
 }
 
-void print_msg(char *title, char *msg, int msg_len)
-{
-	int i;
-	printf("%s> ", title);
-	for(i = 0; i < msg_len; i++)
-		printf("%c", msg[i]);
-	printf("\n");
 
-}
 
 static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 {
@@ -909,10 +902,10 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 	}
 
 	unread_count = get_dtg_current_count();
+
 	DTG_LOGD("std_parsing> inno_unreaded_records_num = [%d]\n", unread_count);
 	if(unread_count <= 0)
 		return -1;
-
 
 	while (inno_header_status == INNO_HEADER_EMPTY) {
 		DTG_LOGD("std_parsing> inno_header_status is INNO_HEADER_EMPTY\n");
@@ -920,6 +913,7 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 	}
 	do {
 		ret = valid_check((unsigned char *)&inno_header, sizeof(tacom_inno_hdr_t) - 1);
+
 		if (ret < 0) {
 			DTG_LOGE("dtg header is empty");
 			inno_header_status = INNO_HEADER_EMPTY;
@@ -928,7 +922,6 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 	} while (ret < 0);
 
 	std_hdr = (tacom_std_hdr_t *)&tm->tm_strm.stream[dest_idx];
-
 
 	//ECO DTG-1000H151019F
 	if(!strncmp(inno_header.dtg_model, "00000000ECO DTG-1000", 20)) {
@@ -939,7 +932,6 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 	else {
 		//model : [0][0][0][0][0][0][0][E][C][O][ ][D][T][G][-][1][0][0][0][H]
 		//dtg_fw_ver : [1][5][1][0][1][9][F]
-
 		//new version
 		memset(std_hdr->vehicle_model, '0', 20);
 		memcpy(&std_hdr->vehicle_model[7], inno_header.dtg_model, 13);
@@ -968,7 +960,6 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 	} else {
 			dest_idx = get_dtg_data(tm, dest_idx);
 	}
-
 	DTG_LOGD("Stream Size HDR[%d] + DATA[%d] : [%d]", 
 			sizeof(tacom_std_hdr_t), sizeof(tacom_std_data_t) * request_num, dest_idx);
 	DTG_LOGD("Size : [%d]", dest_idx);
@@ -1007,6 +998,7 @@ static int std_mdt_parsing(TACOM *tm, int request_num)
 		}
 	} while (ret < 0);
 
+	printf("%s()->%d\r\n",__func__, __LINE__);
 	std_hdr = (tacom_std_hdr_t *)&tm->tm_strm.stream[dest_idx];
 
 
@@ -1046,8 +1038,10 @@ static int std_mdt_parsing(TACOM *tm, int request_num)
 }
 #endif
 
-int inno_read_current(TACOM *tm){
+int inno_read_current(){
 	int ret = 0;
+
+	TACOM *tm = tacom_get_cur_context();
 
 	ret = valid_check((unsigned char *)&read_curr_buf, sizeof(tacom_inno_data_t) - 1);
 	if(ret < 0) {
@@ -1057,10 +1051,13 @@ int inno_read_current(TACOM *tm){
 	return std_parsing(tm, 1, 0);
 }
 
-int inno_read_records (TACOM *tm, int r_num)
+int inno_read_records (int r_num)
 {
 	int ret;
 	int tmp_value;
+
+	TACOM *tm = tacom_get_cur_context();
+
 	printf("requst_num ================> 0x%08x\n", r_num);
 	if (r_num == 0x10000000)
 	{
@@ -1093,7 +1090,7 @@ int inno_read_records (TACOM *tm, int r_num)
 	return ret;
 }
 
-int inno_ack_records(TACOM *tm, int readed_bytes)
+int inno_ack_records(int readed_bytes)
 {
 #if defined(SERVER_MODEL_OPENSNS) || defined(SERVER_MODEL_OPENSNS_TB)
 	if(readed_bytes == 2)

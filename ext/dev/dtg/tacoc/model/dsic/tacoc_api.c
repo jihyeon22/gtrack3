@@ -17,7 +17,7 @@
 #include <errno.h>
 
 #include <wrapper/dtg_log.h>
-#include <taco_rpc.h>
+// #include <taco_rpc.h>
 
 #include <board/board_system.h>
 #include <standard_protocol.h>

@@ -19,9 +19,9 @@
 #include <errno.h>
 /* Insert Common Client Header */
 #include <wrapper/dtg_log.h>
-#include "taco_rpc.h"
+// #include "taco_rpc.h"
 #include <wrapper/dtg_tacoc_wrapper_rpc_clnt.h>
-#include <wrapper/dtg_mdmc_rpc.h>
+#include <wrapper/dtg_mdmc_wrapper_rpc_clnt.h>
 
 
 void device_reset()

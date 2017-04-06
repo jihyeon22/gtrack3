@@ -11,7 +11,7 @@
 #include <wrapper/dtg_atcmd.h>
 
 #include <wrapper/dtg_log.h>
-#include <taco_rpc.h>
+// #include <taco_rpc.h>
 #include "dtg_type.h"
 #include "dtg_data_manage.h"
 #include "dtg_ini_utill.h"

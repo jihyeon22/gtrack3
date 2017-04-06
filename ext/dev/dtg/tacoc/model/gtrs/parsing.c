@@ -20,7 +20,7 @@
 #include "dtg_data_manage.h"
 
 int g_packet_id = 1;
-void print_msg(char *title, char *msg, int len)
+void print_dtg_msg(char *title, char *msg, int len)
 {
 	char dmsg[256];
 	memset(dmsg, 0x00, 256);

@@ -19,7 +19,7 @@
 #include "dtg_packet.h"
 //#include "rpc_clnt_operation.h"
 
-//// #include "taco_rpc.h"
+//// // #include "taco_rpc.h"
 
 #define SMSSIGN				"SD"
 #define SMSVERSTRING		'0'
@@ -27,7 +27,7 @@
 
 #define TACOC_SMS			"TACOC SMS : "
 
-//extern CLIENT *clnt_taco;
+//
 
 /*
  * SMS Format

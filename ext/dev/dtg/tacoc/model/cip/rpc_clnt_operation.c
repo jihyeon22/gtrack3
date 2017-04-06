@@ -19,13 +19,13 @@
 
 #include <wrapper/dtg_log.h>
 /* Insert Common Client Header */
-#include "taco_rpc.h"
-#include <wrapper/dtg_mdmc_rpc.h>
+//// #include "taco_rpc.h"
+#include <wrapper/dtg_mdmc_wrapper_rpc_clnt.h>
 
 #include "dtg_debug.h"
 
-extern CLIENT *clnt_mdmc;
-extern CLIENT *clnt_taco;
+
+
 
 int network_connect()
 {

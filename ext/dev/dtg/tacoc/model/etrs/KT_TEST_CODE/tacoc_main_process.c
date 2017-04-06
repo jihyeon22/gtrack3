@@ -17,7 +17,7 @@
 #include <standard_protocol.h>
 
 #include <wrapper/dtg_log.h>
-#include <taco_rpc.h>
+// #include <taco_rpc.h>
 #include <base/dmmgr.h>
 
 #if defined(BOARD_TL500K)

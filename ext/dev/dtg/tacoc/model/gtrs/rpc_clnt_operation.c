@@ -20,13 +20,14 @@
 
 /* Insert Common Client Header */
 #include <wrapper/dtg_log.h>
-#include "taco_rpc.h"
+// #include "taco_rpc.h"
+#include <tacom/tacom_inc.h>
 #include <wrapper/dtg_tacoc_wrapper_rpc_clnt.h>
-#include <wrapper/dtg_mdmc_rpc.h>
+#include <wrapper/dtg_mdmc_wrapper_rpc_clnt.h>
 
 
-extern CLIENT *clnt_mdmc;
-extern CLIENT *clnt_taco;
+
+
 //extern CLIENT *clnt_update;
 
 void device_reset()
@@ -57,11 +58,11 @@ int data_req_to_taco_cmd(int command, int period, int size, int action_state)
 		sleep(2);
 
 	set_working_action(action_state);
-	taco_command_call_wrapper(command, period, size);
+	ret = taco_command_call_wrapper(command, period, size);
 
 	set_working_action(0);
 	sleep(3);
-	return result;
+	return ret;
 }
 
 int config_set_to_taco(int code, char *data)

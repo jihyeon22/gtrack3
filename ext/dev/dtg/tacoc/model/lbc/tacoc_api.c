@@ -16,7 +16,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <taco_rpc.h>
+// #include <taco_rpc.h>
 #include "dtg_packet.h"
 #include "dtg_data_manage.h"
 #include "dtg_net_com.h"

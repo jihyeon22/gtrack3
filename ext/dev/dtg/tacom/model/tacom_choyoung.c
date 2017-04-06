@@ -559,7 +559,7 @@ int cy_init_process()
 	return 0;
 }
 
-int cy_unreaded_records_num (TACOM *tm)
+int cy_unreaded_records_num ()
 {
 	if(MAX_CY_DATA_PACK <= recv_avail_cnt)
 		return 0;
@@ -753,7 +753,7 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 	}
 
 	//jwrho ++
-	unread_count = cy_unreaded_records_num(tm);
+	unread_count = cy_unreaded_records_num();
 	DTG_LOGD("std_parsing> cj_unreaded_records_num = [%d]\n", unread_count);
 	if(unread_count <= 0)
 		return -1;

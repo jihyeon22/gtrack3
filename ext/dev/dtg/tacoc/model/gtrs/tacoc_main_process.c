@@ -17,13 +17,19 @@
 #include <standard_protocol.h>
 
 #include <wrapper/dtg_log.h>
-#include <taco_rpc.h>
+//// #include <taco_rpc.h>
 #include "dtg_type.h"
 #include "dtg_data_manage.h"
 #include "dtg_ini_utill.h"
 #include "rpc_clnt_operation.h"
 #include "dtg_regist_process.h"
 #include <base/dmmgr.h>
+
+#include <wrapper/dtg_log.h>
+#include <tacom/tacom_inc.h>
+#include <wrapper/dtg_tacoc_wrapper_rpc_clnt.h>
+#include <wrapper/dtg_taco_wrapper_rpc_clnt.h>
+#include <wrapper/dtg_mdmc_wrapper_rpc_clnt.h>
 
 extern void tacoc_ignition_off();
 
@@ -39,6 +45,7 @@ void tacoc_ignition_off_process()
 void clear_key_flag();
 void clear_power_flag();
 extern int get_server_no_ack_count();
+/*
 void *do_mdt_report_thread(void *pargs)
 {
 	unsigned int current_time = 0;
@@ -73,6 +80,7 @@ void *do_mdt_report_thread(void *pargs)
 	}
 	
 }
+*/
 void *do_dtg_report_thread(void *pargs)
 {
 	unsigned int current_time = 0;
@@ -249,11 +257,12 @@ int main_process()
 		send_device_de_registration();
 	}
 
+/*
 	if (pthread_create(&p_thread_mdt, NULL, do_mdt_report_thread, NULL) < 0) {
 		fprintf(stderr, "cannot create p_thread_action thread\n");
 		exit(1);
 	}
-
+*/
 	if (pthread_create(&p_thread_dtg, NULL, do_dtg_report_thread, NULL) < 0) {
 		fprintf(stderr, "cannot create p_thread_action thread\n");
 		exit(1);

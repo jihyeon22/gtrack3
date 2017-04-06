@@ -89,6 +89,7 @@ else ifeq ($(SERVER),bizincar)
 SERVER_ABBR := BIC
 else ifeq ($(SERVER),dtg-skel)
 SERVER_ABBR := DSKL
+USE_DTG_MODEL=y
 else
 $(error SERVER is not registerd in Makefile, please input registred server)
 endif
@@ -182,6 +183,11 @@ CFLAGS  += -DMDS_FEATURE_USE_NMEA_UDP_IPC
 
 -include model/${SERVER}/build.mk
 
+ifeq ($(USE_DTG_MODEL),y)
+-include ext/dev/dtg/dtg.mk
+endif
+
+
 OBJS	:= base/config.o base/main.o base/sender.o 
 OBJS	+= base/thread-network.o base/devel.o base/error.o base/thread.o base/dmmgr.o base/watchdog.o
 OBJS	+= base/thermtool.o
@@ -257,6 +263,9 @@ install-script:	$(CONFIG_FILE) $(CONFIG_USER_FILE) base/$(DM_FILE) $(CONFIG_USR_
 	$(Q)fakeroot cp -v $(CONFIG_USR_MON_INI) $(DESTDIR)$(WORK_PATH)
 	$(Q)fakeroot cp -v base/$(DM_FILE) $(DESTDIR)$(WORK_PATH)
 
+ifeq ($(USE_DTG_MODEL),y)
+	$(Q)fakeroot cp -v $(DTG_CONFIG_PATH)/$(DTG_CONFIG_FILE) $(DESTDIR)$(WORK_PATH)
+endif
 
 ifneq ($(SUB),)
 	@if [ -d "$(MODEL_PATH)/sub/$(SUB)" ]; then \
@@ -347,7 +356,7 @@ $(CONFIG_FILE):		$(MODEL_PATH)/$(CONFIG_FILE).in
 	$(Q)cp -v $^ $@
 	$(Q)#sed "s,@app.path@,$(BINDIR)/$(APP),g" $^ > $@
 	$(Q)#chmod 755 $@
-	
+
 $(CONFIG_USER_FILE):		$(MODEL_PATH)/$(CONFIG_USER_FILE).in
 	$(Q)echo Create $@ ...
 	$(Q)cp -v $^ $@

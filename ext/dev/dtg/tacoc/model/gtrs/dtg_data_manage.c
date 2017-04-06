@@ -49,10 +49,12 @@ int default_init()
 	g_dtg_config.server_conf.port = SERVER_PORT;
 	strcpy(g_dtg_config.server_conf.server_ip, SERVER_IP);
 
+#if 0
 	g_dtg_config.mdt_conf.report_period = 60;
 	g_dtg_config.mdt_conf.create_period = 60;
 	g_dtg_config.mdt_svr_conf.port = MDT_SERVER_PORT;
 	strcpy(g_dtg_config.mdt_svr_conf.server_ip, MDT_SERVER_IP);
+#endif
 
 	return 0;
 }
@@ -85,10 +87,12 @@ fprintf(stderr, "check_point============== %s : %d\n", __func__, __LINE__);
 	DTG_LOGD("SERVER_PORT=[%d]", get_server_port());
 	DTG_LOGD("DTG REPORT PERIOD=[%d]sec", get_dtg_report_period());
 
+#if 0
 	DTG_LOGD("MDT_SERVER IP=[%s]", get_mdt_server_ip_addr());
 	DTG_LOGD("MDT_SERVER_PORT=[%d]", get_mdt_server_port());
 	DTG_LOGD("MDT REPORT PERIOD=[%d]sec", get_mdt_report_period());
 	DTG_LOGD("MDT CREATE PERIOD=[%d]sec", get_mdt_create_period());
+#endif
 #endif
 
 	DTG_LOGD("%s: %s() --", __FILE__, __func__);
@@ -135,44 +139,6 @@ void set_server_port(s32 port)
 {
 	g_dtg_config.server_conf.port = port;
 }
-
-//MDT configuration
-s8* get_mdt_server_ip_addr()
-{
-	return g_dtg_config.mdt_svr_conf.server_ip;
-}
-void set_mdt_server_ip_addr(s8* ip_addr)
-{
-	strcpy(g_dtg_config.mdt_svr_conf.server_ip, ip_addr);
-}
-
-u16 get_mdt_server_port()
-{
-	return g_dtg_config.mdt_svr_conf.port;
-}
-void set_mdt_server_port(s32 port)
-{
-	g_dtg_config.mdt_svr_conf.port = port;
-}
-
-void set_mdt_report_period(s32 num)
-{
-	g_dtg_config.mdt_conf.report_period = num;
-}
-s32 get_mdt_report_period()
-{
-	return g_dtg_config.mdt_conf.report_period;
-}
-
-void set_mdt_create_period(s32 num)
-{
-	g_dtg_config.mdt_conf.create_period = num;
-}
-s32 get_mdt_create_period()
-{
-	return g_dtg_config.mdt_conf.create_period;
-}
-
 
 #if defined(DEVICE_MODEL_INNOCAR)
 unsigned short get_k_factor()

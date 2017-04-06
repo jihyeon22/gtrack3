@@ -11,28 +11,22 @@
 
 #if defined(SERVER_MODEL_GTRS)
 	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/gtrs.ini"
-	#define DTG_CONFIG_FILE_PATH		"/data/gtrs.ini"
+	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/gtrs.ini"
 	#define SERVER_IP				"112.169.88.14"
 	#define SERVER_PORT				5200
 
-	#define MDT_SERVER_IP			"112.169.88.14"
-	#define MDT_SERVER_PORT			5100
 #elif defined(SERVER_MODEL_GTRS_TB)
 	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/gtrs_tb.ini"
-	#define DTG_CONFIG_FILE_PATH		"/data/gtrs_tb.ini"
+	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/gtrs_tb.ini"
 	#define SERVER_IP				"112.169.88.14"
 	#define SERVER_PORT				5200
 
-	#define MDT_SERVER_IP			"112.169.88.14"
-	#define MDT_SERVER_PORT			5100
 #elif defined(SERVER_MODEL_PRINET)
 	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/prinet.ini"
-	#define DTG_CONFIG_FILE_PATH		"/data/prinet.ini"
+	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/prinet.ini"
 	#define SERVER_IP				"tacho.ezauto.co.kr"
 	#define SERVER_PORT				28911
 
-	#define MDT_SERVER_IP			"tacho.ezauto.co.kr"
-	#define MDT_SERVER_PORT			28911
 #else
 	#error "GTRS SEVER MODEL NOT DEFINE ERROR"
 #endif
@@ -224,26 +218,12 @@ typedef struct
 	int report_period;
 }DTG_PERIOD_CONF;
 
-typedef struct
-{
-	char server_ip[64];
-	int port;
-}MDT_NETWORK_CONF;
-
-typedef struct
-{
-	int report_period;
-	int create_period;
-}MDT_PERIOD_CONF;
-
 typedef struct 
 {
 	pthread_mutex_t mutex;
 	pthread_cond_t thread_cond;
 	DTG_NETWORK_CONF server_conf;
 	DTG_PERIOD_CONF dtg_conf;
-	MDT_NETWORK_CONF mdt_svr_conf;
-	MDT_PERIOD_CONF mdt_conf;
 	u8 action_working;
 #if defined(DEVICE_MODEL_INNOCAR)
 	unsigned short K_Factor;
@@ -271,17 +251,6 @@ s8* get_server_ip_addr();
 void set_server_ip_addr(s8* ip_addr);
 u16 get_server_port();
 void set_server_port(s32 port);
-
-s8* get_mdt_server_ip_addr();
-void set_mdt_server_ip_addr(s8* ip_addr);
-u16 get_mdt_server_port();
-void set_mdt_server_port(s32 port);
-
-void set_mdt_report_period(s32 num);
-s32 get_mdt_report_period();
-
-void set_mdt_create_period(s32 num);
-s32 get_mdt_create_period();
 
 unsigned short get_k_factor();
 unsigned short get_rmp_factor();

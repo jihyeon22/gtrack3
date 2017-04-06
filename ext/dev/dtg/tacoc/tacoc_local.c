@@ -27,7 +27,7 @@
 #include <wrapper/dtg_tacoc_wrapper_rpc_clnt.h>
 #include "tacoc_local.h"
 
-
+#if 0
 void *tacoc_sms_thread(char *string)
 {
 
@@ -119,6 +119,8 @@ void *tacoc_sms_thread(char *string)
 printf("tacoc_sms_thread --\n");
 	free(message);
 }
+#endif
+
 
 int power_proc_flags = 0;
 void tacoc_mdmc_power_off()
