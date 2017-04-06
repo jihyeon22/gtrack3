@@ -2,13 +2,13 @@
 # DTG COMMON CONFIG
 # ===========================================================
 ifeq ($(USE_DTG_MODEL),y)
-DTG_COMMON_SRC += ext/dev/dtg/tacoc/common_sms.o \
+DTG_COMMON_OBJ += ext/dev/dtg/tacoc/common_sms.o \
 				  ext/dev/dtg/tacoc/common_mdmc.o \
 				  ext/dev/dtg/tacoc/common_debug.o \
 				  ext/dev/dtg/tacoc/tacoc_local.o \
 				  ext/dev/dtg/tacoc/tacoc.o \
 
-DTG_COMMON_SRC += ext/dev/dtg/wrapper/dtg_atcmd.o \
+DTG_COMMON_OBJ += ext/dev/dtg/wrapper/dtg_atcmd.o \
 				  ext/dev/dtg/wrapper/dtg_convtools.o \
 				  ext/dev/dtg/wrapper/dtg_etc_api.o \
 				  ext/dev/dtg/wrapper/dtg_log.o \
@@ -16,7 +16,7 @@ DTG_COMMON_SRC += ext/dev/dtg/wrapper/dtg_atcmd.o \
 				  ext/dev/dtg/wrapper/dtg_taco_wrapper_rpc_clnt.o \
 				  ext/dev/dtg/wrapper/dtg_tacoc_wrapper_rpc_clnt.o \
 
-DTG_COMMON_SRC += ext/dev/dtg/tacom/tacom_process.o \
+DTG_COMMON_OBJ += ext/dev/dtg/tacom/tacom_process.o \
 				  ext/dev/dtg/tacom/tacom.o \
 				  ext/dev/dtg/tacom/taco.o \
 				  ext/dev/dtg/tacom/taco_local.o \
@@ -36,20 +36,20 @@ endif
 # DTG MODEL CONFIG
 # ===========================================================
 ifeq ($(DTG_MODEL),choyoung)
-DTG_MODEL_SRC := $(DTG_COMMON_SRC)
-DTG_MODEL_SRC += ext/dev/dtg/tacom/model/tacom_choyoung.o 
+DTG_MODEL_OBJ := $(DTG_COMMON_OBJ)
+DTG_MODEL_OBJ += ext/dev/dtg/tacom/model/tacom_choyoung.o 
 DTG_MODEL_CFLAGS += $(DTG_COMMON_CFLAGS)
 DTG_MODEL_CFLAGS += -DDEVICE_MODEL_CHOYOUNG 
 # ----------------------------------------------------
 else ifeq ($(DTG_MODEL),innocar)
-DTG_MODEL_SRC := $(DTG_COMMON_SRC)
-DTG_MODEL_SRC += ext/dev/dtg/tacom/model/tacom_innocar.o  ext/dev/dtg/tacom/tools/taco_store.o
+DTG_MODEL_OBJ := $(DTG_COMMON_OBJ)
+DTG_MODEL_OBJ += ext/dev/dtg/tacom/model/tacom_innocar.o  ext/dev/dtg/tacom/tools/taco_store.o
 DTG_MODEL_CFLAGS += $(DTG_COMMON_CFLAGS)
 DTG_MODEL_CFLAGS += -DDEVICE_MODEL_INNOCAR
 # ----------------------------------------------------
 else ifeq ($(DTG_MODEL),skel)
-DTG_MODEL_SRC := $(DTG_COMMON_SRC)
-DTG_MODEL_SRC += ext/dev/dtg/tacom/model/skel_model.o 
+DTG_MODEL_OBJ := $(DTG_COMMON_OBJ)
+DTG_MODEL_OBJ += ext/dev/dtg/tacom/model/skel_model.o 
 DTG_MODEL_CFLAGS += $(DTG_COMMON_CFLAGS)
 DTG_MODEL_CFLAGS += -DSKEL_MODEL
 # ----------------------------------------------------
@@ -62,7 +62,7 @@ endif
 # ===========================================================
 ifeq ($(DTG_SERVER),hnrt)
 DTG_CONFIG_FILE=hnrt.ini
-DTG_SERVER_SRC += ext/dev/dtg/tacoc/model/hnrt/tacoc_api.o \
+DTG_SERVER_OBJ += ext/dev/dtg/tacoc/model/hnrt/tacoc_api.o \
 				  ext/dev/dtg/tacoc/model/hnrt/dtg_net_com.o \
 				  ext/dev/dtg/tacoc/model/hnrt/parsing.o \
 				  ext/dev/dtg/tacoc/model/hnrt/dtg_regist_process.o \
@@ -77,7 +77,7 @@ DTG_SERVER_CFLAGS += -DSERVER_MODEL_HNRT
 # ----------------------------------------------------
 else ifeq ($(DTG_SERVER),gtrs)
 DTG_CONFIG_FILE=gtrs.ini
-DTG_SERVER_SRC += ext/dev/dtg/tacoc/model/gtrs/dtg_data_manage.o            \
+DTG_SERVER_OBJ += ext/dev/dtg/tacoc/model/gtrs/dtg_data_manage.o            \
 				  ext/dev/dtg/tacoc/model/gtrs/dtg_ini_utill.o      \
 				  ext/dev/dtg/tacoc/model/gtrs/dtg_net_com.o        \
 				  ext/dev/dtg/tacoc/model/gtrs/dtg_regist_process.o \
@@ -96,8 +96,8 @@ endif
 # ===========================================================
 # DTG CONFIG COPY TO MAIN!!
 # ===========================================================
-DTG_SRC += $(DTG_MODEL_SRC)
-DTG_SRC += $(DTG_SERVER_SRC)
+OBJ_DTG += $(DTG_MODEL_OBJ)
+OBJ_DTG += $(DTG_SERVER_OBJ)
 
-CFLAGS += $(DTG_MODEL_CFLAGS)
-CFLAGS += $(DTG_SERVER_CFLAGS)
+DTG_CFLAGS += $(DTG_MODEL_CFLAGS)
+DTG_CFLAGS += $(DTG_SERVER_CFLAGS)

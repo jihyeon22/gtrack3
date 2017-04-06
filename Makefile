@@ -48,11 +48,12 @@ CFLAGS	+= -DBOARD_$(BOARD)
 ###############################################################################
 # PACKAGE
 
-# ********** GPS FEATURE *************
+# ********** DEFAULT : GPS FEATURE => ENABLE *************
 USE_GPS_MODEL=y
-# ********** BUTTON THREAD FEATURE *************
+# ********** DEFAULT : BUTTON THREAD FEATURE => ENABLE *************
 USE_BUTTON_THREAD=y
-# ************************************
+# ********** DEFAULT : DTG FEATURE => DISABLE *************
+USE_DTG_MODEL=n
 
 ## MODEM CFG #####################
 ifeq ($(BOARD),TX501S)
@@ -89,7 +90,6 @@ else ifeq ($(SERVER),bizincar)
 SERVER_ABBR := BIC
 else ifeq ($(SERVER),dtg-skel)
 SERVER_ABBR := DSKL
-USE_DTG_MODEL=y
 else
 $(error SERVER is not registerd in Makefile, please input registred server)
 endif
@@ -181,10 +181,15 @@ CFLAGS  += -DMDS_FEATURE_USE_NMEA_UDP_IPC
 #CFLAGS  :=$(filter-out -DUSE_NET_THREAD2 ,$(CFLAGS))
 #endif
 
+##################################################################################
+# MODEL Makefile 
 -include model/${SERVER}/build.mk
 
-ifeq ($(USE_DTG_MODEL),y)
+ifneq ($(DTG_MODEL),)
+ifneq ($(DTG_SERVER),)
+USE_DTG_MODEL=y
 -include ext/dev/dtg/dtg.mk
+endif
 endif
 
 
@@ -198,6 +203,11 @@ OBJS	+= util/nettool.o util/tools.o util/transfer.o util/validation.o util/crc16
 
 
 OBJS	+= $(OBJS_MODEL)
+
+ifeq ($(USE_DTG_MODEL),y)
+OBJS	+= $(OBJ_DTG)
+CFLAGS  += $(DTG_CFLAGS)
+endif
 
 ifeq ($(USE_GPS_MODEL),y)
 CFLAGS  += -DUSE_GPS_MODEL
