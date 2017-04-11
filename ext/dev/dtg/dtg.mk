@@ -40,12 +40,20 @@ DTG_MODEL_OBJ := $(DTG_COMMON_OBJ)
 DTG_MODEL_OBJ += ext/dev/dtg/tacom/model/tacom_choyoung.o 
 DTG_MODEL_CFLAGS += $(DTG_COMMON_CFLAGS)
 DTG_MODEL_CFLAGS += -DDEVICE_MODEL_CHOYOUNG 
+
+#DEVMODEL="choyoung"
+#DEVABBR="CY"
+DTG_PKG_PREFIX="CY"
 # ----------------------------------------------------
 else ifeq ($(DTG_MODEL),innocar)
 DTG_MODEL_OBJ := $(DTG_COMMON_OBJ)
 DTG_MODEL_OBJ += ext/dev/dtg/tacom/model/tacom_innocar.o  ext/dev/dtg/tacom/tools/taco_store.o
 DTG_MODEL_CFLAGS += $(DTG_COMMON_CFLAGS)
 DTG_MODEL_CFLAGS += -DDEVICE_MODEL_INNOCAR
+
+#DEVMODEL="innocar"
+#DEVABBR="INC"
+DTG_PKG_PREFIX="INC"
 # ----------------------------------------------------
 else ifeq ($(DTG_MODEL),skel)
 DTG_MODEL_OBJ := $(DTG_COMMON_OBJ)
@@ -89,6 +97,20 @@ DTG_SERVER_OBJ += ext/dev/dtg/tacoc/model/gtrs/dtg_data_manage.o            \
 DTG_SERVER_CFLAGS += -I./ext/dev/dtg/tacoc/model/gtrs/inc/
 DTG_SERVER_CFLAGS += -DSERVER_MODEL_GTRS
 # ----------------------------------------------------
+else ifeq ($(DTG_SERVER),neognp)
+DTG_CONFIG_FILE=neognp.ini
+DTG_SERVER_OBJ += ext/dev/dtg/tacoc/model/gtrs/dtg_data_manage.o            \
+				  ext/dev/dtg/tacoc/model/gtrs/dtg_ini_utill.o      \
+				  ext/dev/dtg/tacoc/model/gtrs/dtg_net_com.o        \
+				  ext/dev/dtg/tacoc/model/gtrs/dtg_regist_process.o \
+				  ext/dev/dtg/tacoc/model/gtrs/rpc_clnt_operation.o \
+				  ext/dev/dtg/tacoc/model/gtrs/sms_msg_process.o    \
+				  ext/dev/dtg/tacoc/model/gtrs/tacoc_api.o          \
+				  ext/dev/dtg/tacoc/model/gtrs/tacoc_main_process.o \
+				  ext/dev/dtg/tacoc/model/gtrs/parsing.o
+DTG_SERVER_CFLAGS += -I./ext/dev/dtg/tacoc/model/gtrs/inc/
+DTG_SERVER_CFLAGS += -DSERVER_MODEL_NEOGNP
+# ----------------------------------------------------
 else
 $(error DTG_SERVER is not correct, please define correct DTG_SERVER)
 endif
@@ -101,3 +123,8 @@ OBJ_DTG += $(DTG_SERVER_OBJ)
 
 DTG_CFLAGS += $(DTG_MODEL_CFLAGS)
 DTG_CFLAGS += $(DTG_SERVER_CFLAGS)
+
+
+##################################################
+#
+##################################################

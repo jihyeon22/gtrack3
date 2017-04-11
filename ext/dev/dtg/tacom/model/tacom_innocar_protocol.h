@@ -129,7 +129,7 @@ typedef struct {
 /* value of expression 'MAX_INNO_DATA * MAX_INNO_DATA_PACK' 
  * have to set over inno_setup.max_records_per_once's value.
  */
-#if defined(SERVER_MODEL_GTRS)
+#if defined(SERVER_MODEL_GTRS) || defined (SERVER_MODEL_NEOGNP)
 	#define MAX_INNO_DATA_PACK	         300
 #elif defined(SERVER_MODEL_OPENSNS) || defined(SERVER_MODEL_OPENSNS_TB)
 	#define MAX_INNO_DATA_PACK	         300  //EA : 10

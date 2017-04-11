@@ -71,6 +71,54 @@ int save_ini_mdt_period_info()
 	return 0;
 }
 
+int check_ini_date()
+{
+	static dictionary  *dtg_ini_handle = NULL;
+	char cmd_copy_file[512];
+
+	int retry = 0;
+
+	int ori_num = 0;
+	int target_num = 0;
+
+	while ((dtg_ini_handle == NULL) && (retry < 5)) {
+		dtg_ini_handle = iniparser_load(DTG_CONFIG_FILE_PATH_ORG);
+		if (dtg_ini_handle == NULL){
+			DTG_LOGE("Can't load %s at %s", DTG_CONFIG_FILE_PATH_ORG, __func__);
+			sleep(2);
+			retry++;
+		}
+    }
+
+	ori_num = iniparser_getint(dtg_ini_handle, "base:date", -1);
+
+	iniparser_freedict(dtg_ini_handle);
+
+	dtg_ini_handle = NULL;
+
+	while ((dtg_ini_handle == NULL) && (retry < 5)) {
+		dtg_ini_handle = iniparser_load(DTG_CONFIG_FILE_PATH);
+		if (dtg_ini_handle == NULL){
+			DTG_LOGE("Can't load %s at %s", DTG_CONFIG_FILE_PATH, __func__);
+			sleep(2);
+			retry++;
+		}
+    }
+
+	target_num = iniparser_getint(dtg_ini_handle, "base:date", -1);
+
+	iniparser_freedict(dtg_ini_handle);
+
+	if ( ori_num > target_num )
+	{
+		sprintf(cmd_copy_file, "cp %s %s", DTG_CONFIG_FILE_PATH_ORG, DTG_CONFIG_FILE_PATH);
+		system(cmd_copy_file);
+		sleep(1);
+	}
+
+}
+
+
 int load_ini_file()
 {
 	DTG_LOGD("load_ini_file ++");
@@ -79,6 +127,8 @@ int load_ini_file()
 	int num;
 	char *str;
 	int retry = 0;
+
+	check_ini_date();
 
     while ((g_dtg_ini_handle == NULL) && (retry < 5)) {
 		g_dtg_ini_handle = iniparser_load(DTG_CONFIG_FILE_PATH);

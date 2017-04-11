@@ -58,7 +58,7 @@ typedef struct {
  * have to set over daesin_setup.max_records_per_once's value.
  */
 #define MAX_DAESIN_DATA		10
-#ifdef SERVER_MODEL_GTRS
+#if defined(SERVER_MODEL_GTRS) || defined (SERVER_MODEL_NEOGNP)
 	#define MAX_DAESIN_DATA_PACK	400
 #else
 	#define MAX_DAESIN_DATA_PACK	900

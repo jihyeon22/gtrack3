@@ -20,8 +20,8 @@ typedef struct vehicle_gps vehicle_gps_t;
 
 #pragma pack(pop)
 
-#define VRN_INFO_FILE_PATH	"/data/vrn.dat"
-#define VGPS_INFO_FILE_PATH	"/data/vgps.dat"
+#define VRN_INFO_FILE_PATH	"/data/mds/data/vrn.dat"
+#define VGPS_INFO_FILE_PATH	"/data/mds/data/vgps.dat"
 
 void load_vrn_info();
 void set_vrn_info(char *vrn);

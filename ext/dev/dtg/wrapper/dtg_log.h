@@ -12,13 +12,20 @@
 #define ATLOGE(svc,msg...)	logd(svc,eError, msg)	// error 	: red
 #define ATLOGT(svc,msg...)	logd(svc,eTrace, msg)	// trace 	: brightmagenta
 */
-void dtglogd(const char *format, ...);
+#define DTG_LOGLEVEL_DEBUG      0
+#define DTG_LOGLEVEL_WARNNING   1
+#define DTG_LOGLEVEL_INFO       2
+#define DTG_LOGLEVEL_ERROR      3
+#define DTG_LOGLEVEL_TRACE      4  
 
-#define DTG_LOGD(msg...)	dtglogd(msg)
-#define DTG_LOGW(msg...)	dtglogd(msg)	// warning  : brown
-#define DTG_LOGI(msg...)	dtglogd(msg)	// info  	: green
-#define DTG_LOGE(msg...)	dtglogd(msg)	// error 	: red
-#define DTG_LOGT(msg...)	dtglogd(msg)	// trace 	: brightmagenta
+
+void dtglogd(int debug_level, const char *format, ...);
+
+#define DTG_LOGD(msg...)	dtglogd(DTG_LOGLEVEL_DEBUG, msg)
+#define DTG_LOGW(msg...)	dtglogd(DTG_LOGLEVEL_WARNNING, msg)	// warning  : brown
+#define DTG_LOGI(msg...)	dtglogd(DTG_LOGLEVEL_INFO, msg)	    // info  	: green
+#define DTG_LOGE(msg...)	dtglogd(DTG_LOGLEVEL_ERROR, msg)	// error 	: red
+#define DTG_LOGT(msg...)	dtglogd(DTG_LOGLEVEL_TRACE, msg)	// trace 	: brightmagenta
 
 
 #endif

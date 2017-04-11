@@ -100,9 +100,9 @@ int send_to_dtg_server(int sock_fd, unsigned char *buffer_in, int buffer_len, ch
 
 	DTG_LOGI("%s:%d> %s", func, line, msg);
 
-	//printf("%s> ==============================> start\n", msg);
-	//dump_packet(buffer_in, buffer_len, msg);
-	//printf("%s> ==============================> end\n", msg);
+	printf("%s> ==============================> start\n", msg);
+	mds_api_debug_hexdump_buff(buffer_in, buffer_len);
+	printf("%s> ==============================> end\n", msg);
 
 	while(1) {
 		bytecount = nettool_send_timedwait(sock_fd, (const char *)buffer_in, buffer_len, 0, 20);
@@ -123,7 +123,7 @@ int send_to_dtg_server(int sock_fd, unsigned char *buffer_in, int buffer_len, ch
 	}
 
 	
-	DTG_LOGI("ETRACE Server send success!! : sent length[%d], sending length[%d]", sent_len, buffer_len);
+	DTG_LOGI("GTRACE Server send success!! : sent length[%d], sending length[%d]", sent_len, buffer_len);
 
 	return err;
 }

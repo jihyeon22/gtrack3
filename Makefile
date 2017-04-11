@@ -54,6 +54,9 @@ USE_GPS_MODEL=y
 USE_BUTTON_THREAD=y
 # ********** DEFAULT : DTG FEATURE => DISABLE *************
 USE_DTG_MODEL=n
+# ********** DEFAULT : PACKAGE PREFIX => MDT *************
+PACKAGE_PREFIX_STR=MDT
+
 
 ## MODEM CFG #####################
 ifeq ($(BOARD),TX501S)
@@ -154,6 +157,21 @@ SOCK_PATH    := /var/log
 MODEL_PATH   := model/$(SERVER)
 PACKAGE_FILE = $(BINDIR)/PACKAGE
 
+
+##########################################
+# DTG SETTING
+##########################################
+ifneq ($(DTG_MODEL),)
+ifneq ($(DTG_SERVER),)
+USE_DTG_MODEL=y
+-include ext/dev/dtg/dtg.mk
+
+PACKAGE_PREFIX_STR=$(DTG_PKG_PREFIX)
+
+endif
+endif
+
+
 ###############################################################################
 # Target rules
 
@@ -167,7 +185,7 @@ CFLAGS	+= -I./ -Imodel/$(SERVER) -I../common-src3/
 CFLAGS	+= -D_REENTRANT -DCONFIG_FILE_PATH=\"$(BINDIR)/$(CONFIG_FILE)\" -DDM_FILE_PATH=\"$(BINDIR)/$(DM_FILE)\"
 CFLAGS	+= -DCONFIG_USER_FILE_PATH=\"$(USER_DATA_DIR)/$(CONFIG_USER_FILE)\" -DCONFIG_USER_ORG_FILE_PATH=\"$(BINDIR)/$(CONFIG_USER_FILE)\" 
 CFLAGS	+= -DDATE=\"$(DATE)\" -DCOMMIT_NUM=\"$(COMMIT_NUM)\" -DREPO_NAME=\"$(REPO_NAME)\" -DREPO_REV=\"$(REPO_REV)\"
-CFLAGS	+= -DPRG_VER=\"$(VER)\" -DPACKAGE_NAME=\"$(CORP_ABBR)-MDT.$(SERVER_ABBR)-$(MODEM)-$(VER)\"
+CFLAGS	+= -DPRG_VER=\"$(VER)\" -DPACKAGE_NAME=\"$(CORP_ABBR)-$(PACKAGE_PREFIX_STR).$(SERVER_ABBR)-$(MODEM)-$(VER)\"
 CFLAGS	+= -DPACKAGE_FILE=\"$(PACKAGE_FILE)\"
 CFLAGS	+= -DBOARD_$(BOARD)
 CFLAGS	+= -DCORP_ABBR_$(CORP_ABBR) -DSERVER_ABBR_$(SERVER_ABBR)
@@ -184,13 +202,6 @@ CFLAGS  += -DMDS_FEATURE_USE_NMEA_UDP_IPC
 ##################################################################################
 # MODEL Makefile 
 -include model/${SERVER}/build.mk
-
-ifneq ($(DTG_MODEL),)
-ifneq ($(DTG_SERVER),)
-USE_DTG_MODEL=y
--include ext/dev/dtg/dtg.mk
-endif
-endif
 
 
 OBJS	:= base/config.o base/main.o base/sender.o 
@@ -338,7 +349,7 @@ install: check install-binary install-script install-pathrun install-rssh instal
 		@echo ""
 		@echo [Package]----------------------------------------------
 		@echo "PACKAGE FILE: $(PACKAGE_FILE)"
-		@echo "UP_VER: $(CORP_ABBR)-MDT.$(SERVER_ABBR)-$(MODEM)-$(VER)"    >  $(DESTDIR)$(WORK_PATH)/PACKAGE
+		@echo "UP_VER: $(CORP_ABBR)-$(PACKAGE_PREFIX_STR).$(SERVER_ABBR)-$(MODEM)-$(VER)"    >  $(DESTDIR)$(WORK_PATH)/PACKAGE
 		@echo "Install date: $(DATE)"                       >> $(DESTDIR)$(WORK_PATH)/PACKAGE
 		@echo "Commit: $(COMMIT_NUM)"                       >> $(DESTDIR)$(WORK_PATH)/PACKAGE
 		@echo ""

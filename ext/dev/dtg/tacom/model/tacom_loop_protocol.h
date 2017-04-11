@@ -5,30 +5,30 @@
 
 typedef struct {
 	char  dtg_model[20];		// model no
-	char  vehicle_id_num[17];			// car no : â÷´ë¹øè£
-	char  vehicle_type[2];			// car type : â÷·®à¯çü
-	char  regist_num[12];		// car regist no : àúµ¿â÷ µî·ï¹øè£
-	char  business_num[10];	// company regist no : »ç¾÷àúµî·ï¹øè£
-	char  driver_code[18];		// driver code : ¿îàüàú äúµå
+	char  vehicle_id_num[17];			// car no : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	char  vehicle_type[2];			// car type : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	char  regist_num[12];		// car regist no : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	char  business_num[10];	// company regist no : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+	char  driver_code[18];		// driver code : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 	char seperator;
 }__attribute__((packed))tacom_loop_hdr_t;
 
 typedef struct {
-	char  day_run_dist[4];		//1ÀÏÁÖÇà°Å¸®
-	char  acumul_run_dist[7];  //´©ÀûÁÖÇà°Å¸®
-	char  date_time[14];       //Á¤º¸¹ß»ýÀÏ½Ã
-	char  speed[3];            //¼Óµµ
+	char  day_run_dist[4];		//1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¸ï¿½
+	char  acumul_run_dist[7];  //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Å¸ï¿½
+	char  date_time[14];       //ï¿½ï¿½ï¿½ï¿½ï¿½ß»ï¿½ï¿½Ï½ï¿½
+	char  speed[3];            //ï¿½Óµï¿½
 	char  rpm[4];              //RPM
-	char  bs;               //ºê·¹ÀÌÅ©½ÅÈ£
-	char  gps_x[9];            //Â÷·®À§Ä¡ (X)
-	char  gps_y[9];            //Â÷·®À§Ä¡ (Y)
-	char  azimuth[3];          //¹æÀ§°¢	
-	char  accelation_x[6];     //°¡¼Óµµ (Vx)
-	char  accelation_y[6];     //°¡¼Óµµ (Vy)
-	char  status[2];           //»óÅÂÄÚµå
+	char  bs;               //ï¿½ê·¹ï¿½ï¿½Å©ï¿½ï¿½È£
+	char  gps_x[9];            //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡ (X)
+	char  gps_y[9];            //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¡ (Y)
+	char  azimuth[3];          //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½	
+	char  accelation_x[6];     //ï¿½ï¿½ï¿½Óµï¿½ (Vx)
+	char  accelation_y[6];     //ï¿½ï¿½ï¿½Óµï¿½ (Vy)
+	char  status[2];           //ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½
 	                                                
-	char  day_oil_usage[7];        //À¯·ù»ç¿ë·®	
-	char  cumul_oil_usage[10];        //À¯·ù»ç¿ë·®	
+	char  day_oil_usage[7];        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë·®	
+	char  cumul_oil_usage[10];        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë·®	
 	char  temper_a[4];                              
 	char  temper_b[4];                              
 	char seperator;
@@ -40,7 +40,7 @@ typedef struct {
  * have to set over loop_setup.max_records_per_once's value.
  */
 #define MAX_LOOP_DATA		10
-#ifdef SERVER_MODEL_GTRS
+#if defined(SERVER_MODEL_GTRS) || defined (SERVER_MODEL_NEOGNP)
 	#define MAX_LOOP_DATA_PACK	600		/* 200 min */
 #else
 	#define MAX_LOOP_DATA_PACK	900	/* 200 min */

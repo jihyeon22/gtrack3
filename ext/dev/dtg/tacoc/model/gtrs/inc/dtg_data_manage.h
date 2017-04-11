@@ -27,6 +27,11 @@
 	#define SERVER_IP				"tacho.ezauto.co.kr"
 	#define SERVER_PORT				28911
 
+#elif defined(SERVER_MODEL_NEOGNP)
+	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/neognp.ini"
+	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/neognp.ini"
+	#define SERVER_IP				"210.116.106.71"
+	#define SERVER_PORT				5000
 #else
 	#error "GTRS SEVER MODEL NOT DEFINE ERROR"
 #endif
