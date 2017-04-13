@@ -414,6 +414,17 @@ int main(int argc, char** argv)
 		usleep(100000);
 	}
 
+	// model thread..
+	if(thread_model != NULL)
+	{
+		pthread_attr_init(&attr);
+		pthread_attr_setstacksize(&attr, 256*1024);
+		if(pthread_create(&tid_model, &attr, (void *)thread_model, NULL) != 0) {
+			LOGE(LOG_TARGET, "Create Thread Fail.. exit Program...\r\n");
+			error_critical(eERROR_EXIT, "pthread_create Error");
+		}
+	}
+
 	LOGT(LOG_TARGET, "INIT Complete.\n");
 
 	watchdog_set_init_ktime(eWdMain);

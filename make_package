@@ -3,6 +3,11 @@ DESTDIR=PACKAGE
 OUTDIR=$1/system
 DATE=`date +%H%M%S`
 
+#########################
+# only new dm.
+#########################
+TYPE_PACKAGE=2
+
 type_package_input(){
 	echo -e "Select package type. 1-OLDDM 2-NEWDM)"
 	read TYPE_PACKAGE
@@ -21,37 +26,40 @@ type_package_input(){
 }
 
 corp_input() {
-		echo -e "Coporation = (mds, asn, cl, bizincar, etrace, neognp ...) "
+		echo -e "Coporation = (mds, asn, cl, bizincar, etrace, neognp, moram, ...) "
 		read CORPMODEL
 		case $CORPMODEL in
 			mds)
-					CORPMODEL="mds"
-					CORPABBR="MDS"
+				CORPMODEL="mds"
+				CORPABBR="MDS"
 			;;
 			asn)
-					CORPMODEL="asn"
-					CORPABBR="ASN"
+				CORPMODEL="asn"
+				CORPABBR="ASN"
 			;;
 			cl)
 					CORPMODEL="cl"
 					CORPABBR="CL"
 			;;
-                etrace)
-                        CORPMODEL="etrace"
-                        CORPABBR="ETR"
-                ;;
-                neognp)
-                        CORPMODEL="neognp"
-                        CORPABBR="NEO"
-                ;;
-			bizincar)
-					CORPMODEL="bizincar"
-					CORPABBR="BIC"
+			etrace)
+				CORPMODEL="etrace"
+				CORPABBR="ETR"
 			;;
-
+			neognp)
+				CORPMODEL="neognp"
+				CORPABBR="NEO"
+			;;
+			bizincar)
+				CORPMODEL="bizincar"
+				CORPABBR="BIC"
+			;;
+			moram)
+				CORPMODEL="moram"
+				CORPABBR="MRM"
+			;;
 			*)
-					echo  $CORPMODEL invalid
-					exit
+				echo  $CORPMODEL invalid
+				exit
 			;;
 		esac
 }
@@ -105,7 +113,7 @@ modem_input() {
 }
 
 server_input() {
-	echo -e "Server Model = (skel, asn, cl-thermal, bizincar, etr, etrg, etrf, neognp ...)"
+	echo -e "Server Model = (skel, asn, cl-thermal, bizincar, etr, etrg, etrf, neognp, moram, ...)"
 	echo -e "				(if sub model, sub model name have to input)"
 	read SRVMODEL
 	case $SRVMODEL in
@@ -140,6 +148,10 @@ server_input() {
 		bizincar)
 			SRVMODEL="bizincar"
 			SERVABBR="BIC"
+		;;
+		moram)
+			SRVMODEL="moram"
+			SERVABBR="MRM"
 		;;
 		*)
 			echo SERVER_MODEL $SRVMODEL invalid
@@ -212,7 +224,7 @@ make_package() {
 }
 
 do_make_package() {
-	type_package_input
+#	type_package_input
 	corp_input
 	version_input
 	modem_input

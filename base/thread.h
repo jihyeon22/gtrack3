@@ -33,5 +33,13 @@ void thread_network_set_warn_timeout(int time);
 extern pthread_t tid[MAX_THREAD_COUNT];
 extern threadData_t threads[MAX_THREAD_COUNT];
 
+// ----------------------------------------
+// model thread
+extern pthread_t tid_model;
+extern void (*thread_model)(void);
+extern void (*exit_thread_model)(void);
+// ----------------------------------------
+
+
 #endif
 

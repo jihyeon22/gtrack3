@@ -19,6 +19,15 @@ threadData_t threads[] = {
 	{NULL,0}
 };
 
+
+// ----------------------------------------
+// model thread
+pthread_t tid_model = 0;
+
+void (*thread_model)(void) = NULL;
+void (*exit_thread_model)(void) = NULL;
+// ----------------------------------------
+
 void exit_thread_all(void)
 {
 	exit_thread_network();
@@ -31,6 +40,10 @@ void exit_thread_all(void)
 #ifdef USE_GPS_MODEL
 	exit_thread_gps();
 #endif
+
+	if(exit_thread_model != NULL)
+		exit_thread_model();
+
 	exit_main_loop();
 }
 

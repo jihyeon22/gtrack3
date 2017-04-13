@@ -91,6 +91,8 @@ else ifeq ($(SERVER),etrace)
 SERVER_ABBR	:=	ETR
 else ifeq ($(SERVER),bizincar)
 SERVER_ABBR := BIC
+else ifeq ($(SERVER),moram)
+SERVER_ABBR := MRM
 else ifeq ($(SERVER),dtg-skel)
 SERVER_ABBR := DSKL
 else
@@ -115,6 +117,8 @@ else ifeq ($(CORP),neognp)
 CORP_ABBR     :=      NEO
 else ifeq ($(CORP),bizincar)
 CORP_ABBR := BIC
+else ifeq ($(CORP),moram)
+CORP_ABBR := MRM
 else
 $(error CORP is not registerd in Makefile, please input registred corporation)
 endif
