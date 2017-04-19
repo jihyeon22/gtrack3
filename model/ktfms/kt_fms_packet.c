@@ -2889,7 +2889,8 @@ int init_server_routine()
 
 int init_server_and_poweroff()
 {
-#if defined (BOARD_NEO_W200K) && defined (KT_FOTA_ENABLE)
+//#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
+#if defined (KT_FOTA_ENABLE)
 	send_device_off_packet(30);
 #endif
 	gps_valid_data_write();

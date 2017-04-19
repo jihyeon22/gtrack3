@@ -17,7 +17,8 @@
 #include "config.h"
 #include "debug.h"
 
-#if defined (BOARD_NEO_W200K) && defined (KT_FOTA_ENABLE)
+//#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
+#if defined (KT_FOTA_ENABLE)
 #include "kt_fota_ver.h"
 #endif
 

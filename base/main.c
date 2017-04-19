@@ -393,6 +393,29 @@ int main(int argc, char** argv)
 
 	stackdump_abort_base_callback = _deinit_essential_functions;
 
+/*
+#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
+
+	int stat_num = 0;
+	char buf[512];
+	if(at_get_state(&stat_num, buf, sizeof(buf)) >= 0) 
+	{
+		printf("stat_num = [%d]\n", stat_num);
+		if(stat_num == 0) 
+		{
+			if(!strncmp(buf, "OPEN", 4)) //not service available
+			{
+				wcdma_error_led_notification();
+			}
+		}
+		else if(stat_num == 14) //usim not detect
+		{
+			wcdma_error_led_notification();
+		}
+	}
+#endif
+*/
+
 //	at_set_alive(conf_base->common.alive_time_sec);
 //	_get_essential_data_blocking();
 

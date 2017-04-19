@@ -121,7 +121,8 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 		LOGI(LOG_TARGET, "CLI CMD : req reset!!!!!\r\n");
 		LOGI(LOG_TARGET, "CLI CMD : req reset!!!!!\r\n");
 
-#if defined (BOARD_NEO_W200K) && defined (KT_FOTA_ENABLE)
+//#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
+#if defined (KT_FOTA_ENABLE)
 		send_device_off_packet(30);
 #endif
 		//poweroff("CLI CMD : REQ REBOOT", strlen("CLI CMD : REQ REBOOT"));

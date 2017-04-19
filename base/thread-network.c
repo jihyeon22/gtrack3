@@ -57,6 +57,10 @@ void *thread_network(void *args)
 		return NULL;
 	}
 
+//#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
+#if defined (KT_FOTA_ENABLE)
+	load_ini_kt_fota_svc_info();
+#endif
 
 	while(flag_run_thread_network)
 	{
@@ -74,6 +78,11 @@ void *thread_network(void *args)
 			{
 				dmmgr_send(eEVENT_UPDATE, NULL, 0);
 			}
+
+//#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
+#if defined (KT_FOTA_ENABLE)
+			kt_fota_init();
+#endif
 
 			if(conf_base->common.bootstrap==1)
 			{

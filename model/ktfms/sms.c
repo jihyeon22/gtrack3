@@ -50,7 +50,8 @@ static SMS_CMD_FUNC_T sms_cmd_func[] =
 	{eSMS_CMD_SET__DEV_RESET_1, SMS_CMD_SET__DEV_RESET_1, _sms_cmd_proc_set_reset_1},
 	{eSMS_CMD_SET__DEV_RESET_2, SMS_CMD_SET__DEV_RESET_2, _sms_cmd_proc_set_reset_2},
 
-#if defined (BOARD_NEO_W200K) && defined (KT_FOTA_ENABLE)
+//#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
+#if defined (KT_FOTA_ENABLE)
 	{eSMS_CMD_SET__S_FOTA_DM_SERVER, SMS_CMD_SET__S_FOTA_DM_SERVER, _sms_cmd_proc_set_s_fota_dm_server},
 	{eSMS_CMD_GET__S_FOTA_DM_SERVER, SMS_CMD_GET__S_FOTA_DM_SERVER, _sms_cmd_proc_get_s_fota_dm_server},
 	{eSMS_CMD_SET__S_FOTA_QTY_SERVER, SMS_CMD_SET__S_FOTA_QTY_SERVER, _sms_cmd_proc_set_s_fota_qty_server},
@@ -1089,7 +1090,8 @@ int i = MAX_WAIT_SETTING_SEC ;
 }
 
 
-#if defined (BOARD_NEO_W200K) && defined (KT_FOTA_ENABLE)
+//#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
+#if defined (KT_FOTA_ENABLE)
 int _sms_cmd_proc_set_s_fota_dm_server(int argc, char* argv[], const char* phonenum)
 {
 	int i = 0 ;
@@ -1134,7 +1136,8 @@ int _sms_cmd_proc_set_s_fota_dm_server(int argc, char* argv[], const char* phone
 #endif
 
 
-#if defined (BOARD_NEO_W200K) && defined (KT_FOTA_ENABLE)
+//#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
+#if defined (KT_FOTA_ENABLE)
 int _sms_cmd_proc_get_s_fota_dm_server(int argc, char* argv[], const char* phonenum)
 {
 	int i = 0 ;
@@ -1172,7 +1175,8 @@ int _sms_cmd_proc_get_s_fota_dm_server(int argc, char* argv[], const char* phone
 }
 #endif
 
-#if defined (BOARD_NEO_W200K) && defined (KT_FOTA_ENABLE)
+//#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
+#if defined (KT_FOTA_ENABLE)
 int _sms_cmd_proc_set_s_fota_qty_server(int argc, char* argv[], const char* phonenum)
 {
 	int i = 0 ;
@@ -1219,7 +1223,8 @@ int _sms_cmd_proc_set_s_fota_qty_server(int argc, char* argv[], const char* phon
 #endif
 
 
-#if defined (BOARD_NEO_W200K) && defined (KT_FOTA_ENABLE)
+//#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
+#if defined (KT_FOTA_ENABLE)
 int _sms_cmd_proc_get_s_fota_qty_server(int argc, char* argv[], const char* phonenum)
 {
 	int i = 0 ;

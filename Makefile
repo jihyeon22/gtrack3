@@ -179,6 +179,11 @@ PACKAGE_PREFIX_STR=$(DTG_PKG_PREFIX)
 endif
 endif
 
+ifeq ($(KT_FOTA),1)
+USE_KT_FOTA=y
+-include ext/protocol/kt_fota/kt_fota.mk
+endif
+
 
 ###############################################################################
 # Target rules
@@ -227,6 +232,12 @@ ifeq ($(USE_DTG_MODEL),y)
 OBJS	+= $(OBJ_DTG)
 CFLAGS  += $(DTG_CFLAGS)
 endif
+
+ifeq ($(USE_KT_FOTA),y)
+OBJS	+= $(OBJ_KT_FOTA)
+CFLAGS  += $(KT_FOTA_CFLAGS)
+endif
+
 
 ifeq ($(USE_GPS_MODEL),y)
 CFLAGS  += -DUSE_GPS_MODEL
@@ -294,6 +305,10 @@ install-script:	$(CONFIG_FILE) $(CONFIG_USER_FILE) base/$(DM_FILE) $(CONFIG_USR_
 
 ifeq ($(USE_DTG_MODEL),y)
 	$(Q)fakeroot cp -v $(DTG_CONFIG_PATH)/$(DTG_CONFIG_FILE) $(DESTDIR)$(WORK_PATH)
+endif
+
+ifeq ($(USE_KT_FOTA),y)
+	$(Q)fakeroot cp -v $(KT_FOTA_CONFIG_PATH)/$(KT_FOTA_CONFIG_FILE) $(DESTDIR)$(WORK_PATH)
 endif
 
 ifneq ($(SUB),)
