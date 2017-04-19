@@ -10,3 +10,5 @@ OBJS_MODEL	+= $(MODEL_PATH)/geofence.o
 OBJS_MODEL	+= $(MODEL_PATH)/section.o
 OBJS_MODEL	+= $(MODEL_PATH)/routetool.o
 OBJS_MODEL	+= board/rfidtool.o
+
+OBJS_MODEL	+= $(MODEL_PATH)/at_noti.o

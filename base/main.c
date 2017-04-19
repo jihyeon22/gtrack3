@@ -268,7 +268,13 @@ void _gpio_check(void)
 	}
 }
 
-void sms_proc(const char* phone_num, const char* recv_time, const char* msg)
+void gtrack_at_noti_proc(const char* buffer, int len)
+{
+	LOGI(LOG_TARGET, "model at noti proc msg ==> [%s]\n", buffer);
+	parse_model_at_noti(buffer, len);
+}
+
+void gtrack_at_sms_proc(const char* phone_num, const char* recv_time, const char* msg)
 {
 	LOGI(LOG_TARGET, "model sms proc msg ==> [%s]\n", msg);
 	//int parse_model_sms(char *time, char *phonenum, char *sms);
@@ -319,7 +325,7 @@ int main(int argc, char** argv)
 
 	//at_open(e_DEV_TX501_BASE, NULL, NULL, NULL);
 	//at_open(e_DEV_TX501_BASE, NULL, NULL, "console");
-	at_open(AT_LIB_TARGET_DEV, NULL, sms_proc, "console");
+	at_open(AT_LIB_TARGET_DEV, gtrack_at_noti_proc, gtrack_at_sms_proc, "console");
 	
 
 	//at_start();

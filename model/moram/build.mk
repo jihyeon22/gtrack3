@@ -17,3 +17,4 @@ OBJS_MODEL	+= $(MODEL_PATH)/lotte_file_mileage.o
 OBJS_MODEL	+= $(MODEL_PATH)/thread-model.o
 OBJS_MODEL	+= $(MODEL_PATH)/gps_ant.o
 
+OBJS_MODEL	+= $(MODEL_PATH)/at_noti.o

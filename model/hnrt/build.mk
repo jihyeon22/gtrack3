@@ -7,6 +7,8 @@ OBJS_MODEL	+= $(MODEL_PATH)/config.o
 OBJS_MODEL	+= $(MODEL_PATH)/data-list.o
 OBJS_MODEL	+= $(MODEL_PATH)/validation.o
 
+OBJS_MODEL	+= $(MODEL_PATH)/at_noti.o
+
 #OBJS_MODEL	+= prtcl/mdt800/gpsmng.o
 #OBJS_MODEL	+= prtcl/mdt800/gps_filter.o
 #OBJS_MODEL	+= prtcl/mdt800/gps_utill.o

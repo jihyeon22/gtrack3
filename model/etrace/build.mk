@@ -9,6 +9,8 @@ OBJS_MODEL	+= $(MODEL_PATH)/data-list.o
 OBJS_MODEL	+= $(MODEL_PATH)/validation.o
 OBJS_MODEL	+= $(MODEL_PATH)/sms.o
 
+OBJS_MODEL	+= $(MODEL_PATH)/at_noti.o
+
 MDT800_SRC = ext/protocol/mdt800/file_mileage.o \
              ext/protocol/mdt800/geofence.o \
              ext/protocol/mdt800/gps_filter.o \

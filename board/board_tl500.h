@@ -60,7 +60,7 @@
 
 #define AT_LIB_TARGET_DEV   e_DEV_TL500_BASE
 
-#define LED_NAME_PWR	"power"
+#define LED_NAME_PWR	"pwr"
 #define LED_NAME_WCDMA	"wcdma"
 #define LED_NAME_GPS	"gps"
 
