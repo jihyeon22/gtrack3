@@ -68,6 +68,11 @@ MODEM := TL500S
 USE_GPS_MODEL=y
 USE_BUTTON_THREAD=y
 else
+else ifeq ($(BOARD),TL500K)
+MODEM := TL500K
+USE_GPS_MODEL=y
+USE_BUTTON_THREAD=y
+else
 $(error BOARD is not correct, please define correct BOARD)
 endif
 ifeq ($(MODEM),)
