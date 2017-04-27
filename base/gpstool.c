@@ -92,24 +92,35 @@ void gps_on(int type)
 	}
 }
 
+#define GPS_RESET_REQ_CNT	3
 void gps_reset(int type)
 {
-	
+	static int gps_reset_cnt = 0;
+
+	gps_reset_cnt ++ ;
+
+	if ( gps_reset_cnt < 3 )
+	{
+		devel_webdm_send_log("GPS RESET SKIP..  [%d]/[%d]",gps_reset_cnt, GPS_RESET_REQ_CNT);
+		
+		return ;
+	}
+
 	if ( type == GPS_BOOT_WARM)
 	{
-		devel_webdm_send_log("GPSD UDP SEND CMD : WARM RESET");
+		devel_webdm_send_log("GPSD UDP SEND CMD : WARM RESET [%d]",gps_reset_cnt);
 		mds_api_gpsd_reset(MDS_API_GPS_TOOLS__TYPE_WARM);
 	}
 	else if ( type == GPS_BOOT_COLD)
 	{
-		devel_webdm_send_log("GPSD UDP SEND CMD : COLD RESET");
+		devel_webdm_send_log("GPSD UDP SEND CMD : COLD RESET [%d]",gps_reset_cnt);
 		mds_api_gpsd_reset(MDS_API_GPS_TOOLS__TYPE_COLD);
 	}
 	else
 	{
-		devel_webdm_send_log("GPSD UDP SEND CMD : WRONG RESET TYPE");
+		devel_webdm_send_log("GPSD UDP SEND CMD : WRONG RESET TYPE [%d]",gps_reset_cnt);
 	}
-
+	gps_reset_cnt = 0;
 	// shutdown 되는데 오래걸리니 이정도는 쉬어주도록하자.
 	// sleep(10);
 }

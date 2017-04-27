@@ -214,6 +214,9 @@ void power_off_callback(void)
 		_process_poweroff(1, "power_off_callback");
 }
 
+
+#define MAX_CHK_GPS_DEACTIVE_CNT	60
+
 void gps_parse_one_context_callback(void)
 {
 	gps_condition_t ret = eUNKNOWN_GPS_DATA;
@@ -221,7 +224,9 @@ void gps_parse_one_context_callback(void)
 	gpsData_t gpsdata;
 
 	configurationModel_t * conf = get_config_model();
-
+	static int first_gps_active = 0;
+	static int gps_cnt_active = 0;
+	static int gps_cnt_deactive = 0;
 	////////////////////////////////////////////////////////////////////////
 	// 1. gps packet gathering and filtering
 	////////////////////////////////////////////////////////////////////////
@@ -232,6 +237,31 @@ void gps_parse_one_context_callback(void)
 	{
 		show_mileage = 0;
 		LOGI(LOG_TARGET, "\n-----------------------------------------\nserver_mileage[%d], gps_mileage = [%d]\n-----------------------------------------", get_server_mileage(), get_gps_mileage());
+	}
+
+	if ( cur_gpsdata.active == eACTIVE ) 
+	{
+		gps_cnt_active ++;
+
+		if ( gps_cnt_deactive > MAX_CHK_GPS_DEACTIVE_CNT ) 
+		{
+			devel_webdm_send_log("[GPS DEBUG] GPS DEACT -> ACT (%d)/(%d)",gps_cnt_active, gps_cnt_deactive);
+			gps_cnt_deactive = 0;
+		}
+
+		if ( first_gps_active == 0 )
+		{
+			devel_webdm_send_log("GPS FIRST ACTIVATE SUCCESS!");
+			first_gps_active = 1;
+		}
+	}
+	else
+	{
+		gps_cnt_deactive++;
+
+		if ( ( gps_cnt_deactive % MAX_CHK_GPS_DEACTIVE_CNT) == 0 )
+			devel_webdm_send_log("[GPS DEBUG] GPS DEACTIVATE (%d)/(%d)",gps_cnt_active, gps_cnt_deactive);
+		gps_cnt_active = 0;
 	}
 
 	switch(cur_gpsdata.active)
@@ -298,6 +328,8 @@ void gps_parse_one_context_callback(void)
 	return;
 }
 
+#define GPS_ANT_CHK_INTERVAL_SEC	2
+
 void main_loop_callback(void)
 {
 	int at_recov_cnt = 1024;
@@ -309,6 +341,9 @@ void main_loop_callback(void)
 	int ign_status;
 	configurationModel_t *conf = get_config_model();
 
+	int main_loop_cnt = 0;
+	static int last_gps_ant_stat = -1;
+	
 	init_gps_manager(); //jwrho
 	init_geo_fence();
 	
@@ -401,6 +436,19 @@ void main_loop_callback(void)
 		}
 
 		watchdog_process();
+
+		if ( ( main_loop_cnt % GPS_ANT_CHK_INTERVAL_SEC ) == 0 )
+		{
+			int cur_gps_ant_stat = mds_api_gps_util_get_gps_ant();
+
+			if ( cur_gps_ant_stat != last_gps_ant_stat)
+			{
+				devel_webdm_send_log("GPS ANT STAT [%d]", cur_gps_ant_stat);
+			}
+			last_gps_ant_stat = cur_gps_ant_stat;
+		}
+
+		main_loop_cnt++;
 
 		sleep(5);
 	}
