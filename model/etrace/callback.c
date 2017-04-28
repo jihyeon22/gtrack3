@@ -224,9 +224,12 @@ void gps_parse_one_context_callback(void)
 	gpsData_t gpsdata;
 
 	configurationModel_t * conf = get_config_model();
+
 	static int first_gps_active = 0;
 	static int gps_cnt_active = 0;
 	static int gps_cnt_deactive = 0;
+	static int gps_debug_msg = 1;
+
 	////////////////////////////////////////////////////////////////////////
 	// 1. gps packet gathering and filtering
 	////////////////////////////////////////////////////////////////////////
@@ -249,6 +252,8 @@ void gps_parse_one_context_callback(void)
 			gps_cnt_deactive = 0;
 		}
 
+		gps_debug_msg = 1;
+
 		if ( first_gps_active == 0 )
 		{
 			devel_webdm_send_log("GPS FIRST ACTIVATE SUCCESS!");
@@ -259,8 +264,11 @@ void gps_parse_one_context_callback(void)
 	{
 		gps_cnt_deactive++;
 
-		if ( ( gps_cnt_deactive % MAX_CHK_GPS_DEACTIVE_CNT) == 0 )
+		if ( ( gps_cnt_deactive % (MAX_CHK_GPS_DEACTIVE_CNT*gps_debug_msg)) == 0 )
+		{
 			devel_webdm_send_log("[GPS DEBUG] GPS DEACTIVATE (%d)/(%d)",gps_cnt_active, gps_cnt_deactive);
+			gps_debug_msg *= 2;
+		}
 		gps_cnt_active = 0;
 	}
 
