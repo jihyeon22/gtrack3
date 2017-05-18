@@ -6,19 +6,28 @@ check_process_interval=60
 
 [program_0]
 path=/system/mds/system/bin
+name=mds_gpsd3
+command_argc=2
+command_arg_1=agps
+command_arg_2=warm
+make_deamon=no
+check_process=yes
+
+[program_1]
+path=/system/mds/system/bin
 name=dlpkg3
 command_argc=0
 make_deamon=no
 check_process=no
 
-[program_1]
+[program_2]
 path=/system/mds/system/bin
 name=gtrack3
 command_argc=0
 make_deamon=no
 check_process=yes
 
-[program_2]
+[program_3]
 path=/system/mds/system/bin
 name=wdprog3
 command_argc=0
