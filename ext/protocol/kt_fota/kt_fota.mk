@@ -8,6 +8,8 @@ KT_FOTA_CFLAGS += -DKT_FOTA_ENABLE
 
 OBJ_KT_FOTA = ext/protocol/kt_fota/kt_fota.o 
 OBJ_KT_FOTA += ext/protocol/kt_fota/kt_fota_config.o 
+OBJ_KT_FOTA += ext/protocol/kt_fota/kt_fota_svc/kt_dmc_proc.o 
 OBJ_KT_FOTA += ext/protocol/kt_fota/kt_fota_svc/kt_fs_parser.o 
 OBJ_KT_FOTA += ext/protocol/kt_fota/kt_fota_svc/kt_fs_send.o 
 OBJ_KT_FOTA += ext/protocol/kt_fota/kt_fota_svc/kt_fs_udf.o
+

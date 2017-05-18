@@ -60,126 +60,32 @@ char *kt_srv_get_cust_tag(char *buf_out)
 }
 
 
-#define _AT_DEV_FILE			"/dev/smd25"
-#define _AT_MAX_BUFF_SIZE		512
-#define _AT_MAX_RETRY_WRITE		3
-#define _AT_MAX_WAIT_READ_SEC	1
-
-static int _wait_read(int fd, unsigned char *buf, int buf_len, int ftime)
-{
-	fd_set reads;
-	struct timeval tout;
-	int result = 0;
-
-	FD_ZERO(&reads);
-	FD_SET(fd, &reads);
-
-	while (1) {
-		tout.tv_sec = ftime;
-		tout.tv_usec = 0;
-		result = select(fd + 1, &reads, 0, 0, &tout);
-		if(result <= 0) //time out & select error
-			return -1;
-		
-		if ( read(fd, buf, buf_len) <= 0)
-			return -1;
-
-		break; //success
-	}
-
-	return 0;
-}
-
-
 char *dummy_ktdevstat(char *buf_out) 
 {
-	int i;
-	char tmp_buf[128];
-	char *data[] = {"0","0","0","0","0","0","0","0","0","0","0","0","0","0",KT_FOTA_MODEL,"0","0","0", NULL};
-	sprintf(buf_out, "[");
 
-	i = 0;
-	while(1) {
-		
-		sprintf(tmp_buf, "%c%s%c", 0x22, data[i], 0x22);
-		strcat(buf_out, tmp_buf);
-		i += 1;
-		if(data[i] == NULL) {
-			strcat(buf_out, "]");
-			break;
-		}
-		else {
-			strcat(buf_out, ", ");
-		}
+	//char *data[] = {"0","0","0","0","0","0","0","0","0","0","0","0","0","0",KT_FOTA_MODEL,"0","0","0", NULL};
+	////KTDEVSTAT:{"0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "D/N":KT_FOTA_MODEL, "0", "0", "0", "0", "0", "0", "0", "0", NULL}
 
-	}
+	char *data = "\"2.0.0\", \"-86\", \"0\", \"privatelte.ktfwing.com\", \"00/0000\", \"0\", \"2\", \"NS\", \"NS\", \"10812\", \"WCDMA\", \"TL500K\", \"1.1.0\", \"352992033762503\", \"8982300814008521900F\", \"NS\", \"NS\", \"NS\", \"NS\", \"NS\"";
+
+	sprintf(buf_out, "[%s]",data);
+	printf(buf_out, "%s",data);
+	printf(buf_out, "%s",data);
+	printf(buf_out, "%s",data);
+	printf(buf_out, "%s",data);
+
 	return buf_out;
 }
 
 int at_get_ktdevstat(char *stat_buf, int buf_len)
 {
-	int fd;
-	int ret = -1;
-	int retry = 0;
-	char *pAtcmd = NULL;
-	char *pAT_KT_DEV_STAT = NULL;
-	char buffer[_AT_MAX_BUFF_SIZE] = {0,};
-
-	if(stat_buf == NULL) {
-		printf("<atd> %s : %d, buffer NULL error", __func__, __LINE__);
-		return -1;
-	}
-
-	fd = open(_AT_DEV_FILE, O_RDWR | O_NONBLOCK);
-	if(fd < 0)
-	{
-		printf("<atd> %s : %d, AT Channel Open Error errno[%d]", __func__, __LINE__, errno);
-		return -1;
-	}
-
-	retry = 0;
-	while(retry++ < _AT_MAX_RETRY_WRITE) 
-	{
-		if(retry > 1)
-			sleep(1);
-
-		ret = write(fd, "ATKTDEVSTAT?\r\n", sizeof("ATKTDEVSTAT?\r\n"));
-		if(ret != sizeof("ATKTDEVSTAT?\r\n"))
-			continue;
-
-		memset(buffer, 0, sizeof(buffer));
-		if(_wait_read(fd, buffer, _AT_MAX_BUFF_SIZE, _AT_MAX_WAIT_READ_SEC) < 0)
-			continue;
-
-		if((pAtcmd = strstr(buffer, "KTDEVSTAT: \"Modem_Qinfo\":")) == NULL)
-			continue;
-
-		if((pAtcmd = strstr(buffer, "[")) == NULL)
-			continue;
-
-		pAT_KT_DEV_STAT = pAtcmd;
-
-		if((pAtcmd = strstr(buffer, "]")) == NULL)
-			continue;
-
-		*(pAtcmd + 1) = 0x00;
-		break; //success
-	}
-	close(fd);
-
-	if(retry >= _AT_MAX_RETRY_WRITE) { //fail
-		return -1;
-	}
-
-	memset(stat_buf, 0x00, sizeof(buf_len));
-	if(pAT_KT_DEV_STAT != NULL)
-		strncpy(stat_buf, pAT_KT_DEV_STAT, buf_len-1);
-	return 0;
+	return -1;
 }
+
 
 char *kt_srv_get_modem_qty(char *buf_out, int buf_len) 
 {
-	if(at_get_ktdevstat(buf_out, buf_len) < 0)
+	if(get_at_ktdevstat_for_tl500k(buf_out) < 0)
 		dummy_ktdevstat(buf_out);
 
 	return buf_out;
@@ -223,12 +129,18 @@ char *kt_srv_get_device_qty_mem(char *buf_out)
 	int mem = 0;
 	float percent = 0;
 	mem = tools_get_available_memory();
+	printf("---------------------------------------------------\r\n");
+	printf(" >> mem is [%d]\r\n",mem);
+	
 	if(mem < 0) mem = 9; //default 9MB
 	else mem /= 1024;
 
-	percent = 100.0 - (float)mem/10.0*100.0;
-	
+	percent = 100.0 - (float)mem/160000.0*100.0;
+	printf(" >> percent is [%f]\r\n",percent);
 	sprintf(buf_out, "%d", (int)percent);
+	printf(" >> buf_out is [%s]\r\n",buf_out);
+
+	printf("---------------------------------------------------\r\n");
 	
 	return buf_out;
 }

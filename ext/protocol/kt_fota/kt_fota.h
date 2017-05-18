@@ -1,7 +1,8 @@
 #ifndef __BASE_KT_FOTA_H__
 #define __BASE_KT_FOTA_H__
 
-#define PATH_FOTA_DATA "/data/fota.dat"
+#define PATH_FOTA_DATA "/data/mds/data/fota.dat"
+
 
 void kt_fota_init(void);
 void kt_fota_send(void);

@@ -271,6 +271,9 @@ void _gpio_check(void)
 void gtrack_at_noti_proc(const char* buffer, int len)
 {
 	LOGI(LOG_TARGET, "model at noti proc msg ==> [%s]\n", buffer);
+#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
+	KT_FOTA_NOTI_RECEIVE(buffer);
+#endif
 	parse_model_at_noti(buffer, len);
 }
 

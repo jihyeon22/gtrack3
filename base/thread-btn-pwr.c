@@ -34,7 +34,8 @@ typedef unsigned long kernel_ulong_t;
 #include <logd_rpc.h>
 
 #if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
-#include <base/kt_fota.h>
+#include "kt_fota.h"
+#include "kt_fota_config.h"
 #endif
 
 #define DEV_BTN_TIMEOUT_SEC			5

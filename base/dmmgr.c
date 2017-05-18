@@ -54,11 +54,15 @@ void set_dm_info(dm_info *dmi)
 {
 	static char imei[AT_LEN_IMEI_BUFF] = {0};
 	static char phonenum[AT_LEN_PHONENUM_BUFF] = {0};
-	
+	static char amss_ver_str[30] = {0,}; // ver str is 30
+
 	at_get_imei(imei, sizeof(imei));
 	at_get_phonenum(phonenum, sizeof(phonenum));
+	at_get_modem_swver(amss_ver_str,30);
+
 	dmi->version.hw 	= dm_get_hw_version();
-	dmi->version.amss 	= dm_get_amss_version();
+	//dmi->version.amss 	= dm_get_amss_version();
+	dmi->version.amss 	= amss_ver_str;
 	dmi->version.linu 	= dm_get_linux_version();
 	
 	dmi->modem.telecom	= dm_get_telecom_provider();

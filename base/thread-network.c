@@ -22,8 +22,8 @@
 #include <callback.h>
 
 #if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
-#include <base/kt_fota.h>
-#include <base/kt_fota_config.h>
+#include <kt_fota.h>
+#include <kt_fota_config.h>
 #endif
 
 #if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
