@@ -19,7 +19,7 @@ gps_err_first_dist_m=2000
 gps_err_max_dist_m=12000
 
 [mileage]
-enable=0
+enable=1
 daily_mileage=0
 
 [webdm]

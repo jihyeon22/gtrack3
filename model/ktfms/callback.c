@@ -50,6 +50,7 @@ static int _gps_time_cnt = 0;
 
 #define CHK_KEY_STAT_HOLD_SEC3		(30)
 
+//#define ONLY_KT_FOTA_TEST
 
 // ----------------------------------------
 //  LOGD(LOG_TARGET, LOG_TARGET,  Target
@@ -68,7 +69,11 @@ void init_model_callback(void)
 	configurationModel_t *conf = get_config_model();
 	
 	thread_network_set_warn_timeout(MAX(conf->model.report_interval_keyon, conf->model.report_interval_keyoff) * 2);
-	
+
+#ifdef ONLY_KT_FOTA_TEST
+	return;
+#endif	
+
 	init_fms_server_policy();
 	
 	init_car_daily_info();
@@ -125,6 +130,7 @@ void power_off_callback(void)
 	//if ( get_send_policy() != KT_FMS_SEND_POLICY__SERVER_FAIL_STOP )
 	set_send_policy(KT_FMS_SEND_POLICY__PWR_OFF_EVENT);
 
+	mileage_write();
 	//_process_poweroff("power_off_callback");
 	while(1)
 	{
@@ -144,6 +150,10 @@ int day_change = 0;
 
 void gps_parse_one_context_callback(void)
 {
+#ifdef ONLY_KT_FOTA_TEST
+	return;
+#endif
+
 	char head_buff[1024] = {0,};
 	char body_buff[1024] = {0,};
 	
@@ -191,6 +201,8 @@ void gps_parse_one_context_callback(void)
 		printf("gps active : cur lon [%f]\r\n",gpsdata.lon);
 		
 		set_hw_err_code(e_HW_ERR_CODE_GPS_INVAILD , 0);
+		mileage_process(&gpsdata);
+
 		first_gps_hit = 1;
 	}
 	else
@@ -261,6 +273,7 @@ void gps_parse_one_context_callback(void)
 		return ;
 	}
 	
+
 	
 	// ---------------------------------
 	// pkt size check...
@@ -367,14 +380,13 @@ void gps_parse_one_context_callback(void)
 	// GPS 시간 필터링
 	cur_sec = gpsdata.sec + (gpsdata.min*60) + (gpsdata.hour*60*60) + (gpsdata.day*24*60*60);
 
-	// printf( " sec is [%d]/[%d]\r\n",cur_sec , prev_sec);
 	// 시간을 필터링 한다. 시간은 무조건 흘러야 한다. 멈추거나, 뒤로 가면 안된다.
 	if ( cur_sec <= prev_sec )
 	{
 		LOGE(LOG_TARGET, "GPS PARSE : invalid sec [%d] / [%d] ", prev_sec , prev_sec);
 		return ;
 	}
-
+	
 	prev_sec = cur_sec;
 	
 	// make pkt policy
@@ -616,6 +628,10 @@ void gps_parse_one_context_callback(void)
 
 void main_loop_callback(void)
 {
+#ifdef ONLY_KT_FOTA_TEST
+	while(1)
+		sleep(10);
+#endif
 	int obd_ret = 0;	
 	
 	int modem_time_sec_cur = 0;

@@ -129,6 +129,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 		
 		while(1)
 		{
+			mileage_write();
 			sleep(5);
 			system("poweroff");
 		}

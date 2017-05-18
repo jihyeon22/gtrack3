@@ -12,6 +12,7 @@
 #include <termios.h>
 
 #include <board/board_system.h>
+#include "logd/logd_rpc.h"
 
 #include "seco_obd.h"
 #include "seco_obd_util.h"
@@ -22,8 +23,8 @@
 #include "kt_fms_packet.h"
 #endif
 
-#define CHK_BATT_INTERVAL_SEC 5
-
+#define CHK_BATT_INTERVAL_SEC 20
+#define LOG_TARGET eSVC_MODEL
 int get_obd_gender_spec_hex(char buff[92]);
 // *********************************************************
 // 1. 데이터 요청
@@ -50,8 +51,9 @@ int req_obd_data_fake(obdData_t* p_obdData)
 	// -----------------------------------------
 	{
 		// TODO: 누적거리 단위확인
-		// printf("mileage_total is [%lld]\r\n",mileage_total);
+		
 		p_obdData->car_mileage_total = mileage_get_m();
+		LOGD(LOG_TARGET, " >> fake obd : mileage_total is [%lld]\r\n",p_obdData->car_mileage_total);
 
 	}
 	
@@ -184,7 +186,7 @@ int req_obd_data_fake(obdData_t* p_obdData)
 		// TODO: 너무 자주 확인하지 않게 할것
 		if ( ( chk_batt_interval++ % CHK_BATT_INTERVAL_SEC ) == 0 )
 		{
-			p_obdData->car_batt_volt = (battery_get_battlevel_car()/1000);
+			p_obdData->car_batt_volt = (battery_get_battlevel_car()/100);
 			last_batt_level = p_obdData->car_batt_volt;
 		}
 		else
@@ -466,6 +468,8 @@ int set_seco_obd_total_trip_fuel_fake(long long trip, long long fuel)
 
 int set_seco_obd_total_trip_fake(long long trip)
 {
+	mileage_set_m(trip);
+	mileage_write();
 	return OBD_RET_SUCCESS;
 }
 

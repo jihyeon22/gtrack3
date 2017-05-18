@@ -843,6 +843,9 @@ int _sms_cmd_proc_set_total_trip(int argc, char* argv[], const char* phonenum)
 		return -1;
 	}
 	
+	// 내부 마일리지 파일을 세팅한다.
+	mileage_set_m(atoi(argv[2]));
+	mileage_write();
 
 	// obd 세팅을 하기 위해서는 일단 동작이 되어야하는데,
 	// main thread 가 세팅값 default 로 인해서 아예 시작도 못하고있는것이다.
@@ -1036,6 +1039,8 @@ int _sms_cmd_proc_set_reset_1(int argc, char* argv[], const char* phonenum)
 	
 	sleep(1);
 	
+	mileage_write();
+
 	while(1)
 	{
 		system("poweroff");
@@ -1424,6 +1429,8 @@ int _sms_cmd_proc_get_dev_stat(int argc, char* argv[], const char* phonenum)
 //	unsigned char tmp_buff[64] = {0,};
 	unsigned char resp_buff[64] = {0,};
 	unsigned char obd_stat_str[16] = {0,};
+
+	
 	
 	LOGI(LOG_TARGET, "SMS PROC : get - dev stat/ from [%s]\n",phonenum);
 
@@ -1447,10 +1454,14 @@ int _sms_cmd_proc_get_dev_stat(int argc, char* argv[], const char* phonenum)
 	
 	//get_server_ip(tmp_buff);
 	
-	
+	if ( get_use_obd_device() == 0 )
+		sprintf(obd_stat_str, "%s", "NON-OBD");
+	else
+		sprintf(obd_stat_str, "%s", (g_last_dev_stat.obd_stat == 0 )? "FAIL":"OK");
+		
 	sprintf(resp_buff,"server(%d) | obd(%s) | key(%s) | rpm(%d) | speed(%d)", 
 						g_last_dev_stat.svr_ret_code, 
-						(g_last_dev_stat.obd_stat == 0 )? "FAIL":"OK",
+						obd_stat_str,
 						(g_last_dev_stat.obd_key == -1)? "FAIL" : ((g_last_dev_stat.obd_key == 0)? "OFF":"ON"),
 						g_last_dev_stat.obd_rpm,
 						g_last_dev_stat.obd_speed/1000);
