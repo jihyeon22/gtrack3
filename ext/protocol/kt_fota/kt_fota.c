@@ -17,6 +17,8 @@
 #include "kt_fota_svc/kt_dmc_proc.h"
 #include "kt_fota_config.h"
 
+#include <at/at_util.h>
+
 #include "logd/logd_rpc.h"
 
 #define LOG_TARGET eSVC_BASE
@@ -92,6 +94,12 @@ int bool_fota_init = 0;
 
 void kt_fota_init(void)
 {
+#ifdef KT_FOTA_TEST_SVR
+	set_modem_fota_testmode_for_tl500k(TELADIN_DMS_SETTING_TEST_MODE);
+#else
+	set_modem_fota_testmode_for_tl500k(TELADIN_DMS_SETTING_NONETEST_MODE);
+#endif
+
 	if(bool_fota_init == 1)
 	{
 		return;

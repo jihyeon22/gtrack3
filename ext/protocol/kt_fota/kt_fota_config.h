@@ -25,4 +25,14 @@ void set_kt_fota_qty_server_port(unsigned short port);
 int load_ini_kt_fota_svc_info();
 int save_ini_kt_fota_svc_info();
 
+#ifdef KT_FOTA_TEST_SVR
+// 상용서버 : devicefota-dm.show.co.kr
+#define KT_FOTA_TEST_SVR_DM_IP "devicefota-tb-dm.show.co.kr"
+#define KT_FOTA_TEST_SVR_DM_PORT 80
+
+// 상용서버 :  devicefota-quality-automotive.show.co.kr
+#define KT_FOTA_TEST_SVR_QTY_IP "devicefota-tb-quality.show.co.kr"
+#define KT_FOTA_TEST_SVR_QTY_PORT 80
+#endif
+
 #endif

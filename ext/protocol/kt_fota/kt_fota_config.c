@@ -105,7 +105,11 @@ void free_ini_file()
 
 char* get_kt_fota_dm_server_ip_addr()
 {
+#ifdef KT_FOTA_TEST_SVR
+	return KT_FOTA_TEST_SVR_DM_IP;
+#else
 	return g_kfs_info.dm_server_ip;
+#endif
 }
 void set_kt_fota_dm_server_ip_addr(char* ip_addr)
 {
@@ -114,8 +118,13 @@ void set_kt_fota_dm_server_ip_addr(char* ip_addr)
 
 char* get_kt_fota_qty_server_ip_addr()
 {
+#ifdef KT_FOTA_TEST_SVR
+	return KT_FOTA_TEST_SVR_QTY_IP;
+#else
 	return g_kfs_info.qty_server_ip;
+#endif
 }
+
 void set_kt_fota_qty_server_ip_addr(char* ip_addr)
 {
 	strcpy(g_kfs_info.qty_server_ip, ip_addr);
@@ -123,8 +132,13 @@ void set_kt_fota_qty_server_ip_addr(char* ip_addr)
 
 unsigned short get_kt_fota_dm_server_port()
 {
+#ifdef KT_FOTA_TEST_SVR
+	return KT_FOTA_TEST_SVR_DM_PORT;
+#else
 	return g_kfs_info.dm_port;
+#endif
 }
+
 void set_kt_fota_dm_server_port(unsigned short port)
 {
 	g_kfs_info.dm_port = port;
@@ -132,8 +146,13 @@ void set_kt_fota_dm_server_port(unsigned short port)
 
 unsigned short get_kt_fota_qty_server_port()
 {
+#ifdef KT_FOTA_TEST_SVR
+	return KT_FOTA_TEST_SVR_QTY_PORT;
+#else
 	return g_kfs_info.qty_port;
+#endif
 }
+
 void set_kt_fota_qty_server_port(unsigned short port)
 {
 	g_kfs_info.qty_port = port;

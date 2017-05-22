@@ -13,3 +13,6 @@ OBJ_KT_FOTA += ext/protocol/kt_fota/kt_fota_svc/kt_fs_parser.o
 OBJ_KT_FOTA += ext/protocol/kt_fota/kt_fota_svc/kt_fs_send.o 
 OBJ_KT_FOTA += ext/protocol/kt_fota/kt_fota_svc/kt_fs_udf.o
 
+ifeq ($(KT_FOTA_TEST_SVR),1)
+KT_FOTA_CFLAGS += -DKT_FOTA_TEST_SVR
+endif
