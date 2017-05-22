@@ -159,11 +159,11 @@ server_input() {
 			SERVABBR="MRM"
 		;;
 		ktfms0)
-			SRVMODEL="ktfms"
+			SRVMODEL="fms0"
 			SERVABBR="FMS0"
 		;;
 		ktfms1)
-			SRVMODEL="ktfms"
+			SRVMODEL="fms1"
 			SERVABBR="FMS1"
 		;;
 		*)
