@@ -26,7 +26,7 @@ type_package_input(){
 }
 
 corp_input() {
-		echo -e "Coporation = (mds, asn, cl, bizincar, etrace, neognp, moram, ...) "
+		echo -e "Coporation = (mds, asn, cl, bizincar, etrace, neognp, moram, kt, ...) "
 		read CORPMODEL
 		case $CORPMODEL in
 			mds)
@@ -56,6 +56,10 @@ corp_input() {
 			moram)
 				CORPMODEL="moram"
 				CORPABBR="MRM"
+			;;
+			kt)
+				CORPMODEL="kt"
+				CORPABBR="KT"
 			;;
 			*)
 				echo  $CORPMODEL invalid
@@ -114,6 +118,7 @@ modem_input() {
 
 server_input() {
 	echo -e "Server Model = (skel, asn, cl-thermal, bizincar, etr, etrg, etrf, neognp, moram, ...)"
+	echo -e "               (ktfms0, ktfms1...)"
 	echo -e "				(if sub model, sub model name have to input)"
 	read SRVMODEL
 	case $SRVMODEL in
@@ -152,6 +157,14 @@ server_input() {
 		moram)
 			SRVMODEL="moram"
 			SERVABBR="MRM"
+		;;
+		ktfms0)
+			SRVMODEL="ktfms"
+			SERVABBR="FMS0"
+		;;
+		ktfms1)
+			SRVMODEL="ktfms"
+			SERVABBR="FMS1"
 		;;
 		*)
 			echo SERVER_MODEL $SRVMODEL invalid

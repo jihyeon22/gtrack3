@@ -146,6 +146,10 @@ else ifeq ($(SUB),etrf)
 SERVER_ABBR   :=      ETRF
 else ifeq ($(SUB),neognp)
 SERVER_ABBR   :=      NEO
+else ifeq ($(SUB),ktfms0)
+SERVER_ABBR   :=      FMS0
+else ifeq ($(SUB),ktfms1)
+SERVER_ABBR   :=      FMS1
 else
 $(error SUB is not registerd in Makefile, please input registred sub-model)
 endif
