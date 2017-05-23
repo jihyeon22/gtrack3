@@ -26,6 +26,10 @@
 #include <kt_fota_config.h>
 #endif
 
+#if defined (BOARD_TL500S) && defined (USE_TL500S_FOTA)
+#include <tl500s_fota_proc.h>
+#endif
+
 #if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
 #define PIPE1_DEV_NET_TIMEOUT_SEC		10
 #else
@@ -90,7 +94,9 @@ void *thread_network(void *args)
 			}
 			
 			// at_channel_recovery();
-			
+#if defined (BOARD_TL500S) && defined (USE_TL500S_FOTA)
+			tl500s_fota_proc();
+#endif
 			network_on_callback();
 			break;
 		}

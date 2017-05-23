@@ -67,6 +67,7 @@ else ifeq ($(BOARD),TL500S)
 MODEM := TL500S
 USE_GPS_MODEL=y
 USE_BUTTON_THREAD=y
+USE_TL500S_FOTA=y
 else ifeq ($(BOARD),TL500K)
 MODEM := TL500K
 USE_GPS_MODEL=y
@@ -192,7 +193,6 @@ USE_KT_FOTA=y
 -include ext/protocol/kt_fota/kt_fota.mk
 endif
 
-
 ###############################################################################
 # Target rules
 
@@ -246,6 +246,12 @@ OBJS	+= $(OBJ_KT_FOTA)
 CFLAGS  += $(KT_FOTA_CFLAGS)
 endif
 
+ifeq ($(USE_TL500S_FOTA),y)
+-include ext/dev/tl500s/tl500s_fota.mk
+CFLAGS  += -DUSE_TL500S_FOTA
+OBJS	+= $(OBJ_TX500S_FOTA_OBJS)
+CFLAGS  += $(OBJ_TX500S_FOTA_CFLAGS)
+endif
 
 ifeq ($(USE_GPS_MODEL),y)
 CFLAGS  += -DUSE_GPS_MODEL
@@ -256,6 +262,7 @@ ifeq ($(USE_BUTTON_THREAD),y)
 CFLAGS  += -DUSE_BUTTON_THREAD
 OBJS	+= base/thread-btn-pwr.o
 endif
+
 
 ifndef BOARD
 $(error BOARD is not correct, please define correct BOARD)
@@ -318,6 +325,11 @@ endif
 ifeq ($(USE_KT_FOTA),y)
 	$(Q)fakeroot cp -v $(KT_FOTA_CONFIG_PATH)/$(KT_FOTA_CONFIG_FILE) $(DESTDIR)$(WORK_PATH)
 endif
+
+ifeq ($(USE_TL500S_FOTA),y)
+	$(Q)fakeroot cp -v $(OBJ_TX500S_FOTA_SH_PATH)/$(OBJ_TX500S_FOTA_SH_FILE) $(DESTDIR)$(WORK_PATH)
+endif
+
 
 ifneq ($(SUB),)
 	@if [ -d "$(MODEL_PATH)/sub/$(SUB)" ]; then \
