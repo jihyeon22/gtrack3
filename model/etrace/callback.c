@@ -214,7 +214,7 @@ void power_off_callback(void)
 		_process_poweroff(1, "power_off_callback");
 }
 
-
+//#define GPS_WEBDM_VERBOS	
 #define MAX_CHK_GPS_DEACTIVE_CNT	60
 
 void gps_parse_one_context_callback(void)
@@ -248,7 +248,9 @@ void gps_parse_one_context_callback(void)
 
 		if ( gps_cnt_deactive > MAX_CHK_GPS_DEACTIVE_CNT ) 
 		{
+#ifdef GPS_WEBDM_VERBOS
 			devel_webdm_send_log("[GPS DEBUG] GPS DEACT -> ACT (%d)/(%d)",gps_cnt_active, gps_cnt_deactive);
+#endif
 			gps_cnt_deactive = 0;
 		}
 
@@ -256,7 +258,8 @@ void gps_parse_one_context_callback(void)
 
 		if ( first_gps_active == 0 )
 		{
-			devel_webdm_send_log("GPS FIRST ACTIVATE SUCCESS!");
+			int cur_gps_ant_stat = mds_api_gps_util_get_gps_ant();
+			devel_webdm_send_log("GPS FIRST ACTIVATE SUCCESS! [%d]", cur_gps_ant_stat);
 			first_gps_active = 1;
 		}
 	}
@@ -266,7 +269,10 @@ void gps_parse_one_context_callback(void)
 
 		if ( ( gps_cnt_deactive % (MAX_CHK_GPS_DEACTIVE_CNT*gps_debug_msg)) == 0 )
 		{
+#ifdef GPS_WEBDM_VERBOS
 			devel_webdm_send_log("[GPS DEBUG] GPS DEACTIVATE (%d)/(%d)",gps_cnt_active, gps_cnt_deactive);
+#endif
+
 			gps_debug_msg *= 2;
 		}
 		gps_cnt_active = 0;
@@ -337,6 +343,7 @@ void gps_parse_one_context_callback(void)
 }
 
 #define GPS_ANT_CHK_INTERVAL_SEC	2
+#define MAX_GPS_CHK_CNT_MSG_DM		60
 
 void main_loop_callback(void)
 {
@@ -352,6 +359,9 @@ void main_loop_callback(void)
 	int main_loop_cnt = 0;
 	static int last_gps_ant_stat = -1;
 	
+	static int gps_ant_chk_cnt = 0;
+	static int gps_ant_send_msg = 0;
+
 	init_gps_manager(); //jwrho
 	init_geo_fence();
 	
@@ -380,6 +390,7 @@ void main_loop_callback(void)
 	{
 		int condition_send = 0;
 		
+
 		watchdog_set_cur_ktime(eWdMain);
 		
 		if(at_recov_cnt-- < 0) {
@@ -451,8 +462,17 @@ void main_loop_callback(void)
 
 			if ( cur_gps_ant_stat != last_gps_ant_stat)
 			{
-				devel_webdm_send_log("GPS ANT STAT [%d]", cur_gps_ant_stat);
+				gps_ant_chk_cnt++;
+				// devel_webdm_send_log("GPS ANT STAT [%d]", cur_gps_ant_stat);
+				LOGI(LOG_TARGET, "GPS ANT STAT [%d] / [%d]", cur_gps_ant_stat, gps_ant_chk_cnt);
 			}
+
+			if (( gps_ant_chk_cnt > MAX_GPS_CHK_CNT_MSG_DM ) && (gps_ant_send_msg == 0))
+			{
+				gps_ant_send_msg = 1;
+				devel_webdm_send_log("GPS ANT STAT IS INVAILD");
+			}
+
 			last_gps_ant_stat = cur_gps_ant_stat;
 		}
 
