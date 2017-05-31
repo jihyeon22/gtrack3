@@ -39,7 +39,6 @@ fi
 #for MDS FW download
 if [ "$sw_ver" == "Revision: TL500S_1.1.0 [Feb 21 2017 10:06:35]" ]; then
 	echo "Old Version"
-
 	if [ "$fwexit" == "1" ]; then
 		echo "fwexitflag initialized!"
 		echo 0 > /data/kt_dms/cfg/fwexitflag
@@ -50,13 +49,13 @@ if [ "$sw_ver" == "Revision: TL500S_1.1.0 [Feb 21 2017 10:06:35]" ]; then
 
 	wget ftp://$ftp_id:$ftp_pass@$ftp_addr'tl500s_mds.tar' -O /data/tl500s_mds.tar
 	FILESIZE=$(stat -c%s "/data/tl500s_mds.tar")
-	if [ $FILESIZE != 18406412 ]; then
+	if [ $FILESIZE != 18406408 ]; then
 		echo "FTP Download Re-try!!"
 		rm -rf /data/tl500s_mds.tar
 		wget $ftp_addr'tl500s_mds.tar' -O /data/tl500s_mds.tar
 		FILESIZE=$(stat -c%s "/data/tl500s_mds.tar")
 	fi
-	if [ $FILESIZE == 18406412 ]; then
+	if [ $FILESIZE == 18406408 ]; then
 		fota_start=1;
 		echo "FTP Download OK!!"
 	fi	
@@ -64,7 +63,6 @@ fi
 
 #new version.
 if [ "$sw_ver" == "Revision: TL500S_1.1.0 [May 11 2017 11:41:26]" ]; then
-	echo "scrub_Success" `date` >> /etc/btime
 	if [ "$fwexit" == "1" ]; then
 		echo "fwexitflag initialized!"
 		echo 0 > /data/kt_dms/cfg/fwexitflag
@@ -74,6 +72,7 @@ if [ "$sw_ver" == "Revision: TL500S_1.1.0 [May 11 2017 11:41:26]" ]; then
 	
 	echo "New version : scrub[$scrub_check]"
 	if [ "$scrub_check" == "" ]; then
+		echo "scrub_Success" `date` >> /etc/btime
 		serial=`/etc/factory/atcmd.sh AT\\$\\$FACTORY_SN? | grep '$$FACTORY_SN:' | awk -F' ' '{print $3}'`
 		echo $serial
 		echo "mv /data/tld_fota/dump_serial /data/tld_fota/$serial"
