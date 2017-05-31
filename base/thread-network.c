@@ -95,9 +95,7 @@ void *thread_network(void *args)
 			
 			// at_channel_recovery();
 #if defined (BOARD_TL500S) && defined (USE_TL500S_FOTA)
-#error z
-			// remove...
-			//tl500s_fota_proc();
+			tl500s_fota_proc();
 #endif
 			network_on_callback();
 			break;

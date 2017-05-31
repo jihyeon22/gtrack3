@@ -37,12 +37,14 @@ int tl500s_fota_proc()
     if ( i > MODEM_VER_CHK_MAX_RETRY)
     {
         LOGE(LOG_TARGET, "[TL500S FOTA] version check fail.");
+        devel_webdm_send_log("[TL500S FOTA] version check fail");
         return -1;
     }
 
 //    LOGI(LOG_TARGET, "[TL500S FOTA] modem version is [%s]", tmp_ver_str);
 //    devel_webdm_send_log("[TL500S FOTA] modem version is [%s]", tmp_ver_str);
-
+    // 항상 실행한다.
+/*
     if ( strncmp(tmp_ver_str, TL500S_TARGET_ORIGINAL_IMG_VERSION, strlen(TL500S_TARGET_ORIGINAL_IMG_VERSION)) != 0 )
     {
         LOGE(LOG_TARGET, "[TL500S FOTA] FOTA TARGET INVAILD", __func__);
@@ -50,14 +52,14 @@ int tl500s_fota_proc()
         fota_proc_run_flag = 1;
         return -1;
     }
-
+*/
     
     
+    if ( strncmp(tmp_ver_str, TL500S_TARGET_ORIGINAL_IMG_VERSION, strlen(TL500S_TARGET_ORIGINAL_IMG_VERSION)) == 0 )
+        devel_webdm_send_log("[TL500S FOTA] NEED TO FOTA PROC");
 
     sprintf(tmp_cmd_str, "%s &", TL500S_FOTA_SCRIPT_PATH);
-    LOGI(LOG_TARGET, "[TL500S FOTA] fota start cmd [%s]", tmp_cmd_str);
-
-    devel_webdm_send_log("[TL500S FOTA] FOTA START");
+    // devel_webdm_send_log("[TL500S FOTA] FOTA START");
 
     system(tmp_cmd_str);
     
