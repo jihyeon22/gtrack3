@@ -49,13 +49,13 @@ if [ "$sw_ver" == "Revision: TL500S_1.1.0 [Feb 21 2017 10:06:35]" ]; then
 
 	wget ftp://$ftp_id:$ftp_pass@$ftp_addr'tl500s_mds.tar' -O /data/tl500s_mds.tar
 	FILESIZE=$(stat -c%s "/data/tl500s_mds.tar")
-	if [ $FILESIZE != 18406408 ]; then
+	if [ $FILESIZE != 18406569 ]; then
 		echo "FTP Download Re-try!!"
 		rm -rf /data/tl500s_mds.tar
-		wget $ftp_addr'tl500s_mds.tar' -O /data/tl500s_mds.tar
+		wget ftp://$ftp_id:$ftp_pass@$ftp_addr'tl500s_mds.tar' -O /data/tl500s_mds.tar
 		FILESIZE=$(stat -c%s "/data/tl500s_mds.tar")
 	fi
-	if [ $FILESIZE == 18406408 ]; then
+	if [ $FILESIZE == 18406569 ]; then
 		fota_start=1;
 		echo "FTP Download OK!!"
 	fi	
