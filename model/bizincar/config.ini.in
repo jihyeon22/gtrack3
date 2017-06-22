@@ -34,8 +34,8 @@ turn_on_sms=0
 target_num=01089619571
 
 [model]
-tempature_enable = 0
-tempature_device=/dev/ttyHSL1
+tempature_enable = 1
+tempature_device=/dev/ttyHSL2
 tempature_cycle = 180
 
 [dist_gps_filter]
