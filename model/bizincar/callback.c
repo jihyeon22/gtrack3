@@ -30,6 +30,7 @@
 #include "data-list.h"
 #include "debug.h"
 #include "netcom.h"
+#include "thread-keypad.h"
 
 #include <board/board_system.h>
 
@@ -77,7 +78,11 @@ void init_model_callback(void)
 	
 	printf("%s ++\n", __func__);
 	stackdump_abort_callback = abort_callback; 
-	LOGI(LOG_TARGET, "init_model_callback\n");	
+
+	thread_model = thread_keypad;
+	exit_thread_model = exit_thread_keypad;
+
+	LOGI(LOG_TARGET, "init_model_callback\n");
 	load_mileage_file(&mileage);
 	set_server_mileage(mileage);
 
