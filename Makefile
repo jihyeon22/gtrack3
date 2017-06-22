@@ -104,6 +104,8 @@ else ifeq ($(SERVER),dtg-skel)
 SERVER_ABBR := DSKL
 else ifeq ($(SERVER),ktfms)
 SERVER_ABBR := FMS
+else ifeq ($(SERVER),cs)
+SERVER_ABBR := CS
 else
 $(error SERVER is not registerd in Makefile, please input registred server)
 endif
@@ -130,6 +132,8 @@ else ifeq ($(CORP),moram)
 CORP_ABBR := MRM
 else ifeq ($(CORP),kt)
 CORP_ABBR := KT
+else ifeq ($(CORP),cs)
+CORP_ABBR := CS
 else
 $(error CORP is not registerd in Makefile, please input registred corporation)
 endif
