@@ -67,6 +67,7 @@ else ifeq ($(BOARD),TL500S)
 MODEM := TL500S
 USE_GPS_MODEL=y
 USE_BUTTON_THREAD=y
+USE_TL500S_FOTA=y
 else ifeq ($(BOARD),TL500K)
 MODEM := TL500K
 USE_GPS_MODEL=y
@@ -91,6 +92,8 @@ else ifeq ($(SERVER),mds)
 SERVER_ABBR := MDS
 else ifeq ($(SERVER),cl-thermal)
 SERVER_ABBR := CLT
+else ifeq ($(SERVER),cl-rfid)
+SERVER_ABBR := CLR
 else ifeq ($(SERVER),etrace)
 SERVER_ABBR	:=	ETR
 else ifeq ($(SERVER),bizincar)
@@ -101,6 +104,8 @@ else ifeq ($(SERVER),dtg-skel)
 SERVER_ABBR := DSKL
 else ifeq ($(SERVER),ktfms)
 SERVER_ABBR := FMS
+else ifeq ($(SERVER),cs)
+SERVER_ABBR := CS
 else
 $(error SERVER is not registerd in Makefile, please input registred server)
 endif
@@ -127,6 +132,8 @@ else ifeq ($(CORP),moram)
 CORP_ABBR := MRM
 else ifeq ($(CORP),kt)
 CORP_ABBR := KT
+else ifeq ($(CORP),cs)
+CORP_ABBR := CS
 else
 $(error CORP is not registerd in Makefile, please input registred corporation)
 endif
@@ -192,7 +199,6 @@ USE_KT_FOTA=y
 -include ext/protocol/kt_fota/kt_fota.mk
 endif
 
-
 ###############################################################################
 # Target rules
 
@@ -246,6 +252,12 @@ OBJS	+= $(OBJ_KT_FOTA)
 CFLAGS  += $(KT_FOTA_CFLAGS)
 endif
 
+ifeq ($(USE_TL500S_FOTA),y)
+-include ext/dev/tl500s/tl500s_fota.mk
+CFLAGS  += -DUSE_TL500S_FOTA
+OBJS	+= $(OBJ_TX500S_FOTA_OBJS)
+CFLAGS  += $(OBJ_TX500S_FOTA_CFLAGS)
+endif
 
 ifeq ($(USE_GPS_MODEL),y)
 CFLAGS  += -DUSE_GPS_MODEL
@@ -256,6 +268,7 @@ ifeq ($(USE_BUTTON_THREAD),y)
 CFLAGS  += -DUSE_BUTTON_THREAD
 OBJS	+= base/thread-btn-pwr.o
 endif
+
 
 ifndef BOARD
 $(error BOARD is not correct, please define correct BOARD)
@@ -318,6 +331,11 @@ endif
 ifeq ($(USE_KT_FOTA),y)
 	$(Q)fakeroot cp -v $(KT_FOTA_CONFIG_PATH)/$(KT_FOTA_CONFIG_FILE) $(DESTDIR)$(WORK_PATH)
 endif
+
+ifeq ($(USE_TL500S_FOTA),y)
+	$(Q)fakeroot cp -v $(OBJ_TX500S_FOTA_SH_PATH)/$(OBJ_TX500S_FOTA_SH_FILE) $(DESTDIR)$(WORK_PATH)
+endif
+
 
 ifneq ($(SUB),)
 	@if [ -d "$(MODEL_PATH)/sub/$(SUB)" ]; then \
