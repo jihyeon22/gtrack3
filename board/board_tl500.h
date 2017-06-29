@@ -11,7 +11,7 @@
 #define EVENT0_DEV_NAME					"/dev/input/event1"
 // #define EVENT1_DEV_NAME					"/dev/input/event1" // external gpio input dev is not support yet.
 
-#define UART0_DEV_NAME					"/dev/ttyHSL2"
+#define UART0_DEV_NAME					"/dev/ttyHSL1"
 #define UART1_DEV_NAME					"/dev/ttyHSL2"
 
 

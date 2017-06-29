@@ -106,6 +106,10 @@ else ifeq ($(SERVER),ktfms)
 SERVER_ABBR := FMS
 else ifeq ($(SERVER),cs)
 SERVER_ABBR := CS
+else ifeq ($(SERVER),alloc2)
+SERVER_ABBR := ALC2
+USE_ALLKEY_BCM_1=y
+USE_SECO_OBD_1=y
 else
 $(error SERVER is not registerd in Makefile, please input registred server)
 endif
@@ -134,6 +138,8 @@ else ifeq ($(CORP),kt)
 CORP_ABBR := KT
 else ifeq ($(CORP),cs)
 CORP_ABBR := CS
+else ifeq ($(CORP),alloc)
+CORP_ABBR := ALC
 else
 $(error CORP is not registerd in Makefile, please input registred corporation)
 endif
@@ -267,6 +273,20 @@ endif
 ifeq ($(USE_BUTTON_THREAD),y)
 CFLAGS  += -DUSE_BUTTON_THREAD
 OBJS	+= base/thread-btn-pwr.o
+endif
+
+ifeq ($(USE_ALLKEY_BCM_1),y)
+-include ext/dev/allkey_bcm_1/allkey_bcm_1.mk
+CFLAGS  += -DUSE_ALLKEY_BCM_1
+OBJS	+= $(OBJ_ALLKEY_BCM_1)
+CFLAGS  += $(ALLKEY_BCM_1_CFLAGS)
+endif
+
+ifeq ($(USE_SECO_OBD_1),y)
+-include ext/dev/seco_obd_1/seco_obd_1.mk
+CFLAGS  += -DUSE_SECO_OBD_1
+OBJS	+= $(OBJ_SECO_OBD_1)
+CFLAGS  += $(SECO_OBD_1_CFLAGS)
 endif
 
 

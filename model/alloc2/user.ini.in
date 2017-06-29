@@ -1,0 +1,10 @@
+[user]
+model_name=alloc2
+date=160318
+report_ip=218.153.6.218
+report_port=9001
+collect_interval_keyon = 60
+report_interval_keyon = 60
+collect_interval_keyoff = 3600
+report_interval_keyoff = 3600
+
