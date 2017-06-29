@@ -1520,9 +1520,9 @@ int _sms_cmd_proc_test_debug_1(int argc, char* argv[], const char* phonenum)
 						g_last_dev_stat.obd_speed/1000);
 	
 	//at_send_sms(phonenum, resp_buff, 10);
-	
+	#ifndef KT_FOTA_TEST_SVR
 	devel_webdm_send_log(resp_buff);
-	
+	#endif
 	
 	// ------------------------------------
 	
@@ -1579,14 +1579,19 @@ int _sms_cmd_proc_test_debug_1(int argc, char* argv[], const char* phonenum)
 		}
 	}
 	
+	#ifndef KT_FOTA_TEST_SVR
 	devel_webdm_send_log(tmp_buff);
-	
+	#endif
+
 	// ------------------------------------
 	memset(tmp_buff,0x00,sizeof(tmp_buff));
 	buff_len = 0;
 	
 	buff_len += sprintf(tmp_buff + buff_len, "AC err ret [%d], code [%d]", g_last_dev_stat.last_set_gender_spec_ret, g_last_dev_stat.last_set_gender_err_code);
+
+	#ifndef KT_FOTA_TEST_SVR
 	devel_webdm_send_log(tmp_buff);
+	#endif
 	
 	return 0;
 }

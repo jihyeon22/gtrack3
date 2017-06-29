@@ -2894,6 +2894,7 @@ int init_server_and_poweroff()
 	send_device_off_packet(30);
 #endif
 	gps_valid_data_write();
+	mileage_write();
 	
 	// 이렇게 강제로 변경하지 않으면.
 	// 기존에 trip이나 서버정보를 초기화 하더라도 gps thread 에서 다시 만들기 때문

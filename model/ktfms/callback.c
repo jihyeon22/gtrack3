@@ -68,7 +68,11 @@ void init_model_callback(void)
 {
 	configurationModel_t *conf = get_config_model();
 	
+#ifdef KT_FOTA_TEST_SVR
+	thread_network_set_warn_timeout(0);
+#else
 	thread_network_set_warn_timeout(MAX(conf->model.report_interval_keyon, conf->model.report_interval_keyoff) * 2);
+#endif
 
 #ifdef ONLY_KT_FOTA_TEST
 	return;
@@ -99,20 +103,25 @@ void button2_callback(void)
 	printf("%s() - [%d]\r\n", __func__, __LINE__);
 }
 
+static power_status = 0;
+
 void ignition_on_callback(void)
 {
 	printf("%s() - [%d]\r\n", __func__, __LINE__);
 	LOGI(LOG_TARGET, "IGNI ON Callback ...\n");
 	//if ( get_send_policy() != KT_FMS_SEND_POLICY__SERVER_FAIL_STOP )
 		//set_send_policy(KT_FMS_SEND_POLICY__PWR_ON_EVENT);	
+	power_status = 1;
 }
 
 void ignition_off_callback(void)
 {
 	printf("%s() - [%d]\r\n", __func__, __LINE__);
 	LOGI(LOG_TARGET, "IGNI OFF Callback ...\n");
+	//mileage_write();
 	//if ( get_send_policy() != KT_FMS_SEND_POLICY__SERVER_FAIL_STOP )
 //		set_send_policy(KT_FMS_SEND_POLICY__PWR_OFF_EVENT);
+	power_status = 0;
 }
 
 void power_on_callback(void)
@@ -201,7 +210,9 @@ void gps_parse_one_context_callback(void)
 		printf("gps active : cur lon [%f]\r\n",gpsdata.lon);
 		
 		set_hw_err_code(e_HW_ERR_CODE_GPS_INVAILD , 0);
-		mileage_process(&gpsdata);
+
+		if ( power_status == 1 )
+			mileage_process(&gpsdata);
 
 		first_gps_hit = 1;
 	}
@@ -846,8 +857,10 @@ void main_loop_callback(void)
 						
 						// 기존에 서버를 무한정 대기시키던것을 다시 원복한다.
 						set_server_send_interval_default();
-						
+
+					#ifndef KT_FOTA_TEST_SVR
 						devel_webdm_send_log("OBD KEY STAT - ON");
+					#endif
 					}
 				}
 				
@@ -865,8 +878,9 @@ void main_loop_callback(void)
 						
 						//if ( get_send_policy() != KT_FMS_SEND_POLICY__SERVER_FAIL_STOP )
 						set_send_policy(KT_FMS_SEND_POLICY__PWR_OFF_EVENT);
-					
+					#ifndef KT_FOTA_TEST_SVR
 						devel_webdm_send_log("OBD KEY STAT - OFF");
+					#endif
 						dmmgr_send(eEVENT_UPDATE, NULL, 0);
 					}
 						
