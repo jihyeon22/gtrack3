@@ -827,7 +827,7 @@ static int _get_modem_status (char *pn)
 	char buff[512] = {0};
 	int ret = 0;
 	
-	ret = get_modem_status(buff);
+	//ret = get_modem_status(buff);
 	if(ret >= 0)
 	{
 		at_send_sms(pn, buff, 3);

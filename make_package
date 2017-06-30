@@ -26,7 +26,7 @@ type_package_input(){
 }
 
 corp_input() {
-		echo -e "Coporation = (mds, asn, cl, bizincar, cs, etrace, neognp, moram, kt, alloc, cip ...) "
+		echo -e "Coporation = (mds, asn, cl, bizincar, cs, etrace, neognp, moram, kt, alloc, cip, netio ...) "
 		read CORPMODEL
 		case $CORPMODEL in
 			mds)
@@ -38,8 +38,8 @@ corp_input() {
 				CORPABBR="ASN"
 			;;
 			cl)
-					CORPMODEL="cl"
-					CORPABBR="CL"
+				CORPMODEL="cl"
+				CORPABBR="CL"
 			;;
 			etrace)
 				CORPMODEL="etrace"
@@ -72,6 +72,10 @@ corp_input() {
 			cip)
 				CORPMODEL="cip"
 				CORPABBR="CIP"
+			;;
+			netio)
+				CORPMODEL="neti"
+				CORPABBR="NETI"
 			;;
 			*)
 				echo  $CORPMODEL invalid
@@ -129,7 +133,7 @@ modem_input() {
 }
 
 server_input() {
-	echo -e "Server Model = (skel, asn, cl-thermal, cl-rfid, bizincar, cs, etr, etrg, etrf, neognp, moram, alloc2, cip-rmc ...)"
+	echo -e "Server Model = (skel, asn, cl-thermal, cl-rfid, bizincar, cs, etr, etrg, etrf, neognp, moram, alloc2, cip-rmc, netio ...)"
 	echo -e "               (ktfms0, ktfms1...)"
 	echo -e "				(if sub model, sub model name have to input)"
 	read SRVMODEL
@@ -169,6 +173,10 @@ server_input() {
 		bizincar)
 			SRVMODEL="bizincar"
 			SERVABBR="BIC"
+		;;
+		netio)
+			SRVMODEL="neti"
+			SERVABBR="NETI"
 		;;
 		cs)
 			SRVMODEL="cs"
