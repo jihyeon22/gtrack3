@@ -1,0 +1,9 @@
+[user]
+model_name=netio
+date=160318
+report_ip=222.96.77.41
+report_port=15660
+collect_interval_keyon = 60
+report_interval_keyon = 60
+collect_interval_keyoff = 3600
+report_interval_keyoff = 3600
