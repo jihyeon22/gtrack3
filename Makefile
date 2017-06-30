@@ -106,6 +106,8 @@ else ifeq ($(SERVER),ktfms)
 SERVER_ABBR := FMS
 else ifeq ($(SERVER),cs)
 SERVER_ABBR := CS
+else ifeq ($(SERVER),cip-rmc)
+SERVER_ABBR	:=	CIP
 else ifeq ($(SERVER),alloc2)
 SERVER_ABBR := ALC2
 USE_ALLKEY_BCM_1=y
@@ -140,6 +142,8 @@ else ifeq ($(CORP),cs)
 CORP_ABBR := CS
 else ifeq ($(CORP),alloc)
 CORP_ABBR := ALC
+else ifeq ($(CORP),cip)
+CORP_ABBR := CIP
 else
 $(error CORP is not registerd in Makefile, please input registred corporation)
 endif
