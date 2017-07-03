@@ -47,7 +47,7 @@ int battery_get_battlevel_internal(void)
 	return 3000;
 #endif
 
-#if defined (BOARD_TL500S)
+#if defined (BOARD_TL500S) || defined (BOARD_TL500K)
 	int batt_volt = 0;
 	if ( mds_api_get_internal_batt_tl500(&batt_volt) == DEFINES_MDS_API_OK )
 	{

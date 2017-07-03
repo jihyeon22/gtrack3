@@ -16,7 +16,7 @@ void poweroff(const char *log_buff, const int log_buff_len)
 
 	tools_alive_end(); //njw 150924
 	
-#ifdef BOARD_TL500S	// reset workaround : hw bug
+#if defined (BOARD_TL500S) || defined (BOARD_TL500K)
 	gpio_set_value(15, 0);
 #endif
 
