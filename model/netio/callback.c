@@ -92,6 +92,8 @@ void init_model_callback(void)
 		therm_set_dev(conf->model.tempature_device, strlen(conf->model.tempature_device));
 	}
 
+	set_auto_ota_tl500(1);
+
 }
 
 void network_on_callback(void)
