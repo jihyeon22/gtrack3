@@ -110,6 +110,10 @@ else ifeq ($(SERVER),cip-rmc)
 SERVER_ABBR	:=	CIP
 else ifeq ($(SERVER),netio)
 SERVER_ABBR	:=	NETI
+else ifeq ($(SERVER),uppp)
+#gps disable
+USE_GPS_MODEL=n 
+SERVER_ABBR	:=	UPPP
 else ifeq ($(SERVER),alloc2)
 SERVER_ABBR := ALC2
 USE_ALLKEY_BCM_1=y
@@ -148,6 +152,8 @@ else ifeq ($(CORP),cip)
 CORP_ABBR := CIP
 else ifeq ($(CORP),netio)
 CORP_ABBR := NETI
+else ifeq ($(CORP),uppp)
+CORP_ABBR := UPPP
 else
 $(error CORP is not registerd in Makefile, please input registred corporation)
 endif
