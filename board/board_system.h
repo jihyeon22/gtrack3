@@ -10,5 +10,5 @@
 
 
 #ifdef BOARD_TL500K
-#include "board_tl500.h" // use tx501 base
+#include "board_tl500k.h" // use tx501 base
 #endif
