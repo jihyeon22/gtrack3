@@ -137,7 +137,7 @@ modem_input() {
 }
 
 server_input() {
-	echo -e "Server Model = (skel, asn, cl-thermal, cl-rfid, bizincar, cs, etr, etrg, etrf, neognp, moram, alloc2, cip-rmc, netio, uppp ...)"
+	echo -e "Server Model = (skel, asn, cl-thermal, cl-mdt, cl-rfid, bizincar, cs, etr, etrg, etrf, neognp, moram, alloc2, cip-rmc, netio, uppp ...)"
 	echo -e "               (ktfms0, ktfms1...)"
 	echo -e "				(if sub model, sub model name have to input)"
 	read SRVMODEL
@@ -153,6 +153,10 @@ server_input() {
 		cl-thermal)
 			SRVMODEL="clt"
 			SERVABBR="CLT"
+		;;
+		cl-mdt)
+			SRVMODEL="clm"
+			SERVABBR="CLM"
 		;;
 		cl-rfid)
 			SRVMODEL="clr"

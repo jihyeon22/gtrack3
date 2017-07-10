@@ -94,6 +94,8 @@ else ifeq ($(SERVER),cl-thermal)
 SERVER_ABBR := CLT
 else ifeq ($(SERVER),cl-rfid)
 SERVER_ABBR := CLR
+else ifeq ($(SERVER),cl-mdt)
+SERVER_ABBR := CLM
 else ifeq ($(SERVER),etrace)
 SERVER_ABBR	:=	ETR
 else ifeq ($(SERVER),bizincar)
