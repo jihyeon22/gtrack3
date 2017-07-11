@@ -6,6 +6,7 @@
 
 #include "kt_fota_ver.h"
 
+#include <board/board_system.h>
 // -------------------------------
 // default value
 // -------------------------------
