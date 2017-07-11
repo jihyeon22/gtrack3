@@ -2,6 +2,7 @@
 #define __BASE_CONFIG_H__
 
 #include <dictionary.h>
+#include <board/board_system.h>
 
 #define INI_INVALID_KEY_STRING	NULL
 #define INI_INVALID_KEY_INT		-1
