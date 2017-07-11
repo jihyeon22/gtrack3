@@ -17,6 +17,9 @@
 
 #include <base/dmmgr.h>
 
+#include "netcom.h"
+
+
 #include "util/nettool.h"
 #include "logd/logd_rpc.h"
 #include "config.h"
@@ -2909,8 +2912,8 @@ int init_server_and_poweroff()
 	clr_daily_info();
 	clear_obd_info();
 	
-	while(1)
-		system("poweroff");
+	sender_wait_empty_network(WAIT_PIPE_CLEAN_SECS);
+	poweroff("poweroff senario", strlen("poweroff senario"));
 }
 
 
@@ -2934,8 +2937,8 @@ int init_server_and_poweroff2()
 	clr_daily_info();
 	clear_obd_info();
 	
-	while(1)
-		system("poweroff");
+	sender_wait_empty_network(WAIT_PIPE_CLEAN_SECS);
+	poweroff("poweroff senario", strlen("poweroff senario"));
 }
 
 

@@ -25,10 +25,18 @@ int parse_model_sms(char *time, char *phonenum, char *sms);
 #define SMS_CMD_SET__DEV_RESET_1		"&RS1"
 #define SMS_CMD_SET__DEV_RESET_2		"&RS2"
 
+/*
 #define SMS_CMD_SET__S_FOTA_DM_SERVER			"&KFS"
 #define SMS_CMD_GET__S_FOTA_DM_SERVER			"&KFG"
 #define SMS_CMD_SET__S_FOTA_QTY_SERVER			"&KQS"
 #define SMS_CMD_GET__S_FOTA_QTY_SERVER			"&KQG"
+*/
+
+#define SMS_CMD_SET__KT_FOTA_SERVER			"&KFS"
+#define SMS_CMD_GET__KT_FOTA_SERVER			"&KFG"
+
+#define SMS_CMD_GET__KT_PROG_VER			"&VER"
+#define SMS_CMD_GET__KT_PROG_INIT			"&FR"
 
 #define SMS_CMD_TEST__PWR_MODE_ON			"&TON"
 #define SMS_CMD_TEST__PWR_MODE_OFF			"&TOFF"
@@ -61,11 +69,12 @@ typedef enum
 	
 	eSMS_CMD_SET__DEV_RESET_1,
 	eSMS_CMD_SET__DEV_RESET_2,
+
+	eSMS_CMD_SET__KT_FOTA_SERVER,
+	eSMS_CMD_GET__KT_FOTA_SERVER,
 	
-	eSMS_CMD_SET__S_FOTA_DM_SERVER,
-	eSMS_CMD_GET__S_FOTA_DM_SERVER,
-	eSMS_CMD_SET__S_FOTA_QTY_SERVER,
-	eSMS_CMD_GET__S_FOTA_QTY_SERVER,
+	eSMS_CMD_GET__KT_PROG_VER,
+	eSMS_CMD_GET__KT_PROG_INIT,
 	
 	eSMS_CMD_TEST__PWR_MODE_ON,
 	eSMS_CMD_TEST__PWR_MODE_OFF,
@@ -111,6 +120,15 @@ int _sms_cmd_proc_set_s_fota_dm_server(int argc, char* argv[], const char* phone
 int _sms_cmd_proc_get_s_fota_dm_server(int argc, char* argv[], const char* phonenum);
 int _sms_cmd_proc_set_s_fota_qty_server(int argc, char* argv[], const char* phonenum);
 int _sms_cmd_proc_get_s_fota_qty_server(int argc, char* argv[], const char* phonenum);
+
+int _sms_cmd_proc_set_kt_fota_server(int argc, char* argv[], const char* phonenum);
+int _sms_cmd_proc_get_kt_fota_server(int argc, char* argv[], const char* phonenum);
+
+
+int _sms_cmd_proc_get_kt_prog_ver(int argc, char* argv[], const char* phonenum);
+int _sms_cmd_proc_get_kt_prog_init(int argc, char* argv[], const char* phonenum);
+
+
 
 int _sms_cmd_proc_test_pwr_mode_on(int argc, char* argv[], const char* phonenum);
 int _sms_cmd_proc_test_pwr_mode_off(int argc, char* argv[], const char* phonenum);

@@ -39,6 +39,7 @@
 // ----------------------------------------
 #define LOG_TARGET eSVC_MODEL
 
+//#define DEBUG_VERBOS_ENABLE
 
 int check_init_stat_1()
 {
@@ -101,27 +102,38 @@ int check_init_stat_1()
 		//led_set_all(eCOLOR_RED, count++ % 2);
 
 		//req_obd_data(&obd_data);
-	
+#ifdef DEBUG_VERBOS_ENABLE
 		printf("init 1 -> [%s]/[%s]\r\n",car_vin, DEFAULT_FMS_CAR_VIN);
+#endif
 		if ( strcmp(car_vin, DEFAULT_FMS_CAR_VIN ) == 0 ) 
 		{
+#ifdef DEBUG_VERBOS_ENABLE
 			printf("init fail case 1\r\n");
+#endif
 			init_fail = 1;
 			//continue;
 		}
 		
+#ifdef DEBUG_VERBOS_ENABLE
 		printf("init 2 -> [%s]/[%s]\r\n",car_num, DEFAULT_FMS_CAR_NUM);
+#endif
 		if ( strcmp(car_num, DEFAULT_FMS_CAR_NUM) == 0 ) 
 		{
+#ifdef DEBUG_VERBOS_ENABLE
 			printf("init fail case 2\r\n");
+#endif
 			init_fail = 1;
 			//continue;
 		}
 		
+#ifdef DEBUG_VERBOS_ENABLE
 		printf("init 3 -> [%s]/[%s]\r\n",url_path, DEFAULT_FMS_SUB_SERVER_PATH);
+#endif
 		if ( strcmp(url_path, DEFAULT_FMS_SUB_SERVER_PATH) == 0 ) 
 		{
+#ifdef DEBUG_VERBOS_ENABLE
 			printf("init fail case 3\r\n");
+#endif
 			init_fail = 1;
 			//continue;
 		}
@@ -129,8 +141,9 @@ int check_init_stat_1()
 		
 		if ( (init_fail == 1) )
 		{
+#ifdef DEBUG_VERBOS_ENABLE
 			printf("init fail case 4 [%d] \r\n",(count % 2));
-			
+#endif
 			// ------------------
 			// led senario
 			// ------------------

@@ -365,7 +365,11 @@ ifeq ($(USE_DTG_MODEL),y)
 endif
 
 ifeq ($(USE_KT_FOTA),y)
-	$(Q)fakeroot cp -v $(KT_FOTA_CONFIG_PATH)/$(KT_FOTA_CONFIG_FILE) $(DESTDIR)$(WORK_PATH)
+ifeq ($(KT_FOTA_TEST_SVR),1)
+	$(Q)fakeroot cp -v $(KT_FOTA_CONFIG_PATH)/$(KT_FOTA_CONFIG_FILE_TEST) $(DESTDIR)$(WORK_PATH)/$(KT_FOTA_CONFIG_FILE)
+else
+	$(Q)fakeroot cp -v $(KT_FOTA_CONFIG_PATH)/$(KT_FOTA_CONFIG_FILE) $(DESTDIR)$(WORK_PATH)/$(KT_FOTA_CONFIG_FILE)
+endif
 endif
 
 ifeq ($(USE_TL500S_FOTA),y)

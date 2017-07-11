@@ -1,4 +1,9 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 #include <iniparser.h>
+#include <at/at_util.h>
 
 #include "logd/logd_rpc.h"
 
@@ -105,24 +110,21 @@ void free_ini_file()
 
 char* get_kt_fota_dm_server_ip_addr()
 {
-#ifdef KT_FOTA_TEST_SVR
-	return KT_FOTA_TEST_SVR_DM_IP;
-#else
 	return g_kfs_info.dm_server_ip;
-#endif
 }
 void set_kt_fota_dm_server_ip_addr(char* ip_addr)
 {
+	if ( strcmp(ip_addr, KT_FOTA_TEST_SVR_DM_IP) == 0 )
+		set_modem_fota_testmode_for_tl500k(TELADIN_DMS_SETTING_TEST_MODE);
+	else
+		set_modem_fota_testmode_for_tl500k(TELADIN_DMS_SETTING_NONTEST_MODE);
+
 	strcpy(g_kfs_info.dm_server_ip, ip_addr);
 }
 
 char* get_kt_fota_qty_server_ip_addr()
 {
-#ifdef KT_FOTA_TEST_SVR
-	return KT_FOTA_TEST_SVR_QTY_IP;
-#else
 	return g_kfs_info.qty_server_ip;
-#endif
 }
 
 void set_kt_fota_qty_server_ip_addr(char* ip_addr)
@@ -132,11 +134,7 @@ void set_kt_fota_qty_server_ip_addr(char* ip_addr)
 
 unsigned short get_kt_fota_dm_server_port()
 {
-#ifdef KT_FOTA_TEST_SVR
-	return KT_FOTA_TEST_SVR_DM_PORT;
-#else
 	return g_kfs_info.dm_port;
-#endif
 }
 
 void set_kt_fota_dm_server_port(unsigned short port)
@@ -146,11 +144,7 @@ void set_kt_fota_dm_server_port(unsigned short port)
 
 unsigned short get_kt_fota_qty_server_port()
 {
-#ifdef KT_FOTA_TEST_SVR
-	return KT_FOTA_TEST_SVR_QTY_PORT;
-#else
 	return g_kfs_info.qty_port;
-#endif
 }
 
 void set_kt_fota_qty_server_port(unsigned short port)

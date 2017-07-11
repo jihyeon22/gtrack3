@@ -354,7 +354,7 @@ int get_collection_interval()
     //else
         interval_time = conf->model.collect_interval_keyon;
 
-    printf("get collection interval_time = [%d]\n", interval_time);
+    //printf("get collection interval_time = [%d]\n", interval_time);
     return interval_time;
 }
 
@@ -369,7 +369,7 @@ int get_report_interval()
     //else
         interval_time = conf->model.report_interval_keyon;
 
-    printf("get report interval_time = [%d]\n", interval_time);
+    //printf("get report interval_time = [%d]\n", interval_time);
 
     return interval_time;
 }
