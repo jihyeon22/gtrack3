@@ -20,6 +20,8 @@
 #define GPIO_DIRECTION					CONCAT_STR(GPIO_ROOT_DIR, "/gpio%d/direction")
 
 
+
+
 #define GPIO_NO_MIN						9
 #define GPIO_NO_MAX						66
 
@@ -51,6 +53,9 @@
 #define MILEAGE_PATH					CONCAT_STR(USER_DATA_DIR, "/mileage.dat")
 
 #define GPS_DATA_PATH 					CONCAT_STR(USER_DATA_DIR, "/gps_valid.dat")
+
+#define CONFIG_USER_FILE_PATH			CONCAT_STR(USER_DATA_DIR, "/user.ini")
+//CONFIG_USER_FILE_PATH=\"$(USER_DATA_DIR)/$(CONFIG_USER_FILE)\" 
 
 #define MKDIR_USER_DIR					MAKE_CMD_STR("mkdir -p", USER_DATA_DIR)
 #ifdef USE_EXTGPIO_EVT

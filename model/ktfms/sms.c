@@ -11,6 +11,7 @@
 
 #include "include/defines.h"
 #include "util/nettool.h"
+#include "netcom.h"
 
 #include "logd/logd_rpc.h"
 #include "util/validation.h"
@@ -22,6 +23,9 @@
 //#include "base/kt_fota_config.h"
 #include "seco_obd.h"
 
+#if defined (KT_FOTA_ENABLE)
+#include "kt_fota_config.h"
+#endif
 // ----------------------------------------
 //  LOGD Target
 // ----------------------------------------
@@ -52,11 +56,14 @@ static SMS_CMD_FUNC_T sms_cmd_func[] =
 
 //#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
 #if defined (KT_FOTA_ENABLE)
-	{eSMS_CMD_SET__S_FOTA_DM_SERVER, SMS_CMD_SET__S_FOTA_DM_SERVER, _sms_cmd_proc_set_s_fota_dm_server},
-	{eSMS_CMD_GET__S_FOTA_DM_SERVER, SMS_CMD_GET__S_FOTA_DM_SERVER, _sms_cmd_proc_get_s_fota_dm_server},
-	{eSMS_CMD_SET__S_FOTA_QTY_SERVER, SMS_CMD_SET__S_FOTA_QTY_SERVER, _sms_cmd_proc_set_s_fota_qty_server},
-	{eSMS_CMD_GET__S_FOTA_QTY_SERVER, SMS_CMD_GET__S_FOTA_QTY_SERVER, _sms_cmd_proc_get_s_fota_qty_server},
+	
+	{eSMS_CMD_SET__KT_FOTA_SERVER, SMS_CMD_SET__KT_FOTA_SERVER, _sms_cmd_proc_set_kt_fota_server},
+	{eSMS_CMD_GET__KT_FOTA_SERVER, SMS_CMD_GET__KT_FOTA_SERVER, _sms_cmd_proc_get_kt_fota_server},
 #endif
+
+	{eSMS_CMD_GET__KT_PROG_VER, SMS_CMD_GET__KT_PROG_VER, _sms_cmd_proc_get_kt_prog_ver},
+	{eSMS_CMD_GET__KT_PROG_INIT, SMS_CMD_GET__KT_PROG_INIT, _sms_cmd_proc_get_kt_prog_init},
+
 
 	{eSMS_CMD_TEST__PWR_MODE_ON, SMS_CMD_TEST__PWR_MODE_ON, _sms_cmd_proc_test_pwr_mode_on},
 	{eSMS_CMD_TEST__PWR_MODE_ON, SMS_CMD_TEST__PWR_MODE_OFF, _sms_cmd_proc_test_pwr_mode_off},
@@ -88,6 +95,7 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 	
 	model_argv[model_argc++] = base;
 
+	printf("parse_model_sms start [%s]\r\n", sms);
 	while(model_argc <= 32 && len--) 
 	{
 		switch(*base) {
@@ -126,6 +134,7 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 	// find function..
 	for(i = 0; i < MAX_SMS_CMD; i++)
 	{
+		printf("model_argv[0] [%s], sms_cmd_func[%d].cmd => [%s]\r\n", model_argv[0], i, sms_cmd_func[i].cmd);
 		if  (!( strncasecmp ( model_argv[0], sms_cmd_func[i].cmd, strlen(sms_cmd_func[i].cmd) ) ))
 		{
 			found_cmd = 1;
@@ -139,6 +148,7 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 			sms_cmd_func[i].proc_func(model_argc, model_argv, phonenum);
 	}
 	
+	printf("parse_model_sms end\r\n");
 	return ret;
 }
 
@@ -1041,11 +1051,9 @@ int _sms_cmd_proc_set_reset_1(int argc, char* argv[], const char* phonenum)
 	
 	mileage_write();
 
-	while(1)
-	{
-		system("poweroff");
-		sleep(1);
-	}
+	sender_wait_empty_network(WAIT_PIPE_CLEAN_SECS);
+
+	poweroff("poweroff senario", strlen("poweroff senario"));
 	
 	return 0;
 }
@@ -1095,55 +1103,8 @@ int i = MAX_WAIT_SETTING_SEC ;
 }
 
 
-//#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
 #if defined (KT_FOTA_ENABLE)
-int _sms_cmd_proc_set_s_fota_dm_server(int argc, char* argv[], const char* phonenum)
-{
-	int i = 0 ;
-	LOGI(LOG_TARGET, "SMS PROC : set - ip,port / from [%s]\n",phonenum);
-
-	for(i = 0; i <= argc; i++)
-	{
-		LOGD(LOG_TARGET, "SMS - arg [%d] - [%s]\n", i, argv[i]);
-	}
-	
-	// passwd argument check.
-	if ( argc == 0 )
-	{
-		LOGE(LOG_TARGET, "SMS - invalid arg [%d]\n", argc);
-		return -1;
-	}
-	
-	if ( argc != 4 )
-	{
-		LOGE(LOG_TARGET, " - SMS argument invalid [%d] / [%d] \n", argc , 4);
-	}
-	
-	if ( strncasecmp(SMS_CMD_PWD, argv[1], strlen(argv[1]) ) != 0 )
-	{
-		LOGE(LOG_TARGET, " - SMS PWD invalid [%s] / [%s]\n", argv[1], SMS_CMD_PWD);
-	}
-	
-	nettool_init_hostbyname_func();
-	
-	set_kt_fota_dm_server_ip_addr(argv[2]);
-	set_kt_fota_dm_server_port(atoi(argv[3]));
-	
-	save_ini_kt_fota_svc_info();
-	
-	if ( atoi(argv[4]) == 1 )
-	{
-		at_send_sms(phonenum, "SET FOTA DM IP / PORT OK");
-	}
-	
-	return 0;
-}
-#endif
-
-
-//#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
-#if defined (KT_FOTA_ENABLE)
-int _sms_cmd_proc_get_s_fota_dm_server(int argc, char* argv[], const char* phonenum)
+int _sms_cmd_proc_get_kt_fota_server(int argc, char* argv[], const char* phonenum)
 {
 	int i = 0 ;
 	
@@ -1170,26 +1131,27 @@ int _sms_cmd_proc_get_s_fota_dm_server(int argc, char* argv[], const char* phone
 		return -1;
 	}
 	
-	
-	sprintf(resp_buff,"%s:%d", get_kt_fota_dm_server_ip_addr(), get_kt_fota_dm_server_port());
-	
+	sprintf(resp_buff,"dm : %s:%d", get_kt_fota_dm_server_ip_addr(), get_kt_fota_dm_server_port());
+	at_send_sms(phonenum, resp_buff );
+
+	sprintf(resp_buff,"qty : %s:%d", get_kt_fota_qty_server_ip_addr(), get_kt_fota_qty_server_port());
 	at_send_sms(phonenum, resp_buff );
 	
 	return 0;
-	
 }
-#endif
 
-//#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
-#if defined (KT_FOTA_ENABLE)
-int _sms_cmd_proc_set_s_fota_qty_server(int argc, char* argv[], const char* phonenum)
+int _sms_cmd_proc_set_kt_fota_server(int argc, char* argv[], const char* phonenum)
 {
+	
 	int i = 0 ;
+	char send_msg_buff[80] = {0,};
+	
 	LOGI(LOG_TARGET, "SMS PROC : set - ip,port / from [%s]\n",phonenum);
 
 	for(i = 0; i <= argc; i++)
 	{
 		LOGD(LOG_TARGET, "SMS - arg [%d] - [%s]\n", i, argv[i]);
+		//printf( "SMS - arg [%d] - [%s]\n", i, argv[i]);
 	}
 	
 	// passwd argument check.
@@ -1199,7 +1161,7 @@ int _sms_cmd_proc_set_s_fota_qty_server(int argc, char* argv[], const char* phon
 		return -1;
 	}
 	
-	if ( argc != 4 )
+	if ( argc != 3 )
 	{
 		LOGE(LOG_TARGET, " - SMS argument invalid [%d] / [%d] \n", argc , 4);
 		return -1;
@@ -1212,61 +1174,41 @@ int _sms_cmd_proc_set_s_fota_qty_server(int argc, char* argv[], const char* phon
 	}
 	
 	nettool_init_hostbyname_func();
-	
-	set_kt_fota_qty_server_ip_addr(argv[2]);
-	set_kt_fota_qty_server_port(atoi(argv[3]));
-	
+
+	// test mode.
+	if ( atoi(argv[2]) == 1 )
+	{
+		set_kt_fota_qty_server_ip_addr(KT_FOTA_TEST_SVR_QTY_IP);
+		set_kt_fota_qty_server_port(KT_FOTA_TEST_SVR_QTY_PORT);
+
+		set_kt_fota_dm_server_ip_addr(KT_FOTA_TEST_SVR_DM_IP);
+		set_kt_fota_dm_server_port(KT_FOTA_TEST_SVR_DM_PORT);
+
+		sprintf(send_msg_buff, "SET FOTA SVR - TEST ");
+	}
+	else
+	{
+		set_kt_fota_qty_server_ip_addr(KT_FOTA_COMMERCIAL_SVR_QTY_IP);
+		set_kt_fota_qty_server_port(KT_FOTA_COMMERCIAL_SVR_QTY_PORT);
+
+		set_kt_fota_dm_server_ip_addr(KT_FOTA_COMMERCIAL_SVR_DM_IP);
+		set_kt_fota_dm_server_port(KT_FOTA_COMMERCIAL_SVR_DM_PORT);
+
+		sprintf(send_msg_buff, "SET FOTA SVR - COMMERCIAL");
+	}
+
 	save_ini_kt_fota_svc_info();
-	
-	if ( atoi(argv[4]) == 1 )
+
+	if ( atoi(argv[3]) == 1 )
 	{
-		at_send_sms(phonenum, "SET FOTA QTY IP / PORT OK");
+		at_send_sms(phonenum, send_msg_buff);
 	}
-	
+
 	return 0;
 }
+
 #endif
 
-
-//#if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
-#if defined (KT_FOTA_ENABLE)
-int _sms_cmd_proc_get_s_fota_qty_server(int argc, char* argv[], const char* phonenum)
-{
-	int i = 0 ;
-	
-//	unsigned char tmp_buff[64] = {0,};
-	unsigned char resp_buff[64] = {0,};
-	
-	LOGI(LOG_TARGET, "SMS PROC : get - ip,port / from [%s]\n",phonenum);
-
-	for(i = 0; i <= argc; i++)
-	{
-		LOGD(LOG_TARGET, "SMS - arg [%d] - [%s]\n", i, argv[i]);
-	}
-	
-	// passwd argument check.
-	if ( argc == 0 )
-	{
-		LOGE(LOG_TARGET, "SMS - invalid arg [%d]\n", argc);
-		return -1;
-	}
-	
-	if ( strncasecmp(SMS_CMD_PWD, argv[1], strlen(argv[1]) ) != 0 )
-	{
-		LOGE(LOG_TARGET, " - SMS PWD invalid [%s] / [%s]\n", argv[1], SMS_CMD_PWD);
-		return -1;
-	}
-	
-	//get_server_ip(tmp_buff);
-	
-	sprintf(resp_buff,"%s:%d", get_kt_fota_qty_server_ip_addr(), get_kt_fota_qty_server_port());
-	
-	at_send_sms(phonenum, resp_buff);
-	
-	return 0;
-	
-}
-#endif
 
 int _sms_cmd_proc_test_case_1(int argc, char* argv[], const char* phonenum)
 {
@@ -1605,3 +1547,80 @@ int _sms_cmd_proc_test_debug_1(int argc, char* argv[], const char* phonenum)
 
 
 
+int _sms_cmd_proc_get_kt_prog_ver(int argc, char* argv[], const char* phonenum)
+{
+	int i = 0 ;
+	
+//	unsigned char tmp_buff[64] = {0,};
+	unsigned char resp_buff[64] = {0,};
+	
+	LOGI(LOG_TARGET, "SMS PROC : get - ip,port / from [%s]\n",phonenum);
+
+	for(i = 0; i <= argc; i++)
+	{
+		LOGD(LOG_TARGET, "SMS - arg [%d] - [%s]\n", i, argv[i]);
+	}
+	
+	// passwd argument check.
+	if ( argc == 0 )
+	{
+		LOGE(LOG_TARGET, "SMS - invalid arg [%d]\n", argc);
+		return -1;
+	}
+	
+	if ( strncasecmp(SMS_CMD_PWD, argv[1], strlen(argv[1]) ) != 0 )
+	{
+		LOGE(LOG_TARGET, " - SMS PWD invalid [%s] / [%s]\n", argv[1], SMS_CMD_PWD);
+		return -1;
+	}
+	
+	sprintf(resp_buff,"ver : %s,%s,%s", KT_FOTA_VER,  KT_FOTA_MODEL, KT_FOTA_VER_APP);
+	at_send_sms(phonenum, resp_buff );
+
+	return 0;
+}
+
+int _sms_cmd_proc_get_kt_prog_init(int argc, char* argv[], const char* phonenum)
+{
+	int i = 0 ;
+	
+//	unsigned char tmp_buff[64] = {0,};
+	unsigned char resp_buff[64] = {0,};
+	char write_file_content[512] = {0,};
+	int file_len = 0;
+	
+	LOGI(LOG_TARGET, "SMS PROC : get - ip,port / from [%s]\n",phonenum);
+
+	for(i = 0; i <= argc; i++)
+	{
+		LOGD(LOG_TARGET, "SMS - arg [%d] - [%s]\n", i, argv[i]);
+	}
+	
+	// passwd argument check.
+	if ( argc == 0 )
+	{
+		LOGE(LOG_TARGET, "SMS - invalid arg [%d]\n", argc);
+		return -1;
+	}
+	
+	if ( strncasecmp(SMS_CMD_PWD, argv[1], strlen(argv[1]) ) != 0 )
+	{
+		LOGE(LOG_TARGET, " - SMS PWD invalid [%s] / [%s]\n", argv[1], SMS_CMD_PWD);
+		return -1;
+	}
+
+	file_len += sprintf(write_file_content + file_len ,"%s\r\n","UP_VER: MDS-BOOTSTRAP-TX501S-00.00");
+	file_len += sprintf(write_file_content + file_len ,"%s\r\n","Install date: 2016-11-18");
+	file_len += sprintf(write_file_content + file_len ,"%s\r\n","Commit: b69d63cf63cd0c5aa0be7d9bb4213c0c6b65d585");
+
+//mdsapiRet_t mds_api_write_data(const char *filename, unsigned char *buff, const int data_len, int append);
+
+	mds_api_write_data("/system/mds/system/bin/PACKAGE", write_file_content, file_len, 0);
+
+	sprintf(resp_buff,"dev factory reset for test");
+	at_send_sms(phonenum, resp_buff );
+
+
+
+	return 0;
+}

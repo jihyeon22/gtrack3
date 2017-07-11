@@ -1,0 +1,7 @@
+[kt_fota_srv]
+dm_server_ip=devicefota-tb-dm.show.co.kr
+dm_port=80
+qty_server_ip=devicefota-tb-quality.show.co.kr
+qty_port=80
+acc_qty_report=0
+acc_fota_req_report=0

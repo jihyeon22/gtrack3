@@ -94,11 +94,12 @@ int bool_fota_init = 0;
 
 void kt_fota_init(void)
 {
-#ifdef KT_FOTA_TEST_SVR
-	set_modem_fota_testmode_for_tl500k(TELADIN_DMS_SETTING_TEST_MODE);
-#else
-	set_modem_fota_testmode_for_tl500k(TELADIN_DMS_SETTING_NONETEST_MODE);
-#endif
+	
+	if ( strcmp(get_kt_fota_dm_server_ip_addr(), KT_FOTA_TEST_SVR_DM_IP) == 0 )
+		set_modem_fota_testmode_for_tl500k(TELADIN_DMS_SETTING_TEST_MODE);
+	else
+		set_modem_fota_testmode_for_tl500k(TELADIN_DMS_SETTING_NONTEST_MODE);
+
 
 	if(bool_fota_init == 1)
 	{

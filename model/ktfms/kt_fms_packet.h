@@ -6,20 +6,22 @@
 
 #include "kt_fota_ver.h"
 
+#include <board/board_system.h>
 // -------------------------------
 // default value
 // -------------------------------
-#define SERVER_POLICY_SAVE_PATH		"/data/mds/data/fms_policy.dat"
-#define SERVER_POLICY_SAVE_PATH2	"/data/mds/data/fms_policy.dat.bak"
+// CONCAT_STR(USER_DATA_DIR, "/mileage.dat")
+#define SERVER_POLICY_SAVE_PATH		CONCAT_STR(USER_DATA_DIR, "/fms_policy.dat" )
+#define SERVER_POLICY_SAVE_PATH2	CONCAT_STR(USER_DATA_DIR, "/fms_policy.dat.bak" )
 
-#define CAR_DAILY_INFO				"/data/mds/data/car_d_info.dat"
-#define CAR_DAILY_INFO2				"/data/mds/data/car_d_info.dat.bak"
+#define CAR_DAILY_INFO				CONCAT_STR(USER_DATA_DIR, "/car_d_info.dat" )
+#define CAR_DAILY_INFO2				CONCAT_STR(USER_DATA_DIR, "/car_d_info.dat.bak" )
 
-#define CAR_TRIP_SEQ_PATH			"/data/mds/data/car_trip_seq.dat"
-#define CAR_TRIP_SEQ_PATH2			"/data/mds/data/car_trip_seq.dat.bak"
+#define CAR_TRIP_SEQ_PATH			CONCAT_STR(USER_DATA_DIR, "/car_trip_seq.dat" )
+#define CAR_TRIP_SEQ_PATH2			CONCAT_STR(USER_DATA_DIR, "/car_trip_seq.dat.bak" )
 
-#define CAR_OBD_INFO_PATH			"/data/mds/data/car_obd_info.dat"
-#define CAR_OBD_INFO_PATH2			"/data/mds/data/car_obd_info.dat.bak"
+#define CAR_OBD_INFO_PATH			CONCAT_STR(USER_DATA_DIR, "/car_obd_info.dat" )
+#define CAR_OBD_INFO_PATH2			CONCAT_STR(USER_DATA_DIR, "/car_obd_info.dat.bak" )
 
 #define DEFAULT_FMS_SDR_INIT	"A000|A001|A002|A020"
 #define DEFAULT_FMS_SDR_ALIVE	"A000|A001|A002"

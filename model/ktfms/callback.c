@@ -141,11 +141,8 @@ void power_off_callback(void)
 
 	mileage_write();
 	//_process_poweroff("power_off_callback");
-	while(1)
-	{
-		sleep(1);
-		system("poweroff");
-	}
+	sender_wait_empty_network(WAIT_PIPE_CLEAN_SECS);
+	poweroff("poweroff senario", strlen("poweroff senario"));
 }
 
 //static int need_to_seq_init = 0;
@@ -206,8 +203,8 @@ void gps_parse_one_context_callback(void)
 	
 	if (gpsdata.active == 1)
 	{
-		printf("gps active : cur lat [%f]\r\n",gpsdata.lat);
-		printf("gps active : cur lon [%f]\r\n",gpsdata.lon);
+	//	printf("gps active : cur lat [%f]\r\n",gpsdata.lat);
+	//	printf("gps active : cur lon [%f]\r\n",gpsdata.lon);
 		
 		set_hw_err_code(e_HW_ERR_CODE_GPS_INVAILD , 0);
 
@@ -250,7 +247,7 @@ void gps_parse_one_context_callback(void)
 	gpsdata.day += day_change;
 	#endif
 	
-	printf("g_obdData.obd_read_stat is [%d]\r\n",g_obdData.obd_read_stat);
+	//printf("g_obdData.obd_read_stat is [%d]\r\n",g_obdData.obd_read_stat);
 	
 	// 최초 1회 세팅
 	if ( init_flag == 0 )

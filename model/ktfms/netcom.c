@@ -127,12 +127,12 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 #endif
 		//poweroff("CLI CMD : REQ REBOOT", strlen("CLI CMD : REQ REBOOT"));
 		
-		while(1)
-		{
-			mileage_write();
-			sleep(5);
-			system("poweroff");
-		}
+
+		mileage_write();
+		sleep(5);
+
+		sender_wait_empty_network(WAIT_PIPE_CLEAN_SECS);
+		poweroff("poweroff senario", strlen("poweroff senario"));
 		return 0;
 	}
 	

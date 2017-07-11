@@ -53,7 +53,7 @@ int req_obd_data_fake(obdData_t* p_obdData)
 		// TODO: 누적거리 단위확인
 		
 		p_obdData->car_mileage_total = mileage_get_m();
-		LOGD(LOG_TARGET, " >> fake obd : mileage_total is [%lld]\r\n",p_obdData->car_mileage_total);
+		// LOGD(LOG_TARGET, " >> fake obd : mileage_total is [%lld]\r\n",p_obdData->car_mileage_total);
 
 	}
 	
