@@ -417,12 +417,11 @@ void main_loop_callback(void)
 			rfid_write_user_data_fail_cnt = 0;
 			need_to_rfid_info = 0;
 
-			memset(&g_rfid_dev_info, 0x00, sizeof(g_rfid_dev_info) );
-
 			if ( rfid_tool__env_get_all_clear() == 1 )
 				sender_add_data_to_buffer(PACKET_TYPE_HTTP_GET_PASSENGER_LIST, "0", ePIPE_2);
 			else
 				sender_add_data_to_buffer(PACKET_TYPE_HTTP_GET_PASSENGER_LIST, g_rfid_dev_info.saved_timestamp, ePIPE_2);
+
 		}
 
 		// 3. 모두받아왔다면, 승객을 rfid 에 넣는다.
@@ -433,6 +432,9 @@ void main_loop_callback(void)
 			// 다운로드 성공했으니, 새로운 정보로 갱신한다.
 			if ( ret == KJTEC_RFID_RET_SUCCESS )
 			{
+				// 새로 얻어와야 하기때문에.
+				memset(&g_rfid_dev_info, 0x00, sizeof(g_rfid_dev_info) );
+				
 				rfid_write_user_data_fail_cnt = 0;
 				if ( kjtec_rfid_mgr__dev_init_chk(&g_rfid_dev_info) == KJTEC_RFID_RET_SUCCESS )
 				{

@@ -17,6 +17,7 @@
 #include <util/transfer.h>
 #include "logd/logd_rpc.h"
 
+#include "base/watchdog.h"
 #include "netcom.h"
 
 #include <logd_rpc.h>
@@ -119,6 +120,8 @@ int kjtec_rfid_mgr__write_to_dev_user_info(int all_erase)
 
     while(1)
     {
+        watchdog_set_cur_ktime(eWdMain); // 오래걸릴수있으므로 WATCHDOG CLEAR
+
         if ( write_cmd_max_fail_cnt > MAX_WRITE_FAIL_RETRY_CNT )
         {
             return KJTEC_RFID_RET_FAIL;
