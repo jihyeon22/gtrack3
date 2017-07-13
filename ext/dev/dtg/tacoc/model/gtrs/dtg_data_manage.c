@@ -49,7 +49,7 @@ int default_init()
 	g_dtg_config.server_conf.port = SERVER_PORT;
 	strcpy(g_dtg_config.server_conf.server_ip, SERVER_IP);
 
-#if 0
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
 	g_dtg_config.mdt_conf.report_period = 60;
 	g_dtg_config.mdt_conf.create_period = 60;
 	g_dtg_config.mdt_svr_conf.port = MDT_SERVER_PORT;
@@ -86,13 +86,13 @@ fprintf(stderr, "check_point============== %s : %d\n", __func__, __LINE__);
 	DTG_LOGD("SERVER IP=[%s]", get_server_ip_addr());
 	DTG_LOGD("SERVER_PORT=[%d]", get_server_port());
 	DTG_LOGD("DTG REPORT PERIOD=[%d]sec", get_dtg_report_period());
+#endif
 
-#if 0
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
 	DTG_LOGD("MDT_SERVER IP=[%s]", get_mdt_server_ip_addr());
 	DTG_LOGD("MDT_SERVER_PORT=[%d]", get_mdt_server_port());
 	DTG_LOGD("MDT REPORT PERIOD=[%d]sec", get_mdt_report_period());
 	DTG_LOGD("MDT CREATE PERIOD=[%d]sec", get_mdt_create_period());
-#endif
 #endif
 
 	DTG_LOGD("%s: %s() --", __FILE__, __func__);
@@ -140,6 +140,45 @@ void set_server_port(s32 port)
 	g_dtg_config.server_conf.port = port;
 }
 
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+//MDT configuration
+s8* get_mdt_server_ip_addr()
+{
+	return g_dtg_config.mdt_svr_conf.server_ip;
+}
+void set_mdt_server_ip_addr(s8* ip_addr)
+{
+	strcpy(g_dtg_config.mdt_svr_conf.server_ip, ip_addr);
+}
+
+u16 get_mdt_server_port()
+{
+	return g_dtg_config.mdt_svr_conf.port;
+}
+void set_mdt_server_port(s32 port)
+{
+	g_dtg_config.mdt_svr_conf.port = port;
+}
+
+void set_mdt_report_period(s32 num)
+{
+	g_dtg_config.mdt_conf.report_period = num;
+}
+s32 get_mdt_report_period()
+{
+	return g_dtg_config.mdt_conf.report_period;
+}
+
+void set_mdt_create_period(s32 num)
+{
+	g_dtg_config.mdt_conf.create_period = num;
+}
+s32 get_mdt_create_period()
+{
+	return g_dtg_config.mdt_conf.create_period;
+}
+#endif
+
 #if defined(DEVICE_MODEL_INNOCAR)
 unsigned short get_k_factor()
 {
@@ -182,5 +221,34 @@ printf("dtg_ver : [%s]\n", dtg_ver);
 		strncpy(g_dtg_config.dtg_ver, dtg_ver, sizeof(g_dtg_config.dtg_ver));
 
 printf("g_dtg_config.dtg_ver : [%s]\n", g_dtg_config.dtg_ver);
+}
+#endif
+
+
+#if defined(DEVICE_MODEL_LOOP2)
+unsigned short get_k_factor()
+{
+	return 0;
+}
+unsigned short get_rmp_factor()
+{
+	return 0;
+}
+unsigned short get_weight1()
+{
+	return 0;
+}
+unsigned short get_weight2()
+{
+	return 0;
+}
+
+char * get_dtg_version()
+{
+	return "NONE";
+}
+
+void set_factor_value(unsigned short k_facotr, char rmp_factor, char weight1, char weight2, char *dtg_ver)
+{
 }
 #endif

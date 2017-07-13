@@ -25,7 +25,9 @@
 #include <board/board_system.h>
 #include <standard_protocol.h>
 #include "dtg_data_manage.h"
-//#include "mdt_data_manage.h"
+#ifdef SERVER_ABBR_DSKL
+	#include "mdt_data_manage.h"
+#endif
 #include "dtg_net_com.h"
 #include "sms_msg_process.h"
 #include "rpc_clnt_operation.h"
@@ -107,24 +109,93 @@ int send_record_data_msg(unsigned char* stream, int stream_size, int line, char 
 int mdt_send_record_data_msg(unsigned char* stream, int stream_size, int line, char *msg)
 {
 	// do nothing..
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+	int sock_fd;
+	int ret;
+
+#if (0) //for debug send data dump ++
+	int i;
+	int j;
+	j = 1;
+	for(i = 0, j = 1; i < stream_size; i++, j++) {
+		printf("%02x ", stream[i]);
+		if( (j % 20) == 0)
+			printf("\n");
+	}
+#endif //for debug send data dump --
+	
+	sock_fd = connect_to_server(get_mdt_server_ip_addr(), get_mdt_server_port());
+	if (sock_fd < 0) {
+		DTG_LOGE("server connection fail %s/%d", get_mdt_server_ip_addr(), get_mdt_server_port());
+		return -1;
+	}
+	DTG_LOGI("server connection success %s/%d", get_mdt_server_ip_addr(), get_mdt_server_port());
+
+	ret = send_to_dtg_server(sock_fd, stream, stream_size, (char *)__func__, line, msg);
+	if(ret < 0)
+	{
+		DTG_LOGE("++++++Network Sending Error");
+		close(sock_fd);
+		return -2;
+	}
+/*
+	DTG_LOGI("waiting server response....");
+	ret = receive_response(sock_fd, recv_buf, sizeof(recv_buf));
+	if(ret <= 0) {
+		DTG_LOGE("++++++Network Receive Error");
+		close(sock_fd);
+		return -3;
+	}
+	else {
+		DTG_LOGI("Network received length = [%d]\n", ret);
+		if(ret != 5) {
+			DTG_LOGE("Network received length Error");
+			close(sock_fd);
+		}
+		memcpy(&packet_id, recv_buf, 4);
+		if(recv_buf[4] == '1')
+			DTG_LOGI("Result Success> packet_id = [%d], resp code[%c]", packet_id, recv_buf[4]);
+		else
+			DTG_LOGE("Result Fail> packet_id = [%d], resp code[%c]", packet_id, recv_buf[4]);
+	}
+*/
+	close(sock_fd);
+#endif
 
 	return 0;	
 }
 
 #define ERROR_RETURN_VALUE		(-2222)
 static int g_dtg_key_flag = 0;
-
 static int g_dtg_power_flag = 0;
 unsigned char g_packet_buffer[512];
+
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+	//#define MDT_NOT_SEND_TEST_ENABLE
+	#ifdef MDT_NOT_SEND_TEST_ENABLE
+		int g_mdt_send_flag = 0;
+	#endif
+	#define MDT_ONCE_SEND_PACKET_CNT	(40)
+	static int g_mdt_key_flag = 0;
+	static int g_mdt_power_flag = 0;
+	unsigned char g_mdt_packet_buffer[sizeof(mdt800_packet_t)*MDT_ONCE_SEND_PACKET_CNT];
+	unsigned char g_mdt_enc_packet_buffer[sizeof(mdt800_packet_t)*2*MDT_ONCE_SEND_PACKET_CNT];
+#endif
 
 void clear_key_flag()
 {
 	g_dtg_key_flag = 0;
+	#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+		g_mdt_key_flag = 0;
+	#endif
 }
 
 void clear_power_flag()
 {
 	g_dtg_power_flag = 0;
+	#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+		g_mdt_power_flag = 0;
+	#endif
 }
 
 int tx_data_to_tacoc(int type, char *stream, int len)
@@ -165,6 +236,43 @@ int tx_data_to_tacoc(int type, char *stream, int len)
 	} 
 	else if (type == 2) //Key On/Off Data
 	{
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+		int event_code;
+		int mdt_event_code;
+		key_status = power_get_ignition_status();
+		if(key_status == POWER_IGNITION_ON) {
+			event_code = eKeyOn_Event;
+			mdt_event_code = eIGN_ON_EVT;
+		}
+		else {
+			event_code = eKeyOff_Event;
+			mdt_event_code = eIGN_OFF_EVT;
+		}
+
+		
+		if(g_mdt_key_flag == 0)
+		{
+			parse_mdt_msg(stream, g_mdt_packet_buffer, mdt_event_code);
+			send_pack_size = mdt_enc_msg(g_mdt_packet_buffer, g_mdt_enc_packet_buffer, sizeof(mdt800_packet_t));
+			g_mdt_enc_packet_buffer[send_pack_size] = MDT800_PACKET_END_FLAG;
+			if(mdt_send_record_data_msg(g_mdt_enc_packet_buffer, send_pack_size+1, __LINE__, "MDT Key on/off Data") < 0) {
+				return -2222; //network error
+			}
+			g_mdt_key_flag = 1;
+		}
+		
+
+		if(g_dtg_key_flag == 0) 
+		{
+			send_pack_size = current_dtg_parsing(stream, len, g_packet_buffer, event_code);
+			DTG_LOGD("trasfer packet size = [%d]\n", send_pack_size);
+			if(send_record_data_msg(g_packet_buffer, send_pack_size, __LINE__, "DTG Key on/off Data") < 0) {
+				return -2222; //network error
+			}
+		}
+		g_mdt_key_flag = 0;
+		g_dtg_key_flag = 0;
+#else
 		int event_code;
 		key_status = power_get_ignition_status();
 		if(key_status == POWER_IGNITION_ON) {
@@ -184,9 +292,35 @@ int tx_data_to_tacoc(int type, char *stream, int len)
 			}
 		}
 		g_dtg_key_flag = 0;
+#endif
 	}
 	else if (type == 3) //power on/off message
 	{
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+		//ePOWER_SOURCE_CHANGE_EVT
+		if(g_mdt_power_flag == 0)
+		{
+			parse_mdt_msg(stream, g_mdt_packet_buffer, ePOWER_SOURCE_CHANGE_EVT);
+			send_pack_size = mdt_enc_msg(g_mdt_packet_buffer, g_mdt_enc_packet_buffer, sizeof(mdt800_packet_t));
+			g_mdt_enc_packet_buffer[send_pack_size] = MDT800_PACKET_END_FLAG;
+			if(mdt_send_record_data_msg(g_mdt_enc_packet_buffer, send_pack_size+1, __LINE__, "MDT Power Source") < 0) {
+				return -2222; //network error
+			}
+			g_mdt_power_flag = 1;
+		}
+
+		if(g_dtg_power_flag == 0) 
+		{
+			send_pack_size = current_dtg_parsing(stream, len, g_packet_buffer, ePower_Event);
+			DTG_LOGD("trasfer packet size = [%d]\n", send_pack_size);
+			if(send_record_data_msg(g_packet_buffer, send_pack_size, __LINE__, "DTG Power Source") < 0) {
+				return -2222; //network error
+			}
+		}
+		g_dtg_power_flag = 0;
+		g_mdt_power_flag = 0;
+
+#else
 		//ePOWER_SOURCE_CHANGE_EVT
 
 		if(g_dtg_power_flag == 0) 
@@ -198,6 +332,7 @@ int tx_data_to_tacoc(int type, char *stream, int len)
 			}
 		}
 		g_dtg_power_flag = 0;
+#endif
 	}
 	else if (type == 4) //Just Get Current DTG Data
 	{
@@ -205,7 +340,70 @@ int tx_data_to_tacoc(int type, char *stream, int len)
 	}
 	else if (type == 5) //MDT Report Data
 	{
-		DTG_LOGE("DTG IS NOT SUPPORT MDT PKT!!\n");
+
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+
+	#ifdef MDT_NOT_SEND_TEST_ENABLE
+		DTG_LOGE("current MDT packet count = [%d]", get_mdt_count());
+	#endif
+		
+		if(get_mdt_count() <= 0) {
+			parse_mdt_msg(stream, g_mdt_packet_buffer, eCYCLE_REPORT_EVC);
+			send_pack_size = mdt_enc_msg(g_mdt_packet_buffer, g_mdt_enc_packet_buffer, sizeof(mdt800_packet_t));
+			g_mdt_enc_packet_buffer[send_pack_size] = MDT800_PACKET_END_FLAG;
+
+	#ifdef MDT_NOT_SEND_TEST_ENABLE
+			if(g_mdt_send_flag == 0)
+			{
+				save_mdt_data((mdt800_packet_t *)g_mdt_packet_buffer);
+				return -2222; //network error
+			}
+	#endif
+			if(mdt_send_record_data_msg(g_mdt_enc_packet_buffer, send_pack_size+1, __LINE__, "MDT Period Report #1") < 0) {
+				save_mdt_data((mdt800_packet_t *)g_mdt_packet_buffer);
+				return -2222; //network error
+			}
+		}
+		else
+		{
+			int mdt_get_cnt = 0;
+
+			mdt_get_cnt = get_mdt_data(g_mdt_packet_buffer, MDT_ONCE_SEND_PACKET_CNT);
+			send_pack_size = mdt_enc_msg(g_mdt_packet_buffer, g_mdt_enc_packet_buffer, sizeof(mdt800_packet_t)*mdt_get_cnt);
+			DTG_LOGI("total saved data info mdt_get_cnt/send_pack_size = [%d/%d]", mdt_get_cnt, send_pack_size);
+			g_mdt_enc_packet_buffer[send_pack_size] = MDT800_PACKET_END_FLAG;
+	#ifdef MDT_NOT_SEND_TEST_ENABLE
+			if(g_mdt_send_flag == 0)
+			{
+				parse_mdt_msg(stream, g_mdt_packet_buffer, eCYCLE_REPORT_EVC);
+				save_mdt_data((mdt800_packet_t *)g_mdt_packet_buffer);
+				//current mdt packet save --
+				return -2222; //network error
+			}
+	#endif
+			if(mdt_send_record_data_msg(g_mdt_enc_packet_buffer, send_pack_size+1, __LINE__, "MDT Period Report #2") < 0) {
+				//current mdt packet save ++
+				parse_mdt_msg(stream, g_mdt_packet_buffer, eCYCLE_REPORT_EVC);
+				save_mdt_data((mdt800_packet_t *)g_mdt_packet_buffer);
+				//current mdt packet save --
+				return -2222; //network error
+			}
+			clear_mdt_data(mdt_get_cnt);
+			parse_mdt_msg(stream, g_mdt_packet_buffer, eCYCLE_REPORT_EVC);
+
+			if(get_mdt_count() <= 0) {
+				send_pack_size = mdt_enc_msg(g_mdt_packet_buffer, g_mdt_enc_packet_buffer, sizeof(mdt800_packet_t));
+				g_mdt_enc_packet_buffer[send_pack_size] = MDT800_PACKET_END_FLAG;
+				if(mdt_send_record_data_msg(g_mdt_enc_packet_buffer, send_pack_size+1, __LINE__, "MDT Period Report #3") < 0) {
+					save_mdt_data((mdt800_packet_t *)g_mdt_packet_buffer);
+					return -2222; //network error
+				}
+			}
+			else {
+				save_mdt_data((mdt800_packet_t *)g_mdt_packet_buffer);
+			}
+		}
+#endif //SERVER_ABBR_DSKL
 	}
 		
 	return 0;
@@ -219,6 +417,17 @@ int tx_sms_to_tacoc(char *sender, char* smsdata)
 	int start_idx = 0;
 	int message_len = 0;
 	DTG_LOGI("sender = [%s], smsdata = [%s]\n", sender, smsdata);
+
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+	#ifdef MDT_NOT_SEND_TEST_ENABLE
+	if(!strcmp(smsdata, "abcd")) {
+		if(g_mdt_send_flag == 0) 
+			g_mdt_send_flag = 1;
+		else
+			g_mdt_send_flag = 0;
+	}
+	#endif
+#endif
 
 	message_len = strlen(smsdata);
 	if(message_len > 4)
@@ -255,7 +464,9 @@ int tx_sms_to_tacoc(char *sender, char* smsdata)
 	if(sms_buf[1] == 'C' && sms_buf[2] == '1' && sms_buf[3] == ',') //MDT IP/Port Config
 	{
 		DTG_LOGD("SMS Set MDT IP/Port Config");
-	//	sms_set_mdt_svrip_info(&sms_buf[4]);
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+		sms_set_mdt_svrip_info(&sms_buf[4]);
+#endif
 	}
 	else if(sms_buf[1] == 'D' && sms_buf[2] == '1' && sms_buf[3] == ',') //DTG IP/Port Config
 	{
@@ -270,7 +481,9 @@ int tx_sms_to_tacoc(char *sender, char* smsdata)
 	else if(sms_buf[1] == 'C' && sms_buf[2] == '2' && sms_buf[3] == ',') //MDT Report Time Config
 	{
 		DTG_LOGD("SMS Set MDT Report Time Config");
-	//	sms_set_mdt_period(&sms_buf[4]);
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+		sms_set_mdt_period(&sms_buf[4]);
+#endif
 	}
 	else if(sms_buf[1] == 'D' && sms_buf[2] == '2' && sms_buf[3] == ',')	//DTG Report Time Config
 	{
@@ -326,7 +539,10 @@ void mdmc_power_off()
 		ret = data_req_to_taco_cmd(ACCUMAL_DATA, 0x10000000, 0, 2); //DTG Data File Save
 
 	send_device_de_registration();
-	// dmmgr_send(eEVENT_PWR_OFF, NULL, 0);	
+
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+	dmmgr_send(eEVENT_PWR_OFF, NULL, 0);	
+#endif
 }
 
 

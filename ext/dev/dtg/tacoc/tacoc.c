@@ -1,4 +1,4 @@
-﻿/**
+/**
  *       @file  tacoc.c
  *      @brief  taco control deamon
  *
@@ -26,6 +26,7 @@
 #include <wrapper/dtg_version.h>
 
 #include <board/board_system.h>
+#include <board/power.h>
 /*******************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -46,6 +47,7 @@
 
 pthread_mutex_t tacoc_rpc_cmd_mutex; //jwrho
 int main_process();
+
 void tacoc_run(void)
 {
 	DTG_LOGI("RUN");
@@ -62,6 +64,7 @@ void tacoc_run(void)
 		sleep(1);
 	}
 }
+
 
 
 int tacoc_main()

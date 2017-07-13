@@ -38,6 +38,7 @@
 
 //#include <tacom/taco_rpc_wrapper.h>
 #include <wrapper/dtg_tacoc_wrapper_rpc_clnt.h>
+#include <wrapper/dtg_atcmd.h>
 #include <tacom/tacom_internal.h>
 #include <wrapper/dtg_log.h>
 
@@ -55,9 +56,9 @@ void taco_run(void)
 
 	int ret, result;
 	int r_num;
-	int processing_mode = NORMAL_MODE;  // 1   : BURST?�송 0 : NORMAL?�송
-	int	breakdown = 1; 					// 1   : ?�상?�작  0 : ?�상?�작
-	int ack_breakdown = 0; 				// 0 > : ?�상?�작  1 : ?�상?�작
+	int processing_mode = NORMAL_MODE;  // 1   : BURST??송 0 : NORMAL??송
+	int	breakdown = 1; 					// 1   : ??상??작  0 : ??상??작
+	int ack_breakdown = 0; 				// 0 > : ??상??작  1 : ??상??작
 	int ack_breakdown_flag = 1;
 	int retry_cnt = 0;
 	tacom_std_hdr_t hdr;
@@ -79,7 +80,7 @@ void taco_run(void)
 		}
 	}
 
-	/* TACOM STANDARD HEADER ?�어??*/
+	/* TACOM STANDARD HEADER ??어??*/
 	ret = tacom_get_info_hdr(&hdr);
 	if (ret < 0) {
 		/* failure */
@@ -89,7 +90,7 @@ void taco_run(void)
 	{
 		retry_cnt = 0;
 		DTG_LOGI("NORMAL MODE - WAITING REQUEST !!");
-		/* Request 기다��?*/
+		/* Request 기다???*/
 		//pthread_mutex_lock(&tm->sync_mutex);
 		//pthread_cond_wait(&tm->sync_cond, &tm->sync_mutex);
 		//pthread_mutex_unlock(&tm->sync_mutex);
@@ -148,9 +149,9 @@ retry_read_current:
 		if (breakdown &&
 			(tm->tm_setup->conf_flag & (0x1 << STANDARD_FLOW_BIT))) {
 
-			/* Tacoc로�???Request ?�신 */
+			/* Tacoc로????Request ??신 */
 			/** 
-			 * Taco burst xfer mode : Request ?�이 바로바로 ?�송 
+			 * Taco burst xfer mode : Request ??이 바로바로 ??송 
 			 */
 			
 			do {
@@ -180,7 +181,7 @@ retry_unreaded_records:
 					continue;
 #else
 				if (r_num < 180) {
-					/* ?�음 주기???�송 */
+					/* ??음 주기????송 */
 					processing_mode = NORMAL_MODE;
 					DTG_LOGD("NORMAL MODE");
 				} else {
@@ -228,8 +229,8 @@ retry_read_records:
 				} else {
 					if (tacom_ack_records(r_num) < 0) {
 						/* ack failure */
-						/** ack 명령?�는 ?�패???�수???��? ?�고
-						  * 바로 ?�패처리?�다 */
+						/** ack 명령??는 ??패????수?????? ??고
+						  * 바로 ??패처리??다 */
 						ack_breakdown++;	// ack breakdown status
 						DTG_LOGE("ACK FAILURE!!");
 						break;
@@ -237,14 +238,14 @@ retry_read_records:
 					DTG_LOGI("ACK SUCCESS");
 				}
 
-				/* ACK 고장 ?�태 복구 */
+				/* ACK 고장 ??태 복구 */
 				if (ack_breakdown) {
 					if (processing_mode == NORMAL_MODE)
 						tacom_set_status( TACOM_BUSY_NORMAL);
 					else 
 						tacom_set_status( TACOM_BUSY_BURST);
 					
-					/* ACK 고장 복구 ?�공 */
+					/* ACK 고장 복구 ??공 */
 					ack_breakdown = 0;	// normal
 					ack_breakdown_flag = 1;	// ack normal status;
 					tacoc_breakdown_report_call_wrapper(&ack_breakdown_flag,
@@ -255,7 +256,7 @@ retry_read_records:
 
 			/* ACK BREAKDOWN */
 			if (ack_breakdown) {
-				/* ACK ?�패?�는 ?�청???�어?�??복구?�야 ?�서 IDLE ?�태��?만든??*/
+				/* ACK ??패??는 ??청????어????복구??야 ??서 IDLE ??태???만든??*/
 				if (ack_breakdown == 1) {
 					ack_breakdown_flag = 0; // ack breakdown status;
 					tacoc_breakdown_report_call_wrapper(&ack_breakdown_flag, &result);

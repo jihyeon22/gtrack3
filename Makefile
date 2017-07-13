@@ -104,6 +104,7 @@ else ifeq ($(SERVER),moram)
 SERVER_ABBR := MRM
 else ifeq ($(SERVER),dtg-skel)
 SERVER_ABBR := DSKL
+USE_GPS_MODEL=n
 else ifeq ($(SERVER),ktfms)
 SERVER_ABBR := FMS
 else ifeq ($(SERVER),cs)
@@ -156,6 +157,8 @@ else ifeq ($(CORP),netio)
 CORP_ABBR := NETI
 else ifeq ($(CORP),uppp)
 CORP_ABBR := UPPP
+else ifeq ($(CORP),gtrs)
+CORP_ABBR := GTRS
 else
 $(error CORP is not registerd in Makefile, please input registred corporation)
 endif

@@ -12,26 +12,34 @@
 #if defined(SERVER_MODEL_GTRS)
 	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/gtrs.ini"
 	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/gtrs.ini"
-	#define SERVER_IP				"112.169.88.14"
-	#define SERVER_PORT				5200
+	#define SERVER_IP					"112.169.88.14"
+	#define SERVER_PORT					5200
 
+	#define MDT_SERVER_IP				"112.169.88.14"
+	#define MDT_SERVER_PORT				5100
 #elif defined(SERVER_MODEL_GTRS_TB)
 	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/gtrs_tb.ini"
 	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/gtrs_tb.ini"
-	#define SERVER_IP				"112.169.88.14"
-	#define SERVER_PORT				5200
+	#define SERVER_IP					"112.169.88.14"
+	#define SERVER_PORT					5200
 
+	#define MDT_SERVER_IP				"112.169.88.14"
+	#define MDT_SERVER_PORT				5100
 #elif defined(SERVER_MODEL_PRINET)
 	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/prinet.ini"
 	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/prinet.ini"
-	#define SERVER_IP				"tacho.ezauto.co.kr"
-	#define SERVER_PORT				28911
+	#define SERVER_IP					"tacho.ezauto.co.kr"
+	#define SERVER_PORT					28911
+	#define MDT_SERVER_IP				"tacho.ezauto.co.kr"
+	#define MDT_SERVER_PORT				28911
+
+
 
 #elif defined(SERVER_MODEL_NEOGNP)
 	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/neognp.ini"
 	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/neognp.ini"
-	#define SERVER_IP				"210.116.106.71"
-	#define SERVER_PORT				5000
+	#define SERVER_IP					"210.116.106.71"
+	#define SERVER_PORT					5000
 #else
 	#error "GTRS SEVER MODEL NOT DEFINE ERROR"
 #endif
@@ -105,8 +113,8 @@ struct gtrace_packet_body {
 	unsigned char min;
 	unsigned char sec;
 	unsigned char gps_status;
-	int gps_y; //latitude(����),  36.xxx
-	int gps_x; // longitude(�浵), 127.xxx
+	int gps_y; //latitude(????),  36.xxx
+	int gps_x; // longitude(??), 127.xxx
 	unsigned char bearing;
 	unsigned short speed;
 	int acc_dist;
@@ -136,8 +144,8 @@ struct gtrace_dtg_user_data_payload {
 	unsigned char speed;
 	unsigned short rpm;
 	unsigned char bs;		//|bs|0|0|0|0|0|0|0|
-	unsigned long gps_y; //latitude(����),  36.xxx
-	unsigned long gps_x; // longitude(�浵), 127.xxx
+	unsigned long gps_y; //latitude(????),  36.xxx
+	unsigned long gps_x; // longitude(??), 127.xxx
 	unsigned short azimuth;
 	short accelation_x;
 	short accelation_y;
@@ -223,12 +231,26 @@ typedef struct
 	int report_period;
 }DTG_PERIOD_CONF;
 
+typedef struct
+{
+	char server_ip[64];
+	int port;
+}MDT_NETWORK_CONF;
+
+typedef struct
+{
+	int report_period;
+	int create_period;
+}MDT_PERIOD_CONF;
+
 typedef struct 
 {
 	pthread_mutex_t mutex;
 	pthread_cond_t thread_cond;
 	DTG_NETWORK_CONF server_conf;
 	DTG_PERIOD_CONF dtg_conf;
+	MDT_NETWORK_CONF mdt_svr_conf;
+	MDT_PERIOD_CONF mdt_conf;
 	u8 action_working;
 #if defined(DEVICE_MODEL_INNOCAR)
 	unsigned short K_Factor;
@@ -256,6 +278,17 @@ s8* get_server_ip_addr();
 void set_server_ip_addr(s8* ip_addr);
 u16 get_server_port();
 void set_server_port(s32 port);
+
+s8* get_mdt_server_ip_addr();
+void set_mdt_server_ip_addr(s8* ip_addr);
+u16 get_mdt_server_port();
+void set_mdt_server_port(s32 port);
+
+void set_mdt_report_period(s32 num);
+s32 get_mdt_report_period();
+
+void set_mdt_create_period(s32 num);
+s32 get_mdt_create_period();
 
 unsigned short get_k_factor();
 unsigned short get_rmp_factor();

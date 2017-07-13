@@ -15,6 +15,8 @@
 
 #if defined(DEVICE_MODEL_INNOCAR) || defined(DEVICE_MODEL_INNOSNS) || defined(DEVICE_MODEL_INNOSNS_DCU)
 	#include "tacom_innocar_protocol.h"
+#elif defined(DEVICE_MODEL_LOOP2)
+	#include "tacom_new_loop.h"
 #else
 	#error "dtg type none define"
 #endif

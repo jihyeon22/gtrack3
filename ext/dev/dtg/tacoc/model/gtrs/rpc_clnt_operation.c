@@ -23,7 +23,10 @@
 // #include "taco_rpc.h"
 #include <tacom/tacom_inc.h>
 #include <wrapper/dtg_tacoc_wrapper_rpc_clnt.h>
+#include <wrapper/dtg_taco_wrapper_rpc_clnt.h>
 #include <wrapper/dtg_mdmc_wrapper_rpc_clnt.h>
+
+#include <dtg_data_manage.h>
 
 
 

@@ -8,6 +8,9 @@
 #ifndef _TACOM_NEW_LOOP_PROTOCOL_H_
 #define _TACOM_NEW_LOOP_PROTOCOL_H_
 
+#include "tacom/tools/taco_store.h"
+#include "tacom/tools/mdt_store.h"
+
 /* value of expression 'MAX_LOOP_DATA * MAX_LOOP_DATA_PACK' 
  * have to set over loop_setup.max_records_per_once's value.
  */
@@ -71,9 +74,32 @@ typedef struct {
 
 #pragma pack(pop)
 
+
+
+#pragma pack(push, 1)
+typedef struct {
+	unsigned char packet[sizeof(tacom_loop2_data_t)];
+}__attribute__((packed))tacom_dtg_data_type_t;
+
+typedef struct {
+	unsigned int status;
+	unsigned int count;
+	tacom_dtg_data_type_t buf[MAX_ONE_DATA_COUNT];
+}__attribute__((packed))data_store_pack_t;
+
+typedef struct {
+	unsigned int status;
+	unsigned int count;
+	tacom_dtg_data_type_t buf[MDT_MAX_ONE_DATA_COUNT];
+}__attribute__((packed))mdt_store_pack_t;
+#pragma pack(pop)
+
+
 extern const struct tm_ops loop2_ops;
 extern struct tacom_setup loop2_setup;
 
-int loop2_unreaded_records_num (TACOM *tm);
+int loop2_unreaded_records_num ();
+int loop2_ack_records(int readed_bytes);
+int data_convert(tacom_std_data_t *std_data, unsigned char *dtg_data, int debug_flag);
 //static int valid_check(char *buf, int size);
 #endif /* _TACOM_CHOYOUNG_PROTOCOL_H_ */

@@ -55,6 +55,15 @@ DTG_MODEL_CFLAGS += -DDEVICE_MODEL_INNOCAR
 #DEVABBR="INC"
 DTG_PKG_PREFIX="INC"
 # ----------------------------------------------------
+else ifeq ($(DTG_MODEL),lp2)
+DTG_MODEL_OBJ := $(DTG_COMMON_OBJ)
+DTG_MODEL_OBJ += ext/dev/dtg/tacom/model/tacom_new_loop.o  ext/dev/dtg/tacom/tools/taco_store.o
+DTG_MODEL_CFLAGS += $(DTG_COMMON_CFLAGS)
+DTG_MODEL_CFLAGS += -DDEVICE_MODEL_LOOP2
+#DEVMODEL="lp2"
+#DEVABBR="lp2"
+DTG_PKG_PREFIX="LP2"
+# ----------------------------------------------------
 else ifeq ($(DTG_MODEL),skel)
 DTG_MODEL_OBJ := $(DTG_COMMON_OBJ)
 DTG_MODEL_OBJ += ext/dev/dtg/tacom/model/skel_model.o 
@@ -94,6 +103,11 @@ DTG_SERVER_OBJ += ext/dev/dtg/tacoc/model/gtrs/dtg_data_manage.o            \
 				  ext/dev/dtg/tacoc/model/gtrs/tacoc_api.o          \
 				  ext/dev/dtg/tacoc/model/gtrs/tacoc_main_process.o \
 				  ext/dev/dtg/tacoc/model/gtrs/parsing.o
+
+	ifeq ($(SERVER),dtg-skel)
+		DTG_SERVER_OBJ += ext/dev/dtg/tacoc/model/gtrs/mdt_data_manage.o
+	endif
+	
 DTG_SERVER_CFLAGS += -I./ext/dev/dtg/tacoc/model/gtrs/inc/
 DTG_SERVER_CFLAGS += -DSERVER_MODEL_GTRS
 # ----------------------------------------------------

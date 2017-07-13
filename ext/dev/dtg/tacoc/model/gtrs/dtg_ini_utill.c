@@ -28,7 +28,20 @@ int save_default_init()
 
 int save_ini_mdt_server_setting_info()
 {
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+	char tmp[10] = {0,};
 
+    if (g_dtg_ini_handle==NULL) {
+		DTG_LOGE("Can't load %s at %s", DTG_CONFIG_FILE_PATH, __func__);
+        return -1 ;
+    }
+
+	sprintf(tmp, "%d", get_mdt_server_port());
+	iniparser_set(g_dtg_ini_handle, "mdt_server_config:port", tmp);
+	iniparser_set(g_dtg_ini_handle, "mdt_server_config:server_ip", get_mdt_server_ip_addr());
+
+	iniparser_store(g_dtg_ini_handle, DTG_CONFIG_FILE_PATH) ;
+#endif
 	return 0;
 }
 
@@ -116,6 +129,7 @@ int check_ini_date()
 		sleep(1);
 	}
 
+	return 1;
 }
 
 
@@ -170,6 +184,25 @@ int load_ini_file()
 	num = iniparser_getint(g_dtg_ini_handle, "dtg_config:report_period", -1);
 	if(num == -1) return -1;
 	set_dtg_report_period(num);
+
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+	str = iniparser_getstring(g_dtg_ini_handle, "mdt_server_config:server_ip", NULL);
+	if(str == NULL) return -1;
+	set_mdt_server_ip_addr(str);
+
+	num = iniparser_getint(g_dtg_ini_handle, "mdt_server_config:port", -1);
+	if(num == -1) return -1;
+	set_mdt_server_port(num);
+
+	num = iniparser_getint(g_dtg_ini_handle, "mdt_config:report_period", -1);
+	if(num == -1) return -1;
+	set_mdt_report_period(num);
+
+	num = iniparser_getint(g_dtg_ini_handle, "mdt_config:create_period", -1);
+	if(num == -1) return -1;
+	set_mdt_create_period(num);
+
+#endif
 
 
 	DTG_LOGD("load_ini_file --");

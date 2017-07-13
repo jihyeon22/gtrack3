@@ -27,6 +27,7 @@
 #include <wrapper/dtg_tacoc_wrapper_rpc_clnt.h>
 #include "tacoc_local.h"
 
+int tx_data_to_tacoc(int type, char *stream, int len);
 #if 0
 void *tacoc_sms_thread(char *string)
 {

@@ -12,7 +12,10 @@
 #include <board/board_system.h>
 #include <board/modem-time.h>
 #include <board/battery.h>
+#include <board/power.h>
+#include <util/tools.h>
 #include <util/nettool.h>
+
 
 #include <standard_protocol.h>
 
@@ -23,6 +26,7 @@
 #include "dtg_ini_utill.h"
 #include "rpc_clnt_operation.h"
 #include "dtg_regist_process.h"
+#include "sms_msg_process.h"
 #include <base/dmmgr.h>
 
 #include <wrapper/dtg_log.h>
@@ -36,16 +40,76 @@ extern void tacoc_ignition_off();
 int g_dtg_no_rcv_count = 0;
 int g_kt_fota_dtg_no_rcv_count = 0;
 
+#ifdef SERVER_ABBR_DSKL
+int g_key_off_count = 0;
+int g_device_boot_time = 0;
+#endif
+
 void tacoc_ignition_off_process()
 {
+#ifdef SERVER_ABBR_DSKL
+	int key_off_status_count = 0;
+	int key_status;
+	int key_off_time = 0;
+	key_status = power_get_ignition_status();
 
+	if(key_status == POWER_IGNITION_OFF)
+		g_key_off_count += 1;
+
+	while(key_status == POWER_IGNITION_OFF)
+	{
+		DTG_LOGI("%s> wait ign on status...\n", __func__);
+		sleep(5);
+		key_status = power_get_ignition_status();
+
+		if(get_modem_time_utc_sec() - g_device_boot_time > (24 * 3600)) {
+			dmmgr_send(eEVENT_LOG, "regular poweroff #1", 0);
+			while(1) {
+				system("poweroff");
+				DTG_LOGI("%s> wait powerorff...\n", __func__);
+				sleep(1);		
+			}
+		}
+		key_off_time += 1;
+
+		if(key_off_time > 600) { //keep key off status about 1 hour.
+			key_off_time = 0;
+			if(g_key_off_count > 100) {
+				dmmgr_send(eEVENT_LOG, "regular poweroff #2", 0);
+				while(1) {
+					system("poweroff");
+					DTG_LOGI("%s> wait powerorff...\n", __func__);
+					sleep(1);		
+				}
+			}
+		}
+		
+	}
+
+	if(tools_get_available_memory() < 4000) //4MB 
+	{
+		while(1) {
+			system("poweroff");
+			DTG_LOGI("%s> wait powerorff...\n", __func__);
+			sleep(1);		
+		}
+	}
+	else
+	{
+		g_dtg_no_rcv_count = 0;
+		g_kt_fota_dtg_no_rcv_count = 0;
+		send_device_registration();
+		alarm(5);
+	}
+#endif
 }
 
 
 void clear_key_flag();
 void clear_power_flag();
 extern int get_server_no_ack_count();
-/*
+
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
 void *do_mdt_report_thread(void *pargs)
 {
 	unsigned int current_time = 0;
@@ -80,7 +144,8 @@ void *do_mdt_report_thread(void *pargs)
 	}
 	
 }
-*/
+#endif
+
 void *do_dtg_report_thread(void *pargs)
 {
 	unsigned int current_time = 0;
@@ -96,6 +161,10 @@ void *do_dtg_report_thread(void *pargs)
 	int key_on_report = 0;
 
 	DTG_LOGD("%s: %s() --", __FILE__, __func__);
+
+#ifdef SERVER_ABBR_DSKL
+	g_device_boot_time = get_modem_time_utc_sec();
+#endif
 
 	while(power_on_report_cnt < 10) {
 		DTG_LOGD("Power On Report...");
@@ -243,9 +312,12 @@ int main_process()
 	}
 	
 	init_configuration_data();
-	// dmmgr_init("/system/mds/system/bin/dm.ini", "/system/mds/system/bin/PACKAGE");
 
-	// dmmgr_send(eEVENT_PWR_ON, NULL, 0);
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+	 //dmmgr_init("/system/mds/system/bin/dm.ini", "/system/mds/system/bin/PACKAGE"); no need, this code is in gtrack base.
+	 dmmgr_send(eEVENT_PWR_ON, NULL, 0);
+#endif
+
 	if(power_get_ignition_status() == POWER_IGNITION_ON)
 	{
 		send_device_registration();
@@ -257,12 +329,13 @@ int main_process()
 		send_device_de_registration();
 	}
 
-/*
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
 	if (pthread_create(&p_thread_mdt, NULL, do_mdt_report_thread, NULL) < 0) {
 		fprintf(stderr, "cannot create p_thread_action thread\n");
 		exit(1);
 	}
-*/
+#endif
+
 	if (pthread_create(&p_thread_dtg, NULL, do_dtg_report_thread, NULL) < 0) {
 		fprintf(stderr, "cannot create p_thread_action thread\n");
 		exit(1);

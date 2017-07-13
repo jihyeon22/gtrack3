@@ -1,7 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
+#include <base/devel.h>
 #include <at/at_util.h>
 #include "logd/logd_rpc.h"
 

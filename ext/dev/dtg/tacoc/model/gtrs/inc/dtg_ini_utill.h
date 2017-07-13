@@ -8,4 +8,7 @@ int save_default_init();
 int save_ini_dtg_server_setting_info();
 int save_ini_dtg_period_info();
 
+
+int save_ini_mdt_server_setting_info();
+int save_ini_mdt_period_info();
 #endif

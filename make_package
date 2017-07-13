@@ -25,8 +25,74 @@ type_package_input(){
 	esac
 }
 
+service_mode() {
+	echo -e "Service Mode = (mdt)"
+	echo -e "  if DTG Mode = (innocar, lp2, cy, kdt, daesin, sh)"
+		read SERVICEMODEL
+		case $SERVICEMODEL in
+			mdt)
+				SERVICEMODEL="mdt"
+				SERVICEABBR="MDT"
+			;;
+			sh)
+				SERVICEMODEL="sinhung"
+				SERVICEABBR="SH"
+			;;
+			uc)
+				SERVICEMODEL="ucar"
+				SERVICEABBR="UC"
+			;;
+			lp)
+				SERVICEMODEL="loop"
+				SERVICEABBR="LP"
+			;;
+			lp2)
+				SERVICEMODEL="loop2"
+				SERVICEABBR="LP2"
+			;;
+			cy)
+				SERVICEMODEL="choyoung"
+				SERVICEABBR="CY"
+			;;
+			ireal)
+				SERVICEMODEL="ireal"
+				SERVICEABBR="IR"
+			;;
+			kdt)
+				SERVICEMODEL="kdt"
+				SERVICEABBR="KDT"
+			;;
+			innocar)
+				SERVICEMODEL="innocar"
+				SERVICEABBR="INC"
+			;;
+			innosns)
+				SERVICEMODEL="innosns"
+				SERVICEABBR="INS"
+			;;
+			innosns_dcu)
+				SERVICEMODEL="innosns_dcu"
+				SERVICEABBR="IND"
+			;;
+			daesin)
+				SERVICEMODEL="daesin"
+				SERVICEABBR="DAS"
+			;;
+			cj)
+				SERVICEMODEL="cj"
+				SERVICEABBR="CJ"
+			;;
+			*)
+				echo SERVICEMODEL= $SERVICEMODEL= invalid
+				exit
+			;;
+		esac
+
+}
+
 corp_input() {
 		echo -e "Coporation = (mds, asn, cl, bizincar, cs, etrace, neognp, moram, kt, alloc, cip, netio, uppp ...) "
+		echo -e "             (gtrs ...) "
 		read CORPMODEL
 		case $CORPMODEL in
 			mds)
@@ -81,6 +147,12 @@ corp_input() {
 				CORPMODEL="uppp"
 				CORPABBR="UPPP"
 			;;
+
+			gtrs)
+				CORPMODEL="gtrs"
+				CORPABBR="GTRS"
+			;;
+
 			*)
 				echo  $CORPMODEL invalid
 				exit
@@ -137,11 +209,17 @@ modem_input() {
 }
 
 server_input() {
-	echo -e "Server Model = (skel, asn, cl-thermal, cl-mdt, cl-rfid, bizincar, cs, etr, etrg, etrf, neognp, moram, alloc2, cip-rmc, netio, uppp ...)"
+	echo -e "Server Model = (skel, asn, cl-thermal, cl-mdt, cl-rfid, bizincar)"
+	echo -e "               (cs, etr, etrg, etrf, neognp, moram, alloc2, cip-rmc, netio, uppp ...)"
 	echo -e "               (ktfms0, ktfms1...)"
-	echo -e "				(if sub model, sub model name have to input)"
+	echo -e "               (dtg-skel)"
+	echo -e "               ** (if sub model, sub model name have to input) **"
 	read SRVMODEL
 	case $SRVMODEL in
+		dtg-skel)
+			SRVMODEL="dtgskel"
+			SERVABBR="DSKL"
+		;;
 		skel)
 			SRVMODEL="skel"
 			SERVABBR="SKEL"
@@ -223,7 +301,7 @@ server_input() {
 }
 
 make_package() {
-	echo "$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER 업데이트 패키지 이미지 생성중입니다."
+	echo "$CORPABBR-$SERVICEABBR.$SERVABBR-$MODEMABBR-$VER 업데이트 패키지 이미지 생성중입니다."
 
 	echo " - pwd :: ${PWD}"
 	echo " - output dir :: $OUTDIR"
@@ -274,8 +352,8 @@ make_package() {
 	mkdir -p system/mds/
 	mv tmp system/mds/system/
 ###############################################
-	tar -czf PACKAGE.$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER.tgz system
-	md5sum PACKAGE.$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER.tgz > PACKAGE.$CORPABBR-MDT.$SERVABBR-$MODEMABBR-$VER.tgz.md5
+	tar -czf PACKAGE.$CORPABBR-$SERVICEABBR.$SERVABBR-$MODEMABBR-$VER.tgz system
+	md5sum PACKAGE.$CORPABBR-$SERVICEABBR.$SERVABBR-$MODEMABBR-$VER.tgz > PACKAGE.$CORPABBR-$SERVICEABBR.$SERVABBR-$MODEMABBR-$VER.tgz.md5
 	rm -vrf system/*
 	cd ..
 
@@ -287,6 +365,7 @@ make_package() {
 do_make_package() {
 #	type_package_input
 	corp_input
+	service_mode
 	version_input
 	modem_input
 	server_input

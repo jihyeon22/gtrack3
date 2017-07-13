@@ -29,7 +29,7 @@ void init_model_callback(void)
 	configurationModel_t *conf = get_config_model();
 
 	printf("gtrack calback ::: init_model_callback !!!\r\n");
-	thread_network_set_warn_timeout(MAX(conf->model.report_interval_keyon, conf->model.report_interval_keyoff) * 2);
+	thread_network_set_warn_timeout(0);
 
 	//taco_main();
 }
@@ -86,7 +86,7 @@ void main_loop_callback(void)
 		//printf("gtrack calback ::: main_loop_callback !!!\r\n");
 		watchdog_set_cur_ktime(eWdMain);
 		watchdog_process();
-		sleep(1);
+		sleep(60);
 	}
 }
 

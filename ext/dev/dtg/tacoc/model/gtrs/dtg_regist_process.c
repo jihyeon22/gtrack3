@@ -111,9 +111,8 @@ int create_dtg_data(void)
 
 int send_to_reg_server(int type)
 {
-	return 0;
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
 
-#if 0
 	int err = 0;
 	
 	switch(type)
@@ -136,6 +135,8 @@ int send_to_reg_server(int type)
 	}
 
 	return err;
+#else
+		return 0;
 #endif
 }
 
@@ -190,5 +191,7 @@ void send_server_error_report(char *packet_type, int server_resp)
 
 void check_update()
 {
-//	dmmgr_send(eEVENT_UPDATE, NULL, 0);
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+	dmmgr_send(eEVENT_UPDATE, NULL, 0);
+#endif
 }

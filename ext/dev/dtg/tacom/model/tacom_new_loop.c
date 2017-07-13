@@ -11,18 +11,19 @@
 #include <string.h>
 #include <fcntl.h>
 
+#include <tacom/tacom_internal.h>
+#include <tacom/tacom_protocol.h>
+#include <tacom/model/tacom_new_loop.h>
+
 #include <wrapper/dtg_log.h>
-#include <tacom_internal.h>
-#include <tacom_protocol.h>
+#include <board/board_system.h>
 
-#include <tacom_new_loop.h>
-#include <common/crc16.h>
-#include <common/power.h>
-#include <common/w200_led.h>
+#include <mdsapi/mds_api.h>
+#include <board/power.h>
 
-#include "uart.h"
-#include "convtools.h"
-#include "utill.h"
+#include "tacom/tools/taco_store.h"
+
+
 
 #define UART_REOPEN_ENABLE_FLAG
 extern int dtg_uart_fd;
@@ -57,7 +58,6 @@ static tacom_loop2_hdr_t loop_header_tmp = {0, };
 #define LOOP_HEADER_FULL 1
 static int loop_header_status = LOOP_HEADER_EMPTY;
 static int _header_tmp = 0;
-void saved_data_recovery();
 
 #if defined(BOARD_TL500S) || defined(BOARD_TL500K)
 void wait_taco_unill_power_on()
@@ -88,79 +88,15 @@ void wait_taco_unill_power_on()
 #endif	
 
 
-static unsigned int curr = 0;
-static unsigned int curr_idx = 0;
-static unsigned int end = 0;
-static unsigned int recv_avail_cnt = MAX_LOOP2_DATA_PACK;
-static loop_data2_pack_t *recv_bank;
+//static unsigned int curr = 0;
+//static unsigned int curr_idx = 0;
+//static unsigned int end = 0;
+//static unsigned int recv_avail_cnt = MAX_LOOP2_DATA_PACK;
+//static loop_data2_pack_t *recv_bank;
 
 static int g_read_curr_buf_enable = 0;
 static tacom_loop2_data_t read_curr_buf;
 
-static void store_recv_bank(char *buf, int size)
-{
-	tacom_loop2_data_t *loop_data_recv_buf;
-
-	if(recv_bank[end].count >= MAX_LOOP2_DATA) {
-		fprintf(stderr, "%s ---> patch #1\n", __func__);
-		memset(&recv_bank[end], 0x00, sizeof(loop_data2_pack_t));
-	}
-
-	if(recv_bank[end].status > DATA_PACK_FULL) {
-		fprintf(stderr, "%s ---> patch #2\n", __func__);
-		memset(&recv_bank[end], 0x00, sizeof(loop_data2_pack_t));
-	}
-
-	if ((size == sizeof(tacom_loop2_data_t)) && (recv_avail_cnt > 0)) {
-		loop_data_recv_buf = (tacom_loop2_data_t *)&recv_bank[end].buf[recv_bank[end].count];
-		memcpy((char *)loop_data_recv_buf, buf, sizeof(tacom_loop2_data_t));
-		g_read_curr_buf_enable = 1;
-		memcpy(&read_curr_buf, buf, sizeof(tacom_loop2_data_t));
-		recv_bank[end].count++;
-		if (recv_bank[end].count >= MAX_LOOP2_DATA) {
-			recv_bank[end].status = DATA_PACK_FULL;
-			recv_avail_cnt--;
-			if (recv_avail_cnt > 0) {
-				end++;
-				if (end >= MAX_LOOP2_DATA_PACK)
-					end = 0;
-				
-				memset(&recv_bank[end], 0x00, sizeof(loop_data2_pack_t));
-			}
-		} else {
-			//recv_bank[end].status = DATA_PACK_AVAILABLE;
-			recv_bank[end].status = DATA_PACK_EMPTY;
-		}
-	}
-}
-
-void saved_data_recovery()
-{
-	int fd;
-	int len;
-	int ret;
-	char buf[128] = {0};
-
-	if(check_file_exist("/var/nlp_stored_records") == 0) {
-		fd = open("/var/nlp_stored_records", O_RDONLY, 0644 );
-		if(fd > 0) {
-			//read(fd, &len, sizeof(int));
-
-			while(1) {
-				ret = read(fd, buf, sizeof(tacom_loop2_data_t));
-				if(ret == sizeof(tacom_loop2_data_t)) {
-					if(recv_avail_cnt >  0) {
-						store_recv_bank(buf, sizeof(tacom_loop2_data_t));
-					}
-				} else {
-					break;
-				}
-			}
-			close(fd);
-		}
-		unlink("/var/nlp_stored_records");
-	}
-}
 
 static int _wait_read(int fd, unsigned char *buf, int buf_len, int ftime)
 {
@@ -287,7 +223,9 @@ int data_extract(unsigned char *dest, int dest_len, unsigned char *un_do_buf, in
 				_header_tmp = 1;
 			}
 
-			store_recv_bank(&op_data_buf[i+sizeof(tacom_loop2_hdr_t)], sizeof(tacom_loop2_data_t));
+			//store_recv_bank(&op_data_buf[i+sizeof(tacom_loop2_hdr_t)], sizeof(tacom_loop2_data_t));
+			store_recv_bank(&op_data_buf[i+sizeof(tacom_loop2_hdr_t)], sizeof(tacom_loop2_data_t), (unsigned char *)&read_curr_buf);
+
 //loop_data = (tacom_loop2_data_t *)&op_data_buf[i+sizeof(tacom_loop2_hdr_t)];
 //printf("date = [%02d-%02d-%02d %02d:%02d:%02d\n", (loop_data->year%100), loop_data->mon, loop_data->day,
 //			loop_data->hour, loop_data->min, loop_data->sec);
@@ -310,7 +248,7 @@ static void *loop_recv_data_thread (void)
 	int rest_buf_len = 0;
 	int read_err_cnt = 5;
 
-	saved_data_recovery();
+	saved_data_recovery("/var/nlp_stored_records", (unsigned char *)&read_curr_buf);
 
 	while(1) {
 #if defined(BOARD_TL500S) || defined(BOARD_TL500K)
@@ -362,7 +300,8 @@ static void *loop_recv_data_thread (void)
 		}
 
 	}
-	free(recv_bank);
+	//free(recv_bank);
+	destory_dtg_store();
 }
 
 pthread_t tid_recv_data;
@@ -372,8 +311,7 @@ int loop2_init_process()
 	printf("================================================================\n");
 	printf("loop2_init_process\n");
 	printf("================================================================\n");
-	recv_bank = (loop_data2_pack_t *)malloc(sizeof(loop_data2_pack_t) * MAX_LOOP2_DATA_PACK);
-	memset(recv_bank, 0, sizeof(loop_data2_pack_t) * MAX_LOOP2_DATA_PACK);
+	create_dtg_data_store(MAX_LOOP2_DATA_PACK);
 
 	if (pthread_create(&tid_recv_data, NULL, loop_recv_data_thread, NULL) < 0){
 		fprintf(stderr, "cannot create loop_recv_data_thread thread\n");
@@ -386,13 +324,7 @@ int loop2_init_process()
 
 int loop2_unreaded_records_num ()
 {
-	if(MAX_LOOP2_DATA_PACK <= recv_avail_cnt)
-		return 0;
-
-	if (recv_avail_cnt > 0)
-		return (MAX_LOOP2_DATA_PACK - recv_avail_cnt) * MAX_LOOP2_DATA + recv_bank[end].count;
-	else
-		return (MAX_LOOP2_DATA_PACK - recv_avail_cnt) * MAX_LOOP2_DATA;
+	return get_dtg_current_count();
 }
 
 //static int test_data_seq = 0; //for test
@@ -409,9 +341,14 @@ void print_data(char *msg, char *value, int len)
 }
 //#endif
 
-static int data_convert(tacom_std_data_t *std_data, tacom_loop2_data_t *loop_data) {
+int data_convert(tacom_std_data_t *std_data, unsigned char *dtg_data, int debug_flag)
+{
 	int ret = 0;
 	char tmp_buf[128]; //for test
+
+	tacom_loop2_data_t *loop_data;
+
+	loop_data = (tacom_loop2_data_t *)dtg_data;
 	
 #ifdef DEBUG_LOOP_DATA
 	loop_data->day_run_dist = 1234;
@@ -544,45 +481,7 @@ static int last_read_num = 0;
 
 void save_record_data()
 {
-	int i;
-	tacom_loop2_data_t *loop_data;
-	int retry_cnt = 5;
-	FILE *fptr = NULL;
-
-	//jwrho file save patch ++
-	while(retry_cnt-- > 0)
-	{
-		fptr = fopen("/var/nlp_stored_records", "w" );
-		if(fptr != NULL)
-			break;
-		sleep(1);
-	}
-
-	if(fptr == NULL)
-		return;
-
-	//jwrho file save patch --
-	curr_idx = curr;
-	while ((MAX_LOOP2_DATA_PACK > recv_avail_cnt) && (recv_bank[curr_idx].status == DATA_PACK_FULL))
-	{
-		for (i = 0; i < recv_bank[curr_idx].count; i++) {
-			loop_data = &recv_bank[curr_idx].buf[i];
-			fwrite(loop_data, 1, sizeof(tacom_loop2_data_t), fptr);
-		}
-		recv_bank[curr_idx].status = DATA_PACK_EMPTY;
-
-		curr_idx++;
-		if  (curr_idx == MAX_LOOP2_DATA_PACK) {
-			curr_idx = 0;
-		}
-	}
-
-	if (fptr != NULL) {
-		fflush(fptr);
-		sync();
-		fclose(fptr); fptr = NULL;
-		sleep(10); //jwrho 2015.01.17
-	}
+	save_record_data_taco("/var/nlp_stored_records");
 }
 
 static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
@@ -604,7 +503,7 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 	}
 
 	//jwrho ++
-	unread_count = loop2_unreaded_records_num();
+	unread_count = get_dtg_current_count();
 	DTG_LOGD("std_parsing> loop2_unreaded_records_num = [%d]\n", unread_count);
 	if(unread_count <= 0)
 		return -1;
@@ -640,56 +539,13 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 	if (request_num == 1) {
 		std_data = &tm->tm_strm.stream[dest_idx];
 		loop_data = &read_curr_buf;
-		ret = data_convert(std_data, loop_data);
+		ret = data_convert(std_data, (unsigned char *)loop_data, 0);
 		if (ret < 0)
 			return ret;
 		dest_idx += sizeof(tacom_std_data_t);
 		r_num++;
 	} else {
-		curr_idx = curr;
-
-
-		r_num = 0;
-		while(1)
-		{
-			if(recv_bank[curr_idx].status != DATA_PACK_FULL)
-			{
-				DTG_LOGE("bank status is not full pack...r_num[%d]\n", r_num);
-				if(r_num <= 0) {
-					loop2_ack_records(tm, 0);
-				}
-				break;
-			}
-			if(r_num > tm->tm_setup->max_records_per_once)
-			{
-				DTG_LOGE("once max data count over[%d].\n", tm->tm_setup->max_records_per_once);
-				break;
-			}
-
-			for (i = 0; i < recv_bank[curr_idx].count; i++) {
-				std_data = &tm->tm_strm.stream[dest_idx];
-				loop_data = &recv_bank[curr_idx].buf[i];
-
-				ret = data_convert(std_data, loop_data);
-				if (ret < 0)
-					continue;//return ret; //jwrho 2015-01-17
-				dest_idx += sizeof(tacom_std_data_t);
-				r_num++;
-			}
-			curr_idx++;
-			if  (curr_idx == MAX_LOOP2_DATA_PACK) {
-				curr_idx = 0;
-			}
-		}
-
-		if(unread_count > 500 && r_num < 100) {
-			DTG_LOGE("unread_count = [%d]", unread_count);
-			DTG_LOGE("MAX_LOOP2_DATA_PACK/recv_avail_cnt = [%d/%d]", MAX_LOOP2_DATA_PACK, recv_avail_cnt);
-			DTG_LOGE("curr_idx = [%d]", curr_idx);
-			DTG_LOGE("recv_bank[curr_idx].status = [%d]", recv_bank[curr_idx].status);
-			DTG_LOGE("tm->tm_setup->max_records_per_once = [%d]\n", tm->tm_setup->max_records_per_once);
-			DTG_LOGE("count = [%d]\n", r_num);
-		}
+		dest_idx = get_dtg_data(tm, dest_idx);
 	}
 	last_read_num = r_num;
 
@@ -703,7 +559,9 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 int loop2_read_current(){
 	int ret = 0;
 
-	if(g_read_curr_buf_enable == 0) {
+	TACOM *tm = tacom_get_cur_context();
+
+	if(get_dtg_current_count() <= 0) {
 		DTG_LOGE("%s: not yet read current data", __func__);
 		return -1;
 	}
@@ -739,42 +597,7 @@ int loop2_read_records (int r_num)
 
 int loop2_ack_records(int readed_bytes)
 {
-	int r_num = 0;
-	int i;
-	int unread_bank_cnt = 0;
-
-	TACOM *tm = tacom_get_cur_context();
-
-	r_num = last_read_num;
-	DTG_LOGT("%s:%d> end[%d] curr_idx[%d] : curr[%d] : recv_avail_cnt[%d]\n", __func__, __LINE__, end, curr_idx, curr, recv_avail_cnt);
-
-	if (curr_idx == curr) {
-		DTG_LOGE("Bank full flush. end[%d], curr_idx[%d], curr[%d]", end, curr_idx, curr);
-		curr = curr_idx = end;
-	} else if (curr_idx < curr) {
-		memset(&recv_bank[curr], 0, (MAX_LOOP2_DATA_PACK - curr) * sizeof(loop_data2_pack_t));
-		memset(recv_bank, 0, curr_idx * sizeof(loop_data2_pack_t));
-		recv_avail_cnt += (r_num / MAX_LOOP2_DATA);
-		curr = curr_idx;
-	} else {
-		memset(&recv_bank[curr], 0, (curr_idx - curr) * sizeof(loop_data2_pack_t));
-		recv_avail_cnt += (r_num / MAX_LOOP2_DATA);
-		curr = curr_idx;
-	}
-
-	//jwrho 2015.01.21++
-	unread_bank_cnt = 0;
-	for(i = 0; i < MAX_LOOP2_DATA_PACK; i++)
-		if(recv_bank[i].status == DATA_PACK_FULL)
-			unread_bank_cnt += 1;
-
-	if( (MAX_LOOP2_DATA_PACK - unread_bank_cnt) != recv_avail_cnt)
-	{
-		DTG_LOGE("patch #3 recv_avail_cnt : [%d] -> [%d]", recv_avail_cnt, (MAX_LOOP2_DATA_PACK - unread_bank_cnt));
-		recv_avail_cnt = (MAX_LOOP2_DATA_PACK - unread_bank_cnt);
-	}
-	//jwrho 2015.01.21--
-
+	dtg_data_clear();
 	return 0;
 }
 

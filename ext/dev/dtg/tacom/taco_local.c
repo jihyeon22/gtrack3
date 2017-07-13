@@ -35,7 +35,7 @@
 
 extern pthread_mutex_t cmd_mutex;
 void taco_to_tacoc_clnt_reconnect();
-
+void taco_run(void);
 int 
 taco_request(void)
 {
@@ -43,7 +43,7 @@ taco_request(void)
 	//int unread_cnt;
 	enum tacom_stat status;
 	TACOM *tm = tacom_get_cur_context();
-	/* ?�태 체크 */
+	/* ??태 체크 */
 	status = tacom_get_status();
 	if (status != TACOM_IDLE) {
 		return status;
@@ -80,12 +80,12 @@ char * taco_get_info(int code)
 	char *info;
 	enum tacom_stat status;
 
-	/* IDLE ?�태 체크 */
+	/* IDLE ??태 체크 */
 	status = tacom_get_status();
 	if (status != TACOM_IDLE)
 		return NULL;
 	
-	/* ?�패??"NOK" 리턴 */
+	/* ??패??"NOK" 리턴 */
 	info = tacom_get_info(code);
 	
 	return strdup(info);

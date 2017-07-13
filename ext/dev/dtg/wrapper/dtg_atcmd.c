@@ -50,5 +50,5 @@ int atcmd_get_rssi()
 
 int atcmd_send_sms(const char *message, const char *sender, const char *receiver)
 {
-    int at_send_sms(receiver, message);
+    return (at_send_sms(receiver, message));
 }

@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <board/power.h>
 #include <wrapper/dtg_log.h>
 #include <wrapper/dtg_convtools.h>
 #include <standard_protocol.h>
@@ -210,7 +211,7 @@ int bulk_dtg_parsing(unsigned char *std_buff, int std_buff_len, unsigned char *d
 	device_type = eDTG_Device;
 	product_type = eDAESIN;
 #else
-	#error "Unkown DTG Type
+	#error "Unkown DTG Type"
 #endif
 
 	p_gtrs_hdr->dev_type = device_type;
@@ -230,7 +231,7 @@ int bulk_dtg_parsing(unsigned char *std_buff, int std_buff_len, unsigned char *d
 		memcpy(p_gtrs_sum->vrn, &p_std_hdr->registration_num[4], 8);
 	} else if (!strncmp(p_std_hdr->registration_num, "0000",4)) {
 		memcpy(p_gtrs_sum->vrn, &p_std_hdr->registration_num[4], 8);
-	} else if (!strncmp(p_std_hdr->registration_num, "ï¿½ï¿½ï¿½ï¿½",4)) {
+	} else if (!strncmp(p_std_hdr->registration_num, "Àü±¹",4)) {
 		memcpy(p_gtrs_sum->vrn, &p_std_hdr->registration_num[4], 8);
 	} else {
 		memcpy(p_gtrs_sum->vrn, p_std_hdr->registration_num, 12);
@@ -426,7 +427,7 @@ printf("time : [%02d/%02d/%02d %02d:%02d:%02d\n", p_gtrs_packet_body->year, p_gt
 	device_type = eDTG_Device;
 	product_type = eDAESIN;
 #else
-	#error "Unkown DTG Type
+	#error "Unkown DTG Type"
 #endif
 
 	p_gtrs_hdr->dev_type = device_type;
@@ -446,7 +447,7 @@ printf("time : [%02d/%02d/%02d %02d:%02d:%02d\n", p_gtrs_packet_body->year, p_gt
 		memcpy(p_gtrs_sum->vrn, &p_std_hdr->registration_num[4], 8);
 	} else if (!strncmp(p_std_hdr->registration_num, "0000",4)) {
 		memcpy(p_gtrs_sum->vrn, &p_std_hdr->registration_num[4], 8);
-	} else if (!strncmp(p_std_hdr->registration_num, "ï¿½ï¿½ï¿½ï¿½",4)) {
+	} else if (!strncmp(p_std_hdr->registration_num, "Àü±¹",4)) {
 		memcpy(p_gtrs_sum->vrn, &p_std_hdr->registration_num[4], 8);
 	} else {
 		memcpy(p_gtrs_sum->vrn, p_std_hdr->registration_num, 12);
