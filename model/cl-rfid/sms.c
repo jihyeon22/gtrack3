@@ -33,7 +33,8 @@ extern RFID_DEV_INFO_T g_rfid_dev_info;
 static SMS_CMD_FUNC_T sms_cmd_func[] =
 {
 	{eSMS_CMD_GET__DEVICE_INFO, SMS_CMD_GET__DEVICE_INFO, _sms_cmd_proc_get_dev_info},
-	{eSMS_CMD_GET__DEVICE_CLR_REDOWN, SMS_CMD_SET__DEVICE_CLR_REDOWN, _sms_cmd_proc_clear_redown_rfid},
+	{eSMS_CMD_SET__DEVICE_CLR_REDOWN, SMS_CMD_SET__DEVICE_CLR_REDOWN, _sms_cmd_proc_clear_redown_rfid},
+	{eSMS_CMD_SET__DEVICE_RESET, SMS_CMD_SET__DEVICE_RESET, _sms_cmd_proc_device_reset},
 };
 
 int parse_model_sms(char *time, char *phonenum, char *sms)
@@ -192,10 +193,56 @@ int _sms_cmd_proc_clear_redown_rfid(int argc, char* argv[], const char* phonenum
 	// ---------------
 	sprintf(result_buff,"all rfid user clean and redownload start");
 	kjtec_rfid_mgr__clr_all_user_data();
-	
+
 	if ( atoi(argv[2]) == 1 )
 		at_send_sms(phonenum, result_buff);
 	
+	return 0;
+}
+
+
+int _sms_cmd_proc_device_reset(int argc, char* argv[], const char* phonenum)
+{
+	int i = 0 ;
+	int str_len = 0;
+	
+	unsigned char result_buff[80] = {0,};
+	unsigned char tmp_buff[32] = {0,};
+	
+	LOGI(LOG_TARGET, "SMS PROC : get - devinfo / from [%s]\n",phonenum);
+
+	for(i = 0; i <= argc; i++)
+	{
+		LOGD(LOG_TARGET, "SMS - arg [%d] - [%s]\n", i, argv[i]);
+	}
+	
+	// passwd argument check.
+	if ( argc == 0 )
+	{
+		LOGE(LOG_TARGET, "SMS - invalid arg [%d]\n", argc);
+		return -1;
+	}
+	
+	if ( argc != 2 )
+	{
+		LOGE(LOG_TARGET, " - SMS argument invalid [%d] / [%d] \n", argc , 4);
+		return -1;
+	}
+
+	if ( strncasecmp(SMS_CMD_PWD, argv[1], strlen(argv[1]) ) != 0 )
+	{
+		LOGE(LOG_TARGET, " - SMS PWD invalid [%s] / [%s]\n", argv[1], SMS_CMD_PWD);
+		return -1;
+	}
+	
+	// ---------------
+	sprintf(result_buff,"reset : 1 min after…");
+	
+
+	if ( atoi(argv[2]) == 1 )
+		at_send_sms(phonenum, result_buff);
+	
+	poweroff(NULL,0);
 	return 0;
 }
 
