@@ -13,5 +13,7 @@ OBJS_MODEL	+= $(MODEL_PATH)/routetool.o
 
 OBJS_MODEL	+= $(MODEL_PATH)/at_noti.o
 OBJS_MODEL	+= $(MODEL_PATH)/cl_mdt_pkt.o
-OBJS_MODEL	+= $(MODEL_PATH)/cl_rfid_passenger.o
+OBJS_MODEL	+= $(MODEL_PATH)/cl_rfid_tools.o
 OBJS_MODEL	+= $(MODEL_PATH)/cl_rfid_pkt.o
+OBJS_MODEL	+= $(MODEL_PATH)/kjtec_rfid_cmd.o
+OBJS_MODEL	+= $(MODEL_PATH)/kjtec_rfid_tools.o

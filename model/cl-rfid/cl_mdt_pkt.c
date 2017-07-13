@@ -505,14 +505,13 @@ int make_rfid_packet(unsigned char **pbuf, unsigned short *packet_len, locationD
 	}
 
 	char rfid_uid[32+1] = {0};
+	
+	sprintf(rfid_uid, "%-32s", rfid->uid);
+	printf(" >>>>>>>>>>>>>> rfid uid is [%s] \r\n", rfid_uid);
 
-	for(i = 0; i < rfid->len_uid; i++)
-	{
-		snprintf(&(rfid_uid[i * 2]), 3, "%02x", rfid->uid[i]);
-	}
 	memcpy(pbody->tag_id, rfid_uid, sizeof(pbody->tag_id));
 
-#if 1
+#if 0
 	for(i = 0; i < sizeof(pbody->tag_id); i++) {
 		printf("%c ", pbody->tag_id[i]);
 	}

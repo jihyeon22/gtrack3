@@ -183,11 +183,11 @@ configurationModel_t* load_config_user(void)
 		{
 			continue;
 		}
-		if(get_value_ini_str(inf, "user:request_ip", config.model.request_ip, sizeof(config.model.request_ip)) < 0)
+		if(get_value_ini_str(inf, "user:request_rfid", config.model.request_rfid, sizeof(config.model.request_rfid)) < 0)
 		{
 			continue;
 		}
-		if(get_value_ini_int(inf, "user:request_port", &config.model.request_port) < 0)
+		if(get_value_ini_int(inf, "user:request_rfid_port", &config.model.request_rfid_port) < 0)
 		{
 			continue;
 		}
@@ -295,8 +295,8 @@ void load_config_user_default(void)
 {
 	strncpy(config.model.report_ip, "218.54.45.50", sizeof("218.54.45.50"));
 	config.model.report_port = 887;
-	strncpy(config.model.request_ip, "218.54.45.50", sizeof("218.54.45.50"));
-	config.model.request_port = 887;
+	strncpy(config.model.request_rfid, "218.54.45.50", sizeof("218.54.45.50"));
+	config.model.request_rfid_port = 887;
 
 	config.model.interval_time = 60;
 	config.model.max_packet = 3;
@@ -320,6 +320,6 @@ void load_config_user_default(void)
 	config.model.section_100kms = 830;
 	config.model.section_110kms = 0;
 
-	strncpy(config.model.model_name, "cl", sizeof("cl"));
+	strncpy(config.model.model_name, "cl-rfid", sizeof("cl-rfid"));
 }
 

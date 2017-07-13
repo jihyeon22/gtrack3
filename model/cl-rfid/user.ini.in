@@ -1,10 +1,10 @@
 [user]
-model_name=cl-thermal
+model_name=cl-rfid
 date=170215
 report_ip=61.85.36.56
 report_port=887
-request_ip=61.85.36.56
-request_port=887
+request_rfid=test.2bt.kr
+request_rfid_port=8887
 interval_time=60
 max_packet=3
 stop_time=60
@@ -19,3 +19,8 @@ section_80kms=660
 section_90kms=750
 section_100kms=830
 section_110kms=0
+use_kjtec_rfid=0
+use_kjtec_dev="/dev/ttyHSL1"
+use_thermal_sensor=0
+use_thermal_dev="/dev/ttyHSL1"
+
