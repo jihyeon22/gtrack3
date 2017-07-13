@@ -24,6 +24,9 @@
 #include "config.h"
 #include "command.h"
 
+#include "cl_rfid_tools.h"
+
+
 // ----------------------------------------
 //  LOGD(LOG_TARGET, LOG_TARGET,  Target
 // ----------------------------------------
@@ -33,6 +36,7 @@ static int _setting_network_param(void);
 
 transferSetting_t gSetting_report;
 transferSetting_t gSetting_request;
+transferSetting_t gRFID_request;
 
 int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len, const void *param)
 {
@@ -59,6 +63,7 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 		
 		case PACKET_TYPE_REPORT:
 		{
+			LOGD(LOG_TARGET, "[MAKE PKT] PACKET_TYPE_REPORT\r\n");
 			res = make_report_packet(packet_buf, packet_len, *((int *)param));
 			break;
 		}
@@ -67,7 +72,7 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 		{
 			locationData_t temp_loc;
 
-			LOGD(LOG_TARGET, "make_packet rfid\n");
+			LOGD(LOG_TARGET, "[MAKE PKT] PACKET_TYPE_RFID\r\n");
 			
 			temp_loc.acc_status = get_key_stat();
 			temp_loc.event_code = CL_RFID_BOARDING_CODE;
@@ -81,30 +86,42 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 		
 		case PACKET_TYPE_MSI:
 		{
+			LOGD(LOG_TARGET, "[MAKE PKT] PACKET_TYPE_MSI\r\n");
 			res = make_msi_packet(packet_buf, packet_len, ((paramMsi_t *)param)->ip, ((paramMsi_t *)param)->port);
 			break;
 		}
 
 		case PACKET_TYPE_MIT:
 		{
+			LOGD(LOG_TARGET, "[MAKE PKT] PACKET_TYPE_MIT\r\n");
 			res = make_mit_packet(packet_buf, packet_len, ((paramMit_t *)param)->interval, ((paramMit_t *)param)->max_packet);
 			break;
 		}
 
 		case PACKET_TYPE_CSS:
 		{
+			LOGD(LOG_TARGET, "[MAKE PKT] PACKET_TYPE_CSS\r\n");
 			res = make_css_packet(packet_buf, packet_len, *((int *)param));
 			break;
 		}
 
 		case PACKET_TYPE_RAW:
 		{
+			LOGD(LOG_TARGET, "[MAKE PKT] PACKET_TYPE_RAW\r\n");
 			res = make_raw_packet(packet_buf, packet_len, (bufData_t *)param);
 			break;
 		}
 		case PACKET_TYPE_HTTP_GET_PASSENGER_LIST:
 		{
-			res = make_clrfid_pkt__req_passenger(packet_buf, packet_len);
+			LOGD(LOG_TARGET, "[MAKE PKT] PACKET_TYPE_HTTP_GET_PASSENGER_LIST\r\n");
+			rfid_tool__set_senario_stat(e_RFID_DOWNLOAD_START);
+			res = make_clrfid_pkt__req_passenger(packet_buf, packet_len,((char *)param));
+			break;
+		}
+		case PACKET_TYPE_HTTP_SET_BOARDING_LIST:
+		{
+			LOGD(LOG_TARGET, "[MAKE PKT] PACKET_TYPE_HTTP_SET_BOARDING_LIST\r\n");
+			res = make_clrfid_pkt__set_boarding(packet_buf, packet_len, (RFID_BOARDING_MGR_T *)param);
 			break;
 		}
 
@@ -115,6 +132,8 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 	return res;
 }
 
+unsigned char g_html_recv_buff[1024*500];
+
 int send_packet(char op, unsigned char *packet_buf, int packet_len)
 {
 	int res = 0;
@@ -124,40 +143,69 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 		.data  = {0}
 	};
 
-	LOGT(LOG_TARGET, "send packet\n");
 	
 	if ( op == PACKET_TYPE_HTTP_GET_PASSENGER_LIST )
 	{
-		unsigned char recv_buff[1024*100];
 		static int fail_retry_cnt = 0;
 		int recv_buff_len = 0;
 		int recv_ret = 0;
 
-		recv_buff_len = sizeof(recv_buff);
-		memset(&recv_buff, 0x00, recv_buff_len);
+		LOGT(LOG_TARGET, "[SEND PKT] PACKET_TYPE_HTTP_GET_PASSENGER_LIST\r\n");
 
-		transferSetting_t http_report;
-		memcpy(&http_report, &gSetting_report, sizeof(transferSetting_t));
-		strcpy(http_report.ip, "test.2bt.kr" );
-		http_report.port = 8887;
-		recv_ret = transfer_packet_recv(&http_report, packet_buf, packet_len, (unsigned char *)&recv_buff, recv_buff_len);
-
-		res = parse_clrfid_pkt__req_passenger(recv_buff, recv_ret);
-		return res;
-	}
-	
-	while(1)
-	{
 		watchdog_set_cur_ktime(eWdNet1);
 		
 		_setting_network_param();
-		LOGT(LOG_TARGET, "send_packet op:%d", op);
+		
+		recv_buff_len = sizeof(g_html_recv_buff);
+		memset(&g_html_recv_buff, 0x00, recv_buff_len);
+
+		recv_ret = transfer_packet_recv(&gRFID_request, packet_buf, packet_len, (unsigned char *)&g_html_recv_buff, recv_buff_len);
+
+		res = parse_clrfid_pkt__req_passenger(g_html_recv_buff, recv_ret);
+		
+		if ( res < 0 )
+			rfid_tool__set_senario_stat(e_NEED_TO_RFID_USER_CHK); 
+		else
+			rfid_tool__set_senario_stat(e_RFID_DOWNLOAD_END);
+
+		return res;
+	}
+
+	if ( op == PACKET_TYPE_HTTP_SET_BOARDING_LIST )
+	{
+		static int fail_retry_cnt = 0;
+		int recv_buff_len = 0;
+		int recv_ret = 0;
+
+		LOGT(LOG_TARGET, "[SEND PKT] PACKET_TYPE_HTTP_SET_BOARDING_LIST\r\n");
+		watchdog_set_cur_ktime(eWdNet1);
+		
+		_setting_network_param();
+		
+		recv_buff_len = sizeof(g_html_recv_buff);
+		memset(&g_html_recv_buff, 0x00, recv_buff_len);
+
+		recv_ret = transfer_packet_recv(&gRFID_request, packet_buf, packet_len, (unsigned char *)&g_html_recv_buff, recv_buff_len);
+
+		res = parse_clrfid_pkt__set_boarding(g_html_recv_buff, recv_ret);
+		
+
+		return res;
+	}
+
+
+	while(1)
+	{
+		LOGT(LOG_TARGET, "[SEND PKT] NORMAL PKT [%d] \r\n", op);
+		watchdog_set_cur_ktime(eWdNet1);
+	
+		_setting_network_param();
 		
 		ret = transfer_packet_recv_etx(&gSetting_report, packet_buf, packet_len, (unsigned char *)&resp, sizeof(resp), ']');
 		if(ret == 0)
 		{
 			//ret = cl_resp_packet_check(resp.error_code);
-			LOGT(LOG_TARGET, "Responce code %x", ret);
+			LOGT(LOG_TARGET, "  >> recv form server:: Responce code %x \r\n", ret);
 			switch(resp.error_code)
 			{
 				case CL_SUC_ERROR_CODE:
@@ -169,15 +217,15 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 				}
 				case CL_AUT_ERROR_CODE:
 				{
-					LOGE(LOG_TARGET, "AUTH ERROR : ALL OPERATION IS STOPPED!!!");
-					error_critical(eERROR_FINAL, "AUTH ERROR : ALL OPERATION IS STOPPED!!!");
+					LOGE(LOG_TARGET, "AUTH ERROR : ALL OPERATION IS STOPPED!!!\r\n");
+					error_critical(eERROR_FINAL, "AUTH ERROR : ALL OPERATION IS STOPPED!!!\r\n");
 					//�ܸ��� ��ü ���� ����
 					//Critical Final�� �¿���
 					break;
 				}
 				case CL_SET_ERROR_CODE:
 				{
-					LOGT(LOG_TARGET, "NEED CONFIG : HAVE TO SET CONFIG {%s}", resp.data);
+					LOGT(LOG_TARGET, "NEED CONFIG : HAVE TO SET CONFIG {%s}\r\n", resp.data);
 					process_cmd(resp.data);
 					break;
 				}
@@ -215,12 +263,17 @@ static int _setting_network_param(void)
 	gSetting_report.retry_count_receive = conf->model.tcp_receive_retry_count;
 	gSetting_report.timeout_secs = conf->model.tcp_timeout_secs;
 
-	strncpy(gSetting_request.ip, conf->model.request_ip, 40);
-	gSetting_request.port = conf->model.request_port;
 	gSetting_request.retry_count_connect = conf->model.tcp_connect_retry_count;
 	gSetting_request.retry_count_send = conf->model.tcp_send_retry_count;
 	gSetting_request.retry_count_receive = conf->model.tcp_receive_retry_count;
 	gSetting_request.timeout_secs = conf->model.tcp_timeout_secs;
+	
+	strncpy(gRFID_request.ip, conf->model.request_rfid, 40);
+	gRFID_request.port = conf->model.request_rfid_port;
+	gRFID_request.retry_count_connect = 3;
+	gRFID_request.retry_count_send = 3;
+	gRFID_request.retry_count_receive = 0;
+	gRFID_request.timeout_secs = 1;
+	
 	return 0;
 }
-

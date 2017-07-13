@@ -11,6 +11,8 @@ struct configModel
 	int report_port;
 	char request_ip[40];
 	int request_port;
+	char request_rfid[40];
+	int request_rfid_port;
 	int tcp_connect_retry_count;
 	int tcp_send_retry_count;
 	int tcp_receive_retry_count;
@@ -30,6 +32,10 @@ struct configModel
 	int section_90kms;
 	int section_100kms;
 	int section_110kms;
+	int use_kjtec_rfid;
+	char use_kjtec_dev[64];
+	int use_thermal_sensor;
+	char use_thermal_dev[64];
 };
 
 typedef struct configurationModel configurationModel_t;

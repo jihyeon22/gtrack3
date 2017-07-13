@@ -70,6 +70,7 @@ void init_model_callback(void)
 	
 #ifdef KT_FOTA_TEST_SVR
 	thread_network_set_warn_timeout(0);
+	set_auto_ota_tl500(0); // auto ota disable.
 #else
 	thread_network_set_warn_timeout(MAX(conf->model.report_interval_keyon, conf->model.report_interval_keyoff) * 2);
 #endif
