@@ -96,6 +96,8 @@ else ifeq ($(SERVER),cl-rfid)
 SERVER_ABBR := CLR
 else ifeq ($(SERVER),cl-mdt)
 SERVER_ABBR := CLM
+else ifeq ($(SERVER),gtnb-mdt)
+SERVER_ABBR := GTM
 else ifeq ($(SERVER),etrace)
 SERVER_ABBR	:=	ETR
 else ifeq ($(SERVER),bizincar)
@@ -155,6 +157,8 @@ else ifeq ($(CORP),cip)
 CORP_ABBR := CIP
 else ifeq ($(CORP),netio)
 CORP_ABBR := NETI
+else ifeq ($(CORP),gtnb)
+CORP_ABBR := GTNB
 else ifeq ($(CORP),uppp)
 CORP_ABBR := UPPP
 else ifeq ($(CORP),gtrs)
