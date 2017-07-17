@@ -27,37 +27,41 @@
 int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len, const void *param)
 {
 	int res = 0;
-	printf("------------- make packet :: pkt id [0x%x] start -------------------\r\n", op);
+
 	switch (op)	{
 		case e_mdm_setting_val :   // 0x01 : 단말 기본 설정 정보
 		{
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_mdm_setting_val \r\n", e_mdm_setting_val);
 			res = make_pkt__mdm_setting_val(packet_buf, packet_len);
 			break;
 		}
     	case e_mdm_stat_evt :      // 0x02 : 단말 상태 정보 (이벤트)
 		{
-			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] send evt code [%d]\r\n", *((int *)param));
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_mdm_stat_evt / evt code [%d]\r\n", e_mdm_stat_evt, *((int *)param));
 			res = make_pkt__mdm_stat_evt(packet_buf, packet_len, *((int *)param));
 			break;
 		}
     	case e_mdm_gps_info :       // 0x03 : GPS 정보
 		{
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_mdm_gps_info \r\n", e_mdm_gps_info);
 			res = make_pkt__mdm_gps_info(packet_buf, packet_len);
 			break;
 		}
     	case e_obd_dev_info :   // 0x11 : OBD 기본 설정 정보
 		{
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_obd_dev_info \r\n", e_obd_dev_info);
 			res = make_pkt__obd_dev_info(packet_buf, packet_len);
 			break;
 		}
     	case e_obd_stat :      // 0x12 : OBD 상태 정보 (이벤트)
 		{
-			printf("???");
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_obd_stat \r\n", e_obd_stat);
 			res = make_pkt__obd_stat(packet_buf, packet_len, *((ALLOC_PKT_SEND__OBD_STAT_ARG *)param));
 			break;
 		}
     	case e_obd_data :          // 0x13 : OBD 수집 정보
 		{
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_obd_data \r\n", e_obd_data);
 			res = make_pkt__obd_data(packet_buf, packet_len);
 			break;
 		}
@@ -103,6 +107,8 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 		}
     	case e_firm_info : // 0x71 : 펌웨어 정보
 		{
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_firm_info \r\n", e_firm_info);
+			res = make_pkt__firmware_info(packet_buf, packet_len);
 			break;
 		}
     	case e_firm_update : // 0x72 : 펌웨어 업데이트
@@ -116,13 +122,13 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
     	case e_sms_recv_info : // 0xF0 : SMS 수신 정보
 		{
 			//LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] send sms recv code [%d]\r\n", *((int *)param));
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_sms_recv_info \r\n", e_sms_recv_info);
 			res = make_pkt__sms_recv_info(packet_buf, packet_len, *((ALLOC_PKT_SEND__SMS_PKT_ARG *)param));
 
 			break;
 		}
 	}
 
-	printf("------------- make packet :: pkt id [0x%x] end -------------------\r\n", op);
 	return 0;
 }
 
@@ -169,6 +175,8 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 			ALLOC_PKT_RECV__MDM_SETTING_VAL recv_buff;
 			static int fail_retry_cnt = 0;
 
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] send pkt [0x%x] - e_mdm_setting_val \r\n", e_mdm_setting_val);
+
 			recv_buff_len = sizeof(recv_buff);
 			memset(&recv_buff, 0x00, recv_buff_len);
 			
@@ -180,7 +188,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 				//printf("recv -------------------------------------------------\r\n");
 				//mds_api_debug_hexdump_buff(&recv_buff, recv_buff_len);
 				//printf("-------------------------------------------------\r\n");
-				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_mdm_setting_val >> SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 				parse_pkt__mdm_setting_val(&recv_buff, network_setting_info.ip, network_setting_info.port);
 				// printf("[ALLOC2 PKT TRANS] evtcode [%d] success!!!", e_mdm_setting_val);
 				fail_retry_cnt = 0;
@@ -189,7 +197,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 			else
 			{
 				fail_retry_cnt++;
-				LOGE(eSVC_MODEL, "[ALLOC2 PKT TRANS] ERROR evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+				LOGE(eSVC_MODEL, "[ALLOC2 PKT TRANS]  e_mdm_setting_val >> ERROR evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 				set_cur_status(e_SEND_TO_SETTING_INFO);
 				send_pkt_ret = -1;
 			}
@@ -209,11 +217,13 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 			recv_buff_len = sizeof(recv_buff);
 			memset(&recv_buff, 0x00, recv_buff_len);
 			
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] send pkt [0x%x] - e_mdm_stat_evt \r\n", e_mdm_stat_evt);
+
 			recv_ret = transfer_packet_recv(&network_setting_info, packet_buf, packet_len, (unsigned char *)&recv_buff, recv_buff_len);
 			
 			if (recv_ret == 0 )
 			{
-				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_mdm_stat_evt >> SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 				//printf("recv -------------------------------------------------\r\n");
 				//mds_api_debug_hexdump_buff(&recv_buff, recv_buff_len);
 				//printf("-------------------------------------------------\r\n");
@@ -222,7 +232,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 			}
 			else
 			{
-				LOGE(eSVC_MODEL, "[ALLOC2 PKT TRANS] ERROR evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+				LOGE(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_mdm_stat_evt >> ERROR evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 				send_pkt_ret = -1;
 			}
 				
@@ -236,21 +246,22 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 			recv_buff_len = sizeof(recv_buff);
 			memset(&recv_buff, 0x00, recv_buff_len);
 			
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] send pkt [0x%x] - e_mdm_gps_info \r\n", e_mdm_gps_info);
+
 			recv_ret = transfer_packet_recv(&network_setting_info, packet_buf, packet_len, (unsigned char *)&recv_buff, recv_buff_len);
 			
-			printf("[ALLOC2 PKT TRANS] evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 			if (recv_ret == 0 )
 			{
 				//printf("recv -------------------------------------------------\r\n");
 				//mds_api_debug_hexdump_buff(&recv_buff, recv_buff_len);
 				//printf("-------------------------------------------------\r\n");
-				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_mdm_gps_info >> SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 				parse_pkt__mdm_gps_info(&recv_buff);
 				send_pkt_ret = 0;
 			}
 			else
 			{
-				LOGE(eSVC_MODEL, "[ALLOC2 PKT TRANS] ERROR evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+				LOGE(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_mdm_gps_info >>  ERROR evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 				send_pkt_ret = -1;
 			}
 
@@ -263,6 +274,8 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 			recv_buff_len = sizeof(recv_buff);
 			memset(&recv_buff, 0x00, recv_buff_len);
 			
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] send pkt [0x%x] - e_obd_dev_info \r\n", e_obd_dev_info);
+
 			recv_ret = transfer_packet_recv(&network_setting_info, packet_buf, packet_len, (unsigned char *)&recv_buff, recv_buff_len);
 			
 			if (recv_ret == 0 )
@@ -270,13 +283,13 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 				//printf("recv -------------------------------------------------\r\n");
 				//mds_api_debug_hexdump_buff(&recv_buff, recv_buff_len);
 				//printf("-------------------------------------------------\r\n");
-				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_obd_dev_info >> SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 				parse_pkt__obd_dev_info(&recv_buff);
 				send_pkt_ret = 0;
 			}
 			else
 			{
-				LOGE(eSVC_MODEL, "[ALLOC2 PKT TRANS] ERROR evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+				LOGE(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_obd_dev_info >> ERROR evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 				send_pkt_ret = -1;
 			}
 
@@ -289,7 +302,9 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 
 			recv_buff_len = sizeof(recv_buff);
 			memset(&recv_buff, 0x00, recv_buff_len);
-			
+
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] send pkt [0x%x] - e_obd_stat \r\n", e_obd_stat);
+
 			recv_ret = transfer_packet_recv(&network_setting_info, packet_buf, packet_len, (unsigned char *)&recv_buff, recv_buff_len);
 			
 			if (recv_ret == 0 )
@@ -297,13 +312,13 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 				//printf("recv -------------------------------------------------\r\n");
 				//mds_api_debug_hexdump_buff(&recv_buff, recv_buff_len);
 				//printf("-------------------------------------------------\r\n");
-				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_obd_stat >> SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 				parse_pkt__obd_stat(&recv_buff);
 				send_pkt_ret = 0;
 			}
 			else
 			{
-				LOGE(eSVC_MODEL, "[ALLOC2 PKT TRANS] ERROR evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+				LOGE(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_obd_stat >> ERROR evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 				send_pkt_ret = -1;
 			}
 
@@ -317,6 +332,8 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 			recv_buff_len = sizeof(recv_buff);
 			memset(&recv_buff, 0x00, recv_buff_len);
 			
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] send pkt [0x%x] - e_obd_data \r\n", e_obd_data);
+
 			recv_ret = transfer_packet_recv(&network_setting_info, packet_buf, packet_len, (unsigned char *)&recv_buff, recv_buff_len);
 			
 			if (recv_ret == 0 )
@@ -324,7 +341,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 				//printf("recv -------------------------------------------------\r\n");
 				//mds_api_debug_hexdump_buff(&recv_buff, recv_buff_len);
 				//printf("-------------------------------------------------\r\n");
-				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_obd_data >> SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 
 				parse_pkt__obd_data(&recv_buff);
 
@@ -332,7 +349,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 			}
 			else
 			{
-				LOGE(eSVC_MODEL, "[ALLOC2 PKT TRANS] ERROR evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+				LOGE(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_obd_data >> ERROR evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 				send_pkt_ret = -1;
 			}
 
@@ -391,7 +408,32 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 		}
     	case e_firm_info : // 0x71 : 펌웨어 정보
 		{
-			send_pkt_ret = 0;
+			ALLOC_PKT_RECV__FIRMWARE_INFO recv_buff;
+
+			recv_buff_len = sizeof(recv_buff);
+			memset(&recv_buff, 0x00, recv_buff_len);
+			
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] send pkt [0x%x] - e_firm_info \r\n", e_firm_info);
+
+			recv_ret = transfer_packet_recv(&network_setting_info, packet_buf, packet_len, (unsigned char *)&recv_buff, recv_buff_len);
+			
+			if (recv_ret == 0 )
+			{
+				//printf("recv -------------------------------------------------\r\n");
+				//mds_api_debug_hexdump_buff(&recv_buff, recv_buff_len);
+				//printf("-------------------------------------------------\r\n");
+				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_firm_info >> SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+
+				parse_pkt__firm_info(&recv_buff);
+
+				send_pkt_ret = 0;
+			}
+			else
+			{
+				LOGE(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_firm_info >> ERROR evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+				send_pkt_ret = -1;
+			}
+
 			break;
 		}
     	case e_firm_update : // 0x72 : 펌웨어 업데이트
@@ -411,11 +453,13 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 			recv_buff_len = sizeof(recv_buff);
 			memset(&recv_buff, 0x00, recv_buff_len);
 			
+			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] send pkt [0x%x] - e_sms_recv_info \r\n", e_sms_recv_info);
+
 			recv_ret = transfer_packet_recv(&network_setting_info, packet_buf, packet_len, (unsigned char *)&recv_buff, recv_buff_len);
 			
 			if (recv_ret == 0 )
 			{
-				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_sms_recv_info >> SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 				//printf("recv -------------------------------------------------\r\n");
 				//mds_api_debug_hexdump_buff(&recv_buff, recv_buff_len);
 				//printf("-------------------------------------------------\r\n");
@@ -424,7 +468,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 			}
 			else
 			{	
-				LOGE(eSVC_MODEL, "[ALLOC2 PKT TRANS] ERROR evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
+				LOGE(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_sms_recv_info >> ERROR evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 				send_pkt_ret = -1;
 			}
 				

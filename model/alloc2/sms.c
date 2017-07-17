@@ -22,6 +22,10 @@
 
 #include <mdsapi/mds_api.h>
 
+#include "alloc2_obd_mgr.h"
+#include "alloc2_bcm_mgr.h"
+#include "alloc2_daily_info.h"
+
 #define SMS_CMD_ALLOC2_RET_SUCCESS		0
 #define SMS_CMD_ALLOC2_RET_FAIL			1
 #define SMS_CMD_ALLOC2_RET_REQ_RESET	2
@@ -210,6 +214,9 @@ static int _sms_cmd_proc_set__engine_off(int argc, char* argv[], const char* pho
 	if ( mds_api_check_is_num(argv[1], strlen(argv[1])) != DEFINES_MDS_API_OK )
 		return SMS_CMD_ALLOC2_RET_FAIL;
 
+	if ( get_car_ctrl_enable() == CAR_CTRL_DISABLE ) 
+		return SMS_CMD_ALLOC2_RET_FAIL;
+
 	opt_val = atoi(argv[1]);
 
 	// 시동차단과 관련해서는 아직 동작이 불가능하다.
@@ -363,6 +370,9 @@ static int _sms_cmd_proc_set__bcm_door_lock(int argc, char* argv[], const char* 
 	if ( mds_api_check_is_num(argv[1], strlen(argv[1])) != DEFINES_MDS_API_OK )
 		return SMS_CMD_ALLOC2_RET_FAIL;
 
+	if ( get_car_ctrl_enable() == CAR_CTRL_DISABLE ) 
+		return SMS_CMD_ALLOC2_RET_FAIL;
+		
 	opt_val = atoi(argv[1]);
 	
 	// Door Lock	0
@@ -386,6 +396,9 @@ int opt_val = 0;
 		return SMS_CMD_ALLOC2_RET_FAIL;
 	
 	if ( mds_api_check_is_num(argv[1], strlen(argv[1])) != DEFINES_MDS_API_OK )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+
+	if ( get_car_ctrl_enable() == CAR_CTRL_DISABLE ) 
 		return SMS_CMD_ALLOC2_RET_FAIL;
 
 	opt_val = atoi(argv[1]);
@@ -413,6 +426,9 @@ static int _sms_cmd_proc_set__bcm_horn_on(int argc, char* argv[], const char* ph
 	if ( mds_api_check_is_num(argv[1], strlen(argv[1])) != DEFINES_MDS_API_OK )
 		return SMS_CMD_ALLOC2_RET_FAIL;
 
+	if ( get_car_ctrl_enable() == CAR_CTRL_DISABLE ) 
+		return SMS_CMD_ALLOC2_RET_FAIL;
+
 	opt_val = atoi(argv[1]);
 	
 	// Door Lock	0
@@ -438,6 +454,9 @@ static int _sms_cmd_proc_set__bcm_light_on(int argc, char* argv[], const char* p
 	if ( mds_api_check_is_num(argv[1], strlen(argv[1])) != DEFINES_MDS_API_OK )
 		return SMS_CMD_ALLOC2_RET_FAIL;
 
+	if ( get_car_ctrl_enable() == CAR_CTRL_DISABLE ) 
+		return SMS_CMD_ALLOC2_RET_FAIL;
+
 	opt_val = atoi(argv[1]);
 	
 	// Door Lock	0
@@ -450,6 +469,36 @@ static int _sms_cmd_proc_set__bcm_light_on(int argc, char* argv[], const char* p
 		return SMS_CMD_ALLOC2_RET_FAIL;
 
 	return SMS_CMD_ALLOC2_RET_SUCCESS;
+}
+
+
+static int _sms_cmd_proc_set__obd_total_distance(int argc, char* argv[], const char* phonenum)
+{
+	int opt_val = 0;
+	int cmd_retry_cnt = 10;
+
+	if ( argc != 2 )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+	
+	if ( mds_api_check_is_num(argv[1], strlen(argv[1])) != DEFINES_MDS_API_OK )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+
+	
+	alloc2_obd_mgr__set_cmd_proc(SECO_OBD_CMD_TYPE__SET_DISTANCE, argv[1]);
+
+	while(cmd_retry_cnt--)
+	{
+		if ( alloc2_obd_mgr__get_cmd_proc_result(SECO_OBD_CMD_TYPE__SET_DISTANCE) == SECO_OBD_CMD_RET__SUCCESS )
+		{
+			printf(" >>>> sms proc :: set obd distance success!! \r\n");
+			return SMS_CMD_ALLOC2_RET_SUCCESS;
+		}
+		sleep(1);
+	}
+
+	printf(" >>>> sms proc :: set obd distance fail!! \r\n");
+	return SMS_CMD_ALLOC2_RET_FAIL;
+
 }
 
 static SMS_CMD_FUNC_T sms_cmd_func[] =
@@ -473,7 +522,7 @@ static SMS_CMD_FUNC_T sms_cmd_func[] =
     {eSMS_CMD_SET__MDM_RESET, "&60", _sms_cmd_proc_set__req_mdm_reset},  // 단말기 재부팅 명령	0
     {eSMS_CMD_SET__OBD_REPORT_KEY_ON_INTERVAL, "&71", _sms_cmd_proc_set__obd_keyon_report_interval},  // OBD정보 보고 주기 설정 (IG1 On)	1 ~ 7200 secs
     {eSMS_CMD_SET__OBD_REPORT_KEY_OFF_INTERVAL, "&72", _sms_cmd_proc_set__obd_keyoff_report_interval},  // OBD정보 보고 주기 설정 (IG1 Off)	1 ~ 7200 secs
-    {eSMS_CMD_SET__OBD_TOTAL_DISTANCE_SET, "&73", _sms_cmd_proc_set__dummy_test_fail},  // OBD기반 누적거리 설정	meter단위
+    {eSMS_CMD_SET__OBD_TOTAL_DISTANCE_SET, "&73", _sms_cmd_proc_set__obd_total_distance},  // OBD기반 누적거리 설정	meter단위
     {eSMS_CMD_SET__BCM_DOOR_LOCK, "&81", _sms_cmd_proc_set__bcm_door_lock},  // Door Lock	0
     {eSMS_CMD_SET__BCM_DOOR_UNLOCK, "&82", _sms_cmd_proc_set__bcm_door_unlock},  // Door Unlock	0
     {eSMS_CMD_SET__BCM_HORN, "&83", _sms_cmd_proc_set__bcm_horn_on},  // Horn	0

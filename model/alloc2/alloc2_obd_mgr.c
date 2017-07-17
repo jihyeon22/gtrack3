@@ -6,6 +6,8 @@
 #include <fcntl.h>
 #include <pthread.h>
 
+#include <base/devel.h>
+#include <base/sender.h>
 #include <base/sender.h>
 #include <util/tools.h>
 #include <util/list.h>
@@ -23,7 +25,7 @@
 
 static SECO_OBD_INFO_T g_seco_obd_info = {0,};
 static SECO_OBD_DATA_T g_cur_seco_obd_data = {0,};
-
+static SECO_OBD_RUN_CMD_MGR_T g_obd_run_mgr;
 
 static pthread_mutex_t obd_data_mutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -34,6 +36,8 @@ int alloc2_obd_mgr__init()
     char tmp_buff[512] = {0,};
     //int ret = 0;
     // 먼저 시리얼들을 갖고온다.
+
+    memset(&g_obd_run_mgr, 0x00, sizeof(g_obd_run_mgr));
 
     for ( i = 0 ; i < OBD_CMD_RETRY_CNT ; i++ )
     {
@@ -86,7 +90,7 @@ int alloc2_obd_mgr__init()
     g_seco_obd_info.obd_stat = 1;
 
     alloc2_obd_mgr__obd_broadcast_start();
-
+    
     return 0;
 }
 
@@ -130,6 +134,10 @@ int alloc2_obd_mgr__chk_fail_proc()
     obd_stat_arg.obd_fuel_type = 0;;
     obd_stat_arg.obd_remain_fuel = 0;;
 
+    pthread_mutex_lock(&obd_data_mutex);
+    memset(&g_cur_seco_obd_data, 0x00, sizeof(SECO_OBD_DATA_T));
+    pthread_mutex_unlock(&obd_data_mutex);
+
     sender_add_data_to_buffer(e_obd_stat, &obd_stat_arg, ePIPE_2);
 
     init_seco_obd_mgr("/dev/ttyHSL1", 115200, alloc2_obd_mgr__obd_broadcast_proc);
@@ -143,6 +151,7 @@ int alloc2_obd_mgr__obd_broadcast_proc(const int argc, const char* argv[])
     static int fail_cnt = 0;
 
     SECO_OBD_DATA_T tmp_cur_seco_obd_data = {0,};
+    static unsigned int valid_fuel_remain = 0;
 
     if ( ( argc == 0) || ( argc != 8 ))
     {
@@ -188,7 +197,14 @@ broadcast value : [6]/[7] => [X]
 
     // 0 : FLI : 연료잔량
     {
-        tmp_cur_seco_obd_data.obd_data_fuel_remain = atoi(argv[0]);
+        int cur_fuel_remain = atoi(argv[0]);
+
+        if ( cur_fuel_remain > 0 )
+            valid_fuel_remain = cur_fuel_remain;
+            
+        tmp_cur_seco_obd_data.obd_data_fuel_remain = valid_fuel_remain;
+
+
         //printf("tmp_cur_seco_obd_data.obd_data_fuel_remain is [%d]\r\n",tmp_cur_seco_obd_data.obd_data_fuel_remain);
     }
     // 1 : RPM : RPM
@@ -238,3 +254,73 @@ broadcast value : [6]/[7] => [X]
     //printf("alloc2_obd_mgr__obd_broadcast_proc end ======================================\r\n");
     return 0;
 }
+
+
+
+int alloc2_obd_mgr__set_cmd_proc(int cmd_id, char* cmd_arg)
+{
+    g_obd_run_mgr.cmd_type[cmd_id] = SECO_OBD_CMD_RUN;
+    strcpy( g_obd_run_mgr.cmd_arg[cmd_id], cmd_arg);
+
+    return 0;
+}
+
+int alloc2_obd_mgr__clr_cmd_proc(int cmd_id)
+{
+    g_obd_run_mgr.cmd_type[cmd_id] = SECO_OBD_CMD_NOT_RUN;
+    memset(g_obd_run_mgr.cmd_arg[cmd_id], 0x00, SECO_OBD_CMD_ARG_LEN);
+    g_obd_run_mgr.cmd_result[cmd_id] = SECO_OBD_CMD_RET__NONE;
+
+    return 0;
+}
+
+
+int alloc2_obd_mgr__get_cmd_proc_result(int cmd_id)
+{
+    int ret = g_obd_run_mgr.cmd_result[cmd_id];
+    //alloc2_obd_mgr__clr_cmd_proc(cmd_id);
+    return ret;
+}
+
+int alloc2_obd_mgr__run_cmd_proc()
+{
+    int i = 0;
+    
+    for ( i = 0 ; i < SECO_OBD_CMD_TOTAL_CNT ; i ++ )
+    {
+        if ( g_obd_run_mgr.cmd_type[i] == SECO_OBD_CMD_RUN )
+            break;
+    }
+
+    switch(i)
+    {
+        case SECO_OBD_CMD_TYPE__SET_DISTANCE:
+        {
+  			
+
+            alloc2_obd_mgr__obd_broadcast_stop();
+            if ( set_seco_obd_1_total_distance(atoi(g_obd_run_mgr.cmd_arg[i])) == OBD_RET_SUCCESS )
+            {
+                g_obd_run_mgr.cmd_result[i] = SECO_OBD_CMD_RET__SUCCESS;
+                LOGI(eSVC_MODEL, "[ALLOC2 CMD PROC] SECO_OBD_CMD_TYPE__SET_DISTANCE - DISTANCE [%d] - SUCCESS \r\n", atoi(g_obd_run_mgr.cmd_arg[i]));
+            }
+            else
+            {
+                g_obd_run_mgr.cmd_result[i] = SECO_OBD_CMD_RET__FAIL;
+                LOGI(eSVC_MODEL, "[ALLOC2 CMD PROC] SECO_OBD_CMD_TYPE__SET_DISTANCE - DISTANCE [%d] - FAIL \r\n", atoi(g_obd_run_mgr.cmd_arg[i]));
+            }
+
+            alloc2_obd_mgr__obd_broadcast_start();
+
+            g_obd_run_mgr.cmd_type[i] = SECO_OBD_CMD_NOT_RUN; // 처리했으니 클리어
+            
+            break;
+        }
+        default :
+            break;
+
+    }
+
+    return 0;
+}
+

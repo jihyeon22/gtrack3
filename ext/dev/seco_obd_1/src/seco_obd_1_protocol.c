@@ -340,6 +340,55 @@ int get_seco_obd_1_serial(char* buff)
 }
 
 
+int set_seco_obd_1_total_distance(int total_distance)
+{   
+    char ret_buff[MAX_RET_BUFF_SIZE] = {0,};
+    char cmd_data[128] ={0,};
+
+	int error_code = 0;
+    int read_cnt = 0;
+    
+//    int i =0;
+    char* argv[20] = {0,};
+    int argc = 0;
+    // common obd check ...
+    {
+        int obdchk_ret = 0;
+        obdchk_ret = _seco_obd_uart_chk();
+        if (obdchk_ret != OBD_RET_SUCCESS)
+        {
+            LOGE(eSVC_MODEL,"[OBD API] %s()-[%d] obd init fail[%d]\r\n",__func__,__LINE__,obdchk_ret);
+            return obdchk_ret;
+        }
+    }
+    LOGT(eSVC_MODEL,"[OBD API] %s()-[%d] start \r\n",__func__,__LINE__);
+
+    sprintf(cmd_data, "%d",total_distance);
+    read_cnt = seco_obd_1_write_cmd_resp("OBD+INF+", "TDD", eCMD_TYPE_INPUT_VALUE, cmd_data, ret_buff, &error_code);
+        
+    if ( read_cnt < 0 )
+    {
+        LOGE(eSVC_MODEL,"[OBD API] %s()-[%d] send cmd fail [%d]\r\n",__func__,__LINE__,read_cnt);
+        return OBD_RET_FAIL;
+    }
+
+    argc = _seco_obd_1_device_argument(ret_buff, read_cnt, argv);
+    
+    if ( argc <= 0 )
+    {
+        LOGE(eSVC_MODEL,"[OBD API] %s()-[%d] devide cmd fail [%d]\r\n",__func__,__LINE__,argc);
+        return OBD_RET_FAIL;
+    }
+
+    LOGT(eSVC_MODEL,"[OBD API] %s()-[%d] success : serial [%s]\r\n",__func__,__LINE__,argv[0]);
+    printf("[OBD API] %s()-[%d] success : serial [%s]\r\n",__func__,__LINE__,argv[0]);
+
+    if ( strstr(argv[0],"OK") == NULL )
+        return OBD_RET_FAIL;
+    else
+        return OBD_RET_SUCCESS;
+
+}
 
 int start_seco_obd_1_broadcast_msg(int interval_sec, char* factor_list)
 {   

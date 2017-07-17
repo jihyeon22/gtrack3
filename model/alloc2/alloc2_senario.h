@@ -2,9 +2,10 @@
 #define __ALLOC2_SENARIO_H__
 
 #include "alloc2_pkt.h"
+#include "board/board_system.h"
 
-#define ALLOC2_MDM_SETTING_INFO "/data/mds/data/alloc_mdm_setting.dat"
-#define ALLOC2_OBD_SETTING_INFO "/data/mds/data/alloc_obd_setting.dat"
+#define ALLOC2_MDM_SETTING_INFO CONCAT_STR(USER_DATA_DIR, "/alloc_mdm_setting.dat")
+#define ALLOC2_OBD_SETTING_INFO CONCAT_STR(USER_DATA_DIR, "/alloc_obd_setting.dat")
 
 
 typedef enum {
@@ -40,6 +41,24 @@ int init_keyon_section_distance(int total_distance);
 
 void alloc2_poweroff_proc(char* msg);
 
+#define CAR_CTRL_ENABLE     1
+#define CAR_CTRL_DISABLE    -1
+int set_car_ctrl_enable(int flag);
+int get_car_ctrl_enable();
+
+
+#define SEND_TO_PWR_EVT_OK      1
+#define SEND_TO_PWR_EVT_NOK     -1
+
+#define EVT_TYPE_POWER_ON       1
+#define EVT_TYPE_POWER_OFF      2
+#define EVT_TYPE_IGI_ON         3
+#define EVT_TYPE_IGI_OFF        4
+
+#define NO_SEND_TO_PWR_EVT_FLAG_PATH    CONCAT_STR(USER_DATA_DIR, "/no_send_pwr.dat")
+
+int set_no_send_pwr_evt_reboot();
+int get_no_send_pwr_evt_reboot(int flag);
 
 #endif // __ALLOC2_SENARIO_H__
 

@@ -214,7 +214,7 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
     gps_get_curr_data(&gpsdata);
 
 
-
+    printf("%s()-%d\r\n", __func__, __LINE__);
     // make body..
     //target_pkt.mdm_sn = htonl(_get_phonenum_int_type());
     // ------------------------------------------------
@@ -224,6 +224,7 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
         else 
             target_pkt.car_stat = 1;
     }
+    printf("%s()-%d\r\n", __func__, __LINE__);
     // ------------------------------------------------
     {
         static int last_rssi = 0;
@@ -235,6 +236,7 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
 
         target_pkt.mdm_rssi = cur_rssi;   // (b-1) 모뎀 수신레벨 : rssi
     }
+    printf("%s()-%d\r\n", __func__, __LINE__);
     // ------------------------------------------------
     if ( p_mdm_setting_val == NULL ) 
     {
@@ -246,12 +248,15 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
         target_pkt.key_on_gps_report_interval = p_mdm_setting_val->key_on_gps_report_interval;    // (b-2) ig on gps 정보보고 시간설정(초단위) 운행시
         target_pkt.key_off_gps_report_interval = p_mdm_setting_val->key_off_gps_report_interval;    // (b-2) ig off gps 정보보고 시간설정(초단위) 비운행시
     }
-    target_pkt.low_batt_voltage = 0;    // (b-1) 저전압설정 : 0.1v 단위 설정
-    target_pkt.warnning_horn_cnt = 0;    // (b-1) 경적횟수 : 1~10
-    target_pkt.warnning_light_cnt = 0;   // (b-1) 비상등횟수
-    target_pkt.over_speed_limit_km = 0;     // (b-1) 과속 기준속도 : km/h
-    target_pkt.over_speed_limit_time = 0;     // (b-1) 과속 과속기준시간 secs
+    printf("%s()-%d\r\n", __func__, __LINE__);
+    target_pkt.low_batt_voltage = p_mdm_setting_val->low_batt_voltage;    // (b-1) 저전압설정 : 0.1v 단위 설정
+    target_pkt.warnning_horn_cnt = p_mdm_setting_val->warnning_horn_cnt;    // (b-1) 경적횟수 : 1~10
+    target_pkt.warnning_light_cnt = p_mdm_setting_val->warnning_light_cnt;   // (b-1) 비상등횟수
+    target_pkt.over_speed_limit_km = p_mdm_setting_val->over_speed_limit_km;     // (b-1) 과속 기준속도 : km/h
+    target_pkt.over_speed_limit_time = p_mdm_setting_val->over_speed_limit_time;     // (b-1) 과속 과속기준시간 secs
+
     // ------------------------------------------------
+    printf("%s()-%d\r\n", __func__, __LINE__);
     {
         if ( power_get_power_source() == POWER_SRC_DC )
             target_pkt.main_pwr = 0; // (b-1) 주전원 유형 : 0 상시전원 , 1 내장배터리
@@ -262,7 +267,7 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
     target_pkt.always_pwr_stat = 0; // (b-1) 상시전원상태 : 0 : 정상 1 : 저전압 2 : 탈거
     // ------------------------------------------------
     {
-        target_pkt.mdm_reset_interval = 0; // (b-2) 단말주기적 리셋시간 : 03:20 에 리셋시에는 320
+        target_pkt.mdm_reset_interval = p_mdm_setting_val->mdm_reset_interval; // (b-2) 단말주기적 리셋시간 : 03:20 에 리셋시에는 320
         
     }
     // ------------------------------------------------
@@ -280,12 +285,15 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
                 target_pkt.mdm_gps_stat = 1;
         }
     }
+    printf("%s()-%d\r\n", __func__, __LINE__);
     // ------------------------------------------------
+    printf("%s()-%d\r\n", __func__, __LINE__);
     {
         int car_voltage = 0;
         at_get_adc_main_pwr(&car_voltage);
         target_pkt.car_batt_volt = car_voltage*10; // (b-2) 차량배터리전압 : 0.1 volt 단위
     }
+    printf("%s()-%d\r\n", __func__, __LINE__);
     // ------------------------------------------------
     {
         int internal_batt = 0;
@@ -294,8 +302,13 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
     }
     target_pkt.car_start_stop = 0; // (b-1) 시동차단여부 : 0: 정상 1: 시동차단중
     target_pkt.event_code = evt_code; // (b-2) 발생 이벤트 code : 
-    target_pkt.over_speed_cnt = 0; // (b-2) 과속횟수 
-
+    printf("%s()-%d\r\n", __func__, __LINE__);
+    {
+        ALLOC2_DAILY_OVERSPEED_MGR_T cur_over_speed_info;
+        get_overspeed_info(&cur_over_speed_info);
+        target_pkt.over_speed_cnt = cur_over_speed_info.over_speed_cnt;     // (b-1) 과속 과속기준시간 secs
+    }
+    printf("%s()-%d\r\n", __func__, __LINE__);
 
     printf("target_pkt.car_stat [%d]\r\n", target_pkt.car_stat);
     printf("target_pkt.mdm_rssi [%d]\r\n", target_pkt.mdm_rssi);
@@ -870,8 +883,6 @@ int make_pkt__sms_recv_info(unsigned char **pbuf, unsigned short *packet_len, AL
 }
 
 
-
-
 int parse_pkt__sms_recv_info(ALLOC_PKT_RECV__SMS_RECV_INFO* recv_buff)
 {
     LOGT(eSVC_MODEL, "%s() START\r\n", __func__);
@@ -889,4 +900,85 @@ int parse_pkt__sms_recv_info(ALLOC_PKT_RECV__SMS_RECV_INFO* recv_buff)
 
     return 0;
 }
+
+
+
+// ============================================================================================
+// e_firm_info = 0x71, // 0x71 : 펌웨어 정보
+// ============================================================================================
+int make_pkt__firmware_info(unsigned char **pbuf, unsigned short *packet_len)
+{
+    ALLOC_PKT_SEND__FIRMWARE_INFO target_pkt;
+
+    int pkt_total_len = sizeof(target_pkt);
+    int pkt_id_code = e_firm_info;
+
+    unsigned char *packet_buf;
+    memset(&target_pkt, 0x00, pkt_total_len);
+
+    LOGT(eSVC_MODEL, "%s() START\r\n", __func__);
+
+    // make header
+    _make_common_header(&target_pkt.header, pkt_total_len, pkt_id_code);
+
+    // make body..
+    //target_pkt.mdm_sn = htonl(_get_phonenum_int_type());
+
+    strcpy(target_pkt.firm_mdm_ver, PRG_VER);
+    printf(" firm info -> mdm ver : [%s]\r\n", target_pkt.firm_mdm_ver);
+    {
+        SECO_OBD_INFO_T obd_info;
+        alloc2_obd_mgr__get_obd_dev_info(&obd_info);
+        strcpy(target_pkt.firm_obd_ver, obd_info.obd_swver);
+        printf(" firm info -> obd ver : [%s]\r\n", target_pkt.firm_obd_ver);
+    }
+    //target_pkt->firm_car_code;
+    //target_pkt->firm_car_code_version;
+    //target_pkt->firm_allkey_ver;
+    //target_pkt->firm_bcm_ver;
+    //target_pkt->firm_dtg_ver;
+    //target_pkt->reserved;
+
+    // alloc memory .. ---------------------------------------
+    *packet_len = pkt_total_len;
+    packet_buf = (unsigned char *)malloc(*packet_len);
+
+    if(packet_buf == NULL)
+	{
+		printf("malloc fail\n");
+		return -1;
+	}
+
+    memset(packet_buf, 0, pkt_total_len);
+	*pbuf = packet_buf;
+
+    memcpy(packet_buf, &target_pkt, pkt_total_len);
+
+   // printf("%s() => evt [%d] dump pkt -------------------------------------------------\r\n", __func__, pkt_id_code);    mds_api_debug_hexdump_buff(packet_buf, pkt_total_len);
+   // mds_api_debug_hexdump_buff(packet_buf, pkt_total_len);
+   // printf("------------------------------------------------------\r\n");
+
+    return 0;
+
+}
+
+
+int parse_pkt__firm_info(ALLOC_PKT_SEND__FIRMWARE_INFO* recv_buff)
+{
+    LOGT(eSVC_MODEL, "%s() START\r\n", __func__);
+    
+    printf("parse_pkt__firm_info ----------------------------------------------------------\r\n");
+    printf("recv_buff->header.pkt_total_len => [%d]\r\n", recv_buff->header.pkt_total_len);
+    printf("recv_buff->header.mdm_phonenum => [%d]\r\n", recv_buff->header.mdm_phonenum);
+    printf("recv_buff->header.time_stamp => [%d]\r\n", recv_buff->header.time_stamp);
+    printf("recv_buff->header.msg_type => [%d]\r\n", recv_buff->header.msg_type);
+    printf("recv_buff->header.reserved => [0x%x]\r\n", recv_buff->header.reserved);
+
+    printf("recv_buff->reserved => [0x%s]\r\n", recv_buff->reserved);
+
+    printf("parse_pkt__firm_info ----------------------------------------------------------\r\n");
+
+    return 0;
+}
+
 

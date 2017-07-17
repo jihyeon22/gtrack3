@@ -22,6 +22,33 @@ typedef struct {
     unsigned int obd_data_panel_distance; // 계기판누적거리
 }SECO_OBD_DATA_T;
 
+
+#define SECO_OBD_CMD_TOTAL_CNT              10
+#define SECO_OBD_CMD_ARG_LEN                64
+
+#define SECO_OBD_CMD_RUN        1
+#define SECO_OBD_CMD_NOT_RUN    -1
+
+#define SECO_OBD_CMD_TYPE__NONE             0
+#define SECO_OBD_CMD_TYPE__SET_DISTANCE     1
+
+#define SECO_OBD_CMD_RET__NONE           0
+#define SECO_OBD_CMD_RET__FAIL           1
+#define SECO_OBD_CMD_RET__SUCCESS        2
+
+typedef struct {
+    unsigned int cmd_type[SECO_OBD_CMD_TOTAL_CNT];
+    char cmd_arg[SECO_OBD_CMD_TOTAL_CNT][SECO_OBD_CMD_ARG_LEN];
+    unsigned int cmd_result[SECO_OBD_CMD_TOTAL_CNT];
+}SECO_OBD_RUN_CMD_MGR_T;
+
+int alloc2_obd_mgr__set_cmd_proc(int cmd_id, char* cmd_arg);
+int alloc2_obd_mgr__clr_cmd_proc(int cmd_id);
+int alloc2_obd_mgr__get_cmd_proc_result(int cmd_id);
+int alloc2_obd_mgr__run_cmd_proc();
+
+
+
 // 브로드 캐스트 메시지처리부분
 int alloc2_obd_mgr__obd_broadcast_proc(const int argc, const char* argv[]);
 int alloc2_obd_mgr__obd_broadcast_start();

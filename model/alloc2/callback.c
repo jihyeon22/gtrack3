@@ -88,6 +88,7 @@ void button2_callback(void)
 {
 	//allkey_bcm_ctr__door_lock(0);
 	printf("gtrack calback ::: button2_callback !!!\r\n");
+	set_no_send_pwr_evt_reboot();
 }
 
 void ignition_on_callback(void)
@@ -98,9 +99,15 @@ void ignition_on_callback(void)
 
 	int evt_code = e_evt_code_igi_on;
 	
-	sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
-	sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
+	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_IGI_ON) == SEND_TO_PWR_EVT_OK )
+	{
+		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
+		sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
+	}
+	else
+		LOGE(eSVC_MODEL, "NEED TO IGI_ON EVT : BUT SKIP\r\n");
 
+	sender_add_data_to_buffer(e_firm_info, NULL, ePIPE_2);
 }
 
 void ignition_off_callback(void)
@@ -110,8 +117,13 @@ void ignition_off_callback(void)
 
 	int evt_code = e_evt_code_igi_off;
 
-	sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
-	sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
+	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_IGI_OFF) == SEND_TO_PWR_EVT_OK )
+	{
+		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
+		sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
+	}
+	else
+		LOGE(eSVC_MODEL, "NEED TO IGI_OFF EVT : BUT SKIP\r\n");
 
 }
 
@@ -119,9 +131,14 @@ void power_on_callback(void)
 {	
 	int evt_code = e_evt_code_poweron;
 
-	sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
-	sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
-
+	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_POWER_ON) == SEND_TO_PWR_EVT_OK )
+	{
+		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
+		sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
+	}
+	else
+		LOGE(eSVC_MODEL, "NEED TO POWER_ON EVT : BUT SKIP\r\n");
+		
 	printf("gtrack calback ::: power_on_callback !!!\r\n");
 
 }
@@ -130,10 +147,14 @@ void power_off_callback(void)
 {
 	int evt_code = e_evt_code_poweroff;
 
-	//if ( get_cur_status() > e_SEND_TO_SETTING_INFO_ING )
-	sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
-	sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
-
+	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_POWER_OFF) == SEND_TO_PWR_EVT_OK )
+	{
+		//if ( get_cur_status() > e_SEND_TO_SETTING_INFO_ING )
+		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
+		sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
+	}
+	else
+		LOGE(eSVC_MODEL, "NEED TO POWER_OFF EVT : BUT SKIP\r\n");
 
 	printf("gtrack calback ::: power_off_callback !!!\r\n");
 	alloc2_poweroff_proc("poweroff callback");
@@ -187,6 +208,12 @@ void gps_parse_one_context_callback(void)
 	}
 */
 
+	if ( ( gpsdata.active == 1 ) && (gpsdata.speed > 30) )
+		set_car_ctrl_enable(CAR_CTRL_DISABLE);
+	else
+		set_car_ctrl_enable(CAR_CTRL_ENABLE);
+
+
 	if ( p_mdm_setting_val != NULL ) // always send to server..
 	{
 		keyon_send_interval = p_mdm_setting_val->key_on_gps_report_interval;
@@ -202,6 +229,7 @@ void gps_parse_one_context_callback(void)
 
 	current_time_sec = (gpsdata.hour*10000) + (gpsdata.min*100) + gpsdata.sec;
 
+	set_overspeed_info(&gpsdata);
 	// if (!( gps_run_cnt % DEBUG_LOG_PRINT_INTERVAL ))
 	//	LOGT(eSVC_MODEL,"[GPS THREAD] senario stat [%d] / cur time [%d] / reset target [%d]\r\n", current_senario, current_time_sec, reset_target_sec);
 	 
@@ -220,14 +248,17 @@ void gps_parse_one_context_callback(void)
 	// 무조건 0보다 클때 리셋하면 계속 리셋하겄지? 그래서 20초 차이날때만 리셋 
 	if ( ( reset_target_sec > 0 ) && ( (current_time_sec - reset_target_sec) > 0 ) && ( (current_time_sec - reset_target_sec) < RESET_TARGET_TIME_DIFF_SEC ) )
 	{
-		if ( need_to_reset_senario == 0 )
+		if ( need_to_reset_senario == 0 ) 
 		{
-			int evt_code = e_evt_code_mdm_reset;
 			need_to_reset_senario = 1;
-			sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
-			sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
-			alloc2_poweroff_proc("senario power off");
+
+			if ( ( gpsdata.speed == 0 ) && ( model_ignition_stat == 0 ) )
+				set_no_send_pwr_evt_reboot();
+			else
+				LOGE(eSVC_MODEL, "NEED TO RESET BUT SKIP: spd[%d], igi[%d]\r\n",gpsdata.speed, model_ignition_stat);
 		}
+
+		
 	}
 	
 	gps_run_cnt++;
@@ -287,6 +318,7 @@ void gps_parse_one_context_callback(void)
 void main_loop_callback(void)
 {
 	int main_loop_cnt = 0;
+	int no_send_pwr_evt_flag_clr = 0;
 	int keyon_obd_send_interval = 0;
 	int keyoff_obd_send_interval = 0;
 	int report_obd_interval = 0;
@@ -306,7 +338,7 @@ void main_loop_callback(void)
 		ALLOC_PKT_RECV__OBD_DEV_INFO* p_obd_dev_info = NULL;
  		
 		main_loop_cnt ++;
-
+		no_send_pwr_evt_flag_clr ++;
 		// -----------------------------------------------------------
 		// hw check
 		// -----------------------------------------------------------
@@ -370,8 +402,14 @@ void main_loop_callback(void)
 			main_loop_cnt = 0;
 		}
 
+		alloc2_obd_mgr__run_cmd_proc();
+
 		watchdog_set_cur_ktime(eWdMain);
 		watchdog_process();
+
+		// 부팅한지 30초가 지나면 기존의 no send pwr 플래그는 강제로 지운다.
+		if ( no_send_pwr_evt_flag_clr == 30 )
+			clr_no_send_pwr_evt_reboot();
 		sleep(1);
 	}
 }

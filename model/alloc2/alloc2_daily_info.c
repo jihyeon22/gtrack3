@@ -5,8 +5,18 @@
 #include <unistd.h>
 #include <fcntl.h>
 
+#ifdef USE_GPS_MODEL
+#include <base/gpstool.h>
+#include <base/mileage.h>
+#endif
+#include <util/tools.h>
 #include <logd_rpc.h>
 
+
+#include "alloc2_pkt.h"
+#include "alloc2_senario.h"
+#include "alloc2_obd_mgr.h"
+#include "alloc2_bcm_mgr.h"
 #include "alloc2_daily_info.h"
 
 typedef struct daliy_car_info
@@ -18,6 +28,8 @@ typedef struct daliy_car_info
 
 static daliy_car_info_t 	g_daliy_car_info = {0,};
 
+static ALLOC2_DAILY_OVERSPEED_MGR_T g_over_speed_mgr;
+
 // -----------------------------------------
 // daily info.
 // -----------------------------------------
@@ -25,6 +37,7 @@ int alloc2_init_car_daily_info()
 {
 	daliy_car_info_t tmp_daliy_car_info = {0,};
 	int ret;
+	int i = 0;
 	
 	memset(&g_daliy_car_info, 0x00, sizeof(daliy_car_info_t));
 	
@@ -44,6 +57,11 @@ int alloc2_init_car_daily_info()
 	printf("g_daliy_car_info.trip = [%d]\r\n",g_daliy_car_info.total_distance);
 	printf(" --------- car daliy info ---------------\r\n");
 	
+	memset(&g_over_speed_mgr, 0x00, sizeof(g_over_speed_mgr));
+
+	for ( i = 0 ; i < SECO_OBD_CMD_TOTAL_CNT ; i ++ )
+		alloc2_obd_mgr__clr_cmd_proc(i);
+		
 	return 0;
 }
 
@@ -91,6 +109,77 @@ int get_daily_info__daily_distance(int total_disatance)
 	return daily_distance;
 }
 
+
+
+
+// 본 펑셔는 초당 불려야한다.
+int set_overspeed_info(gpsData_t* gps_info)
+{
+	int use_obd_flag = 0;
+	int cur_speed = 0;
+
+	static int saved_over_speed_cnt = 0;
+
+	int setting_over_speed;
+	int setting_over_speed_cnt;
+
+	SECO_OBD_DATA_T cur_obd_data;
+
+	ALLOC_PKT_RECV__MDM_SETTING_VAL* cur_mdm_setting = get_mdm_setting_val();
+
+	memset(&cur_obd_data, 0x00, sizeof(cur_obd_data));
+
+	if ( cur_mdm_setting == NULL)
+		return ALLOC2_DAILY_INFO_FAIL;
+	
+	if ( gps_info == NULL )
+		return ALLOC2_DAILY_INFO_FAIL;
+
+	setting_over_speed = cur_mdm_setting->over_speed_limit_km;
+	setting_over_speed_cnt = cur_mdm_setting->over_speed_limit_time;
+
+	alloc2_obd_mgr__get_cur_obd_data(&cur_obd_data);
+
+	// obd 속도가 있으면 obd 속도계를 사용한다.
+	if ( cur_obd_data.obd_data_car_speed > 0 )
+		use_obd_flag = 1;
+	
+	if ( use_obd_flag == 1 )
+		cur_speed = cur_obd_data.obd_data_car_speed;
+	else
+		cur_speed = gps_info->speed;
+	
+	/*
+	printf("cur over speed info :: o-spd [%d] , g-spd [%d], spd [%d]\r\n",
+			cur_obd_data.obd_data_car_speed,  gps_info->speed, 
+			setting_over_speed);
+
+	printf("cur over speed info :: cur cnt [%d]/[%d] , todo send cnt [%d]\r\n",
+			saved_over_speed_cnt, setting_over_speed_cnt, 
+			g_over_speed_mgr.over_speed_cnt);
+	*/
+	if ( (setting_over_speed > 0 ) && ( cur_speed > setting_over_speed ) )
+		saved_over_speed_cnt++;
+	else
+		saved_over_speed_cnt = 0;
+
+	if ( ( setting_over_speed_cnt > 0 ) && ( saved_over_speed_cnt > setting_over_speed_cnt ))
+	{
+		g_over_speed_mgr.over_speed_cnt ++;
+		saved_over_speed_cnt = 0;
+	}
+
+	return ALLOC2_DAILY_INFO_SUCCESS;
+	
+}
+
+int get_overspeed_info(ALLOC2_DAILY_OVERSPEED_MGR_T* over_speed_info)
+{
+	over_speed_info->over_speed_cnt = g_over_speed_mgr.over_speed_cnt;
+
+	g_over_speed_mgr.over_speed_cnt = 0;
+	return ALLOC2_DAILY_INFO_SUCCESS;
+}
 #if 0
 
 int alloc2_save_car_daliy_info(int yymmdd, long long trip, int fuel)

@@ -17,6 +17,8 @@ int get_seco_obd_1_serial(char* buff);
 int get_seco_obd_1_ver(char* buff);
 int get_seco_obd_1_fueltype(char* buff);
 
+int set_seco_obd_1_total_distance(int total_distance);
+
 int start_seco_obd_1_broadcast_msg(int interval_sec, char* factor_list);
 int stop_seco_obd_1_broadcast_msg();
 

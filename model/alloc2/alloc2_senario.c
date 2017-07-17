@@ -14,6 +14,7 @@
 #include <base/thread.h>
 #include <base/watchdog.h>
 #include <util/tools.h>
+#include <util/storage.h>
 #include <util/list.h>
 #include <util/transfer.h>
 #include <util/poweroff.h>
@@ -24,6 +25,8 @@
 
 #include "alloc2_senario.h"
 #include "seco_obd_1.h"
+
+#include <mdsapi/mds_api.h>
 
 static int _g_cur_stat = e_STAT_NONE;
 
@@ -60,6 +63,9 @@ int init_mdm_setting_pkt_val()
         printf(" -----------------> mdm info load from [%s] fail!!! clr memory \r\n", ALLOC2_MDM_SETTING_INFO);
         _mdm_setting_init_success = 0;
         memset(&_g_mdm_setting_val, 0x00, sizeof(_g_mdm_setting_val));
+
+        _g_mdm_setting_val.key_on_gps_report_interval = 60;    // (b-2) ig on gps 정보보고 시간설정(초단위) 운행시
+        _g_mdm_setting_val.key_off_gps_report_interval = 180;    // (b-2) ig off gps 정보보고 시간설정(초단위) 비운행시
     }
 
     return 0;
@@ -78,10 +84,7 @@ int set_mdm_setting_pkt_val(ALLOC_PKT_RECV__MDM_SETTING_VAL* setting_val)
 
 ALLOC_PKT_RECV__MDM_SETTING_VAL* get_mdm_setting_val()
 {
-    if ( _mdm_setting_init_success == 0 ) 
-        return NULL;
-    else
-        return &_g_mdm_setting_val;
+    return &_g_mdm_setting_val;
 }
 
 // ------------------------------------------------------------------
@@ -203,4 +206,82 @@ void alloc2_poweroff_proc(char* msg)
 	sender_wait_empty_network(WAIT_PIPE_CLEAN_SECS);
 	poweroff("sernaio", strlen("sernaio"));
 
+}
+
+// --------------------------------------------------------
+static int _car_ctrl_flag = 0;
+int set_car_ctrl_enable(int flag)
+{
+    _car_ctrl_flag = flag;
+    return _car_ctrl_flag;
+}
+
+int get_car_ctrl_enable()
+{
+    return _car_ctrl_flag;
+}
+
+// ----------------------------------------------------------
+int set_no_send_pwr_evt_reboot()
+{
+    int evt_code = e_evt_code_mdm_reset;
+
+    char touch_cmd[128] = {0};
+    sprintf(touch_cmd, "touch %s &",NO_SEND_TO_PWR_EVT_FLAG_PATH);
+    system(touch_cmd);
+    
+
+	sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
+	sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
+
+	alloc2_poweroff_proc("senario power off");
+}
+
+int get_no_send_pwr_evt_reboot(int flag)
+{
+    int ret_flag = SEND_TO_PWR_EVT_NOK;
+
+    static int power_evt_cnt = 0;
+    static int igi_evt_cnt = 0;
+
+    // flag 없으면 바로 ok 리턴
+    if ( mds_api_check_exist_file(NO_SEND_TO_PWR_EVT_FLAG_PATH, 0) != DEFINES_MDS_API_OK)
+    {
+        printf("NO SEND EVT ==> ret OK\r\n");
+        return SEND_TO_PWR_EVT_OK;
+    }
+
+    switch(flag)
+    {
+        case EVT_TYPE_POWER_ON:
+        case EVT_TYPE_POWER_OFF:
+        {
+            if ( power_evt_cnt++ > 1 )
+                ret_flag = SEND_TO_PWR_EVT_OK;
+            break;
+        }
+        case EVT_TYPE_IGI_ON:
+        case EVT_TYPE_IGI_OFF:
+        {
+            if ( igi_evt_cnt++ > 1 )
+                ret_flag = SEND_TO_PWR_EVT_OK;
+            break;
+        }
+    }
+
+    printf("NO SEND EVT ==> [%d], [%d], [%d] => ret [%d] \r\n", flag, power_evt_cnt, igi_evt_cnt, ret_flag);
+
+    if ( ( igi_evt_cnt > 1 ) && ( power_evt_cnt > 1 ) )
+        unlink(NO_SEND_TO_PWR_EVT_FLAG_PATH);
+
+    return ret_flag;
+}
+
+int clr_no_send_pwr_evt_reboot()
+{
+    if ( mds_api_check_exist_file(NO_SEND_TO_PWR_EVT_FLAG_PATH, 0) == DEFINES_MDS_API_OK)
+    {
+        unlink(NO_SEND_TO_PWR_EVT_FLAG_PATH);
+    }
+    
 }

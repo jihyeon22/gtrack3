@@ -640,5 +640,8 @@ int parse_pkt__obd_data(ALLOC_PKT_RECV__OBD_DATA* recv_buff);
 int make_pkt__sms_recv_info(unsigned char **pbuf, unsigned short *packet_len, ALLOC_PKT_SEND__SMS_PKT_ARG sms_pkt_arg);
 int parse_pkt__sms_recv_info(ALLOC_PKT_RECV__SMS_RECV_INFO* recv_buff);
 
+// e_firm_info = 0x71, // 0x71 : 펌웨어 정보
+int make_pkt__firmware_info(unsigned char **pbuf, unsigned short *packet_len);
+int parse_pkt__firm_info(ALLOC_PKT_SEND__FIRMWARE_INFO* recv_buff);
 
 #endif
