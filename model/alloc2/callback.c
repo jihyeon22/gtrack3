@@ -69,6 +69,8 @@ void init_model_callback(void)
 	init_mdm_setting_pkt_val();
 	init_obd_dev_pkt_info();
 
+	alloc2_obd_mgr__init();
+	
 	thread_network_set_warn_timeout(MAX(conf->model.report_interval_keyon, conf->model.report_interval_keyoff) * 2);
 }
 
@@ -323,7 +325,7 @@ void main_loop_callback(void)
 	int keyoff_obd_send_interval = 0;
 	int report_obd_interval = 0;
 
-	alloc2_obd_mgr__init();
+	
 	/*
 	// wait for network on and key on ?
 	while(1)
