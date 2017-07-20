@@ -50,13 +50,25 @@ void gps_get(dm_gpsData_t *out)
 }
 #endif
 
+#define GET_IMEI_MAX_TRY_CNT	20
+
 void set_dm_info(dm_info *dmi)
 {
 	static char imei[AT_LEN_IMEI_BUFF] = {0};
 	static char phonenum[AT_LEN_PHONENUM_BUFF] = {0};
 	static char amss_ver_str[30] = {0,}; // ver str is 30
 
-	at_get_imei(imei, sizeof(imei));
+	int get_imei_try_cnt = GET_IMEI_MAX_TRY_CNT;
+
+	while ( get_imei_try_cnt-- )
+	{
+		at_get_imei(imei, sizeof(imei));
+		if ( strlen(imei) >= AT_LEN_IMEI )
+			break;
+		LOGE(LOG_TARGET, "dm fail >> %s imei get fail [%d]\n", __FUNCTION__, get_imei_try_cnt);
+		sleep(1);
+	}
+	
 	at_get_phonenum(phonenum, sizeof(phonenum));
 	at_get_modem_swver(amss_ver_str,30);
 
