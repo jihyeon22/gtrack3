@@ -132,12 +132,12 @@ static int valid_check(unsigned char *buf, int size){
 
 struct l_table {
 	char head;
-	unsigned char body[4];
+	unsigned char body[5];
 };
 
 struct p_table {
-	char head[5];
-	unsigned char body[4];
+	char head[6];
+	unsigned char body[5];
 	int size;
 };
 
@@ -146,7 +146,7 @@ struct l_table locale_tbl[17] = {
 	{'E', "전북"}, {'F', "전남"}, {'G', "경북"}, {'H', "경남"}, 
 	{'I', "제주"}, {'J', "서울"}, {'K', "인천"}, {'L', "대전"},
 	{'M', "부산"}, {'N', "대구"}, {'O', "광주"}, {'P', "울산"}, 
-	{'Z', "전국"}
+	{'Z', "전국"},
 };
 
 struct p_table part_tbl[44] = {
