@@ -1,10 +1,10 @@
 [user]
 model_name=cl-rfid
-date=170215
-report_ip=61.85.36.56
+date=170301
+report_ip=hellobus.co.kr
 report_port=887
-request_rfid=test.2bt.kr
-request_rfid_port=8887
+request_rfid=hellobus.co.kr
+request_rfid_port=8888
 interval_time=60
 max_packet=3
 stop_time=60
