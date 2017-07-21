@@ -104,6 +104,7 @@ void init_model_callback(void)
 	init_kjtec_rfid();
 	
 	rfid_tool__set_senario_stat(e_RFID_INIT); 
+	//rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_START);
 }
 
 void network_on_callback(void)
@@ -121,7 +122,8 @@ void button1_callback(void)
 	_make_location_data(&gpsdata, code);
 	_send_location_data();
 
-	kjtec_rfid_mgr__clr_all_user_data();
+	//kjtec_rfid_mgr__clr_all_user_data();
+	//rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_START);
 }
 
 void button2_callback(void)
@@ -134,7 +136,9 @@ void button2_callback(void)
 	_make_location_data(&gpsdata, code);
 	_send_location_data();
 
-	kjtec_rfid_mgr__clr_all_user_data();
+	//kjtec_rfid_mgr__clr_all_user_data();
+	//rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_START);
+
 }
 
 void ignition_on_callback(void)
@@ -352,7 +356,16 @@ void main_loop_callback(void)
 	int need_to_rfid_info = 0;
 
 	memset(&g_rfid_dev_info, 0x00, sizeof(g_rfid_dev_info) );
-	
+
+	if (0)
+	{
+		RFID_FIRMWARE_VER_T ver_info;
+		if ( kjtec_rfid__firmware_ver_info(&ver_info) == KJTEC_RFID_RET_SUCCESS )
+			LOGI(LOG_TARGET, "[MAIN] kjtec version info [%s]\n", ver_info.data_result  );
+		else
+			LOGE(LOG_TARGET, "[MAIN] kjtec version info fail\n");
+	}
+
 	while(flag_run_thread_main)
 	{
 		static int count_run_watchdog = 0;
@@ -482,7 +495,7 @@ void main_loop_callback(void)
 		if ( ( main_loop_cnt % RFID_CHK_INTERVAL ) == 0 )
 		{
 			// 정상동작중에만 체크한다.
-			if ( rfid_tool__get_senario_stat() > e_RFID_INIT)
+			if ( ( rfid_tool__get_senario_stat() > e_RFID_INIT ) && ( rfid_tool__get_senario_stat() <= e_RFID_USER_INFO_CHK_READY ) )
 			{
 				int dev_stat = kjtec_rfid_mgr__alive_dev();
 
@@ -516,6 +529,10 @@ void main_loop_callback(void)
 			}
 		}
 		
+		/*
+		if ( rfid_tool__get_senario_stat() == e_RFID_FIRMWARE_DOWNLOAD_START )
+			kjtec_rfid_mgr__download_fw("/system/rfid_fw.bin");
+*/
 		main_loop_cnt++;
 		main_rfid_chk_cnt++;
 		sleep(1);

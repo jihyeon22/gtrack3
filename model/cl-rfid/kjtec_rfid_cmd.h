@@ -8,13 +8,20 @@
 #define KJTEC_RFID_RET_FAIL     -1
 #define KJTEC_RFID_RET_SUCCESS  1
 
-#define KJTEC_RFID_CMD_RESP_WAIT_TIME   3
+
 
 #define KJTEC_RFID_UART_DEVNAME         "/dev/ttyHSL1"
 #define KJTEC_RFID_UART_BAUDRATE        115200
 #define KJTEC_RFID_UART_READ_TIMEOUT    1
 #define KJTEC_RFID_UART_READ_RETRY_CNT  2
 
+#define KJTEC_RFID_CMD_TYPE__NORMAL_STR     1
+#define KJTEC_RFID_CMD_TYPE__ONLY_BINARY    2
+#define KJTEC_RFID_CMD__SLEEP_INTERAL_MIL   500
+
+
+#define KJTEC_RFID_CMD_RESP_WAIT_TIME       4 * 10 // _SEC
+#define KJTEC_RFID_CMD_RESP_WAIT_ONE_INTERVAL   100000 // usleep
 
 /*
 static RFID_DEV_INFO_T                  g_rfid_dev_info;
@@ -74,6 +81,28 @@ typedef struct rfid_save_passenger_data
 #define RFID_USER_INFO_FRAME__END               0x03
 #define RFID_USER_INFO_FRAME__ONLY_ONE_PKT      0x04
 
+typedef struct rfid_firmware_ver
+{
+    int cmd_result;
+    char data_result[64]; // char??
+}RFID_FIRMWARE_VER_T; // g_rfid_firmware_ver
+#define RFID_CMD_ID_REQ__FIRMWARE_VER_INFO    0x60
+#define RFID_CMD_ID_RESP__FIRMWARE_VER_INFO   0x61 // [Data Result,1,]
+
+
+typedef struct rfid_firmware_down_pkt
+{
+    int cmd_result;
+    int data_result; // char??
+}RFID_FIRMWARE_DOWN_PKT_T; // g_rfid_firm_down_pkt
+#define RFID_CMD_FIRMWARE_ONE_PKT_SIZE_BYTE        254
+#define RFID_CMD_FIRMWARE_ONE_PKT_MAX_RETRY        10
+#define RFID_CMD_ID_REQ__FIRMWARE_DOWNLOAD_START    0x50
+#define RFID_CMD_ID_REQ__FIRMWARE_DOWNLOAD_ONE_PKT  0x99
+#define RFID_CMD_ID_REQ__FIRMWARE_DOWNLOAD_WRITE_RET   0x51 // [Data Result,1,]
+
+
+
 
 #define RFID_CMD_ID_REQ__GET_PASSENGER_DATA             0x40
 #define RFID_CMD_ID_RESP__GET_PASSENGER_DATA            0x41 
@@ -93,6 +122,10 @@ int kjtec_rfid__dev_ready_chk(RIFD_CHK_READY_T* result);
 int kjtec_rfid__dev_rfid_all_clear(RIFD_DATA_ALL_CLR_T* result);
 int kjtec_rfid__dev_write_rfid_data(int flag, char* rfid_user_str);
 int kjtec_rfid__dev_rfid_req();
+int kjtec_rfid__firmware_ver_info(RFID_FIRMWARE_VER_T* result);
+int kjtec_rfid__firmware_write_start(int size);
+int kjtec_rfid__firmware_write_one_pkt(char* buff, int buff_len);
+
 
 void init_kjtec_rfid();
 
