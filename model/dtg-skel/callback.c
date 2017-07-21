@@ -93,10 +93,6 @@ void main_loop_callback(void)
 void terminate_app_callback(void)
 {
 	printf("gtrack calback ::: terminate_app_callback !!!\r\n");
-	while(1)
-	{
-		sleep(1);
-	}
 }
 
 void exit_main_loop(void)
