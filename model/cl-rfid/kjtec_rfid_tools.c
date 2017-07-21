@@ -373,3 +373,91 @@ int kjtec_rfid_mgr__alive_dev()
 
 }
 
+static _download_one_pkt(char* buff, int buff_len)
+{
+    //int write_retry_cnt = RFID_CMD_FIRMWARE_ONE_PKT_MAX_RETRY;
+    int write_retry_cnt = 100;
+    int write_one_pkt_ret = KJTEC_RFID_RET_FAIL;
+
+    while (write_retry_cnt--)
+    {
+        write_one_pkt_ret = kjtec_rfid__firmware_write_one_pkt (buff, buff_len);
+        if ( write_one_pkt_ret == KJTEC_RFID_RET_SUCCESS )
+            return KJTEC_RFID_RET_SUCCESS;
+    }
+
+    return KJTEC_RFID_RET_FAIL;
+}
+
+int kjtec_rfid_mgr__download_fw(char* path)
+{
+    int file_size = mds_api_get_file_size(path);
+    char read_buff[RFID_CMD_FIRMWARE_ONE_PKT_SIZE_BYTE] = {0,};
+
+    int ret_val = 0;
+
+    FILE *fp = NULL;
+    int read_size = 0;
+    int toal_write_size = 0;
+
+    int write_one_pkt_ret = KJTEC_RFID_RET_FAIL;
+
+    LOGT(LOG_TARGET, "[KJTEC-RFID TOOL] FW DOWNLOAD -> START [%s] / file_size [%d] \r\n", path, file_size);
+
+    rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_ING);
+    if ( file_size <= 0 )
+    {
+        LOGE(LOG_TARGET, "[KJTEC-RFID TOOL] FW DOWNLOAD -> ERR CASE 1 \r\n");
+        ret_val = KJTEC_RFID_RET_FAIL;
+        goto FINISH;
+    }
+
+    if (kjtec_rfid__firmware_write_start(file_size) != KJTEC_RFID_RET_SUCCESS)
+    {
+        LOGE(LOG_TARGET, "[KJTEC-RFID TOOL] FW DOWNLOAD -> ERR CASE 2 \r\n");
+        ret_val = KJTEC_RFID_RET_FAIL;
+        goto FINISH;
+    }
+    
+    fp = fopen(path, "r");
+    if(fp == NULL)
+    {
+        LOGE(LOG_TARGET, "[KJTEC-RFID TOOL] FW DOWNLOAD -> ERR CASE 3 \r\n");
+        ret_val = KJTEC_RFID_RET_FAIL;
+        goto FINISH;
+    }
+
+    while(1)
+    {
+        memset(&read_buff, 0x00, RFID_CMD_FIRMWARE_ONE_PKT_SIZE_BYTE);
+        
+        write_one_pkt_ret = KJTEC_RFID_RET_FAIL;
+
+        read_size = fread(read_buff, 1, RFID_CMD_FIRMWARE_ONE_PKT_SIZE_BYTE, fp);
+
+        LOGI(LOG_TARGET, "[KJTEC-RFID TOOL] >> DOWNLOAD -> read [%d] / write[%d] / total [%d] \r\n" ,read_size, toal_write_size, file_size);
+
+        if ( read_size <= 0 )
+        {
+            LOGE(LOG_TARGET, "[KJTEC-RFID TOOL] FW DOWNLOAD -> READ FAIL? - 4 \r\n");
+            break;
+        }
+        
+        ret_val = _download_one_pkt(read_buff, read_size);
+        if ( ret_val == KJTEC_RFID_RET_FAIL ) 
+        {
+            LOGE(LOG_TARGET, "[KJTEC-RFID TOOL] FW DOWNLOAD -> ERR CASE 5 \r\n");
+            break;
+        }
+
+        toal_write_size += read_size;
+    }
+
+FINISH:
+    if ( fp != NULL )
+        fclose(fp);
+
+    rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_END);
+    
+    return ret_val;
+}

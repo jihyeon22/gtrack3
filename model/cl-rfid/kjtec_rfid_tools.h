@@ -13,6 +13,8 @@ int kjtec_rfid_mgr__clr_all_user_data();
 
 int kjtec_rfid_mgr__alive_dev();
 
+int kjtec_rfid_mgr__download_fw(char* path);
+
 
 
 #endif

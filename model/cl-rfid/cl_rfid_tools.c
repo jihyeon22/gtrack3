@@ -31,39 +31,56 @@ char* rfid_tool__get_senario_stat_str()
     {
         case  e_RFID_INIT:
         {
-            return "RFID INIT";
+            return "RFID_INIT";
             break;
         }
         case  e_NEED_TO_RFID_USER_CHK:
         {
-            return "NEED TO USER CHK";
+            return "NEED_TO_USER_CHK";
             break;
         }
         case  e_RFID_DOWNLOAD_START:
         {
-            return "DOWNLOAD START";
+            return "DOWNLOAD_START";
             break;
         }
         case  e_RFID_DOWNLOAD_END:
         {
-            return "DOWNLOAD END";
+            return "DOWNLOAD_END-RFID_READ";
             break;
         }
         case  e_RFID_USER_INFO_WRITE_TO_DEV_START:
         {
-            return "DEV WRITE START";
+            return "DEV_WRITE_START";
             break;
         }
         case  e_RFID_USER_INFO_WRITE_TO_DEV_SUCCESS:
         {
-            return "DEV WRITE SUCCESS / RFID READ";
+            return "DEV_WRITE_SUCCESS-RFID_READ";
             break;
         }
         case  e_RFID_USER_INFO_WRITE_TO_DEV_FAIL:
         {
-            return "DEV WRITE FAIL";
+            return "DEV_WRITE_FAIL";
             break;
         }
+        case  e_RFID_FIRMWARE_DOWNLOAD_START:
+        {
+            return "DEV_FIRMWARE_DOWNLOAD_START";
+            break;
+        }
+        case  e_RFID_FIRMWARE_DOWNLOAD_ING:
+        {
+            return "DEV_FIRMWARE_DOWNLOAD_ING";
+            break;
+        }
+        /*
+        case  e_RFID_FIRMWARE_DOWNLOAD_END:
+        {
+            return "DEV_FIRMWARE_DOWNLOAD_END";
+            break;
+        }
+        */
         /*
         case  e_RFID_USER_INFO_CHK_READY:
         {
