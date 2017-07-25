@@ -130,6 +130,7 @@ int parse_pkt__mdm_setting_val(ALLOC_PKT_RECV__MDM_SETTING_VAL* recv_buff, char*
 {
     int changed_server = 0;
 
+/*
     LOGT(eSVC_MODEL, "%s() START\r\n", __func__);
 
     printf("parse_pkt__mdm_setting_val ----------------------------------------------------------\r\n");
@@ -158,7 +159,13 @@ int parse_pkt__mdm_setting_val(ALLOC_PKT_RECV__MDM_SETTING_VAL* recv_buff, char*
     printf("recv_buff->reserved => [0x%d]\r\n", recv_buff->reserved);
 
     printf("parse_pkt__mdm_setting_val ----------------------------------------------------------\r\n");
+*/
+    int pkt_ret_code = 0;
+    pkt_ret_code = recv_buff->reserved ;
 
+    LOGT(eSVC_MODEL, "%s() PARSE RET [%d]\r\n", __func__, pkt_ret_code);
+    
+    
     // valid check..
     // TODO: 각종 데이터에 대해서 체크후에 setting 값을 체크한다.
 
@@ -182,8 +189,13 @@ int parse_pkt__mdm_setting_val(ALLOC_PKT_RECV__MDM_SETTING_VAL* recv_buff, char*
     // 만약에 obd 를 사용하겠다고 설정하면 obd 설정 시퀀스로간다.
     if ( recv_buff->use_obd == 1 )
         set_cur_status(e_SEND_TO_OBD_INFO);
-    
-    return 0;
+
+    allkey_bcm_ctr__set_horn_light(recv_buff->warnning_horn_cnt, recv_buff->warnning_light_cnt);
+
+    if ( pkt_ret_code == 0 )
+        return 0;
+    else 
+        return -1;
 
 }
 
@@ -353,6 +365,7 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
 
 int parse_pkt__mdm_stat_evt(ALLOC_PKT_RECV__MDM_STAT_EVT* recv_buff)
 {
+    /*
     LOGT(eSVC_MODEL, "%s() START\r\n", __func__);
 
     printf("parse_pkt__mdm_stat_evt ----------------------------------------------------------\r\n");
@@ -366,6 +379,16 @@ int parse_pkt__mdm_stat_evt(ALLOC_PKT_RECV__MDM_STAT_EVT* recv_buff)
 
     printf("parse_pkt__mdm_stat_evt ----------------------------------------------------------\r\n");
     return 0;
+    */
+    int pkt_ret_code = 0;
+    pkt_ret_code = recv_buff->reserved[0] + recv_buff->reserved[1] ;
+    
+    LOGT(eSVC_MODEL, "%s() PARSE RET [%d]\r\n", __func__, pkt_ret_code);
+        
+    if ( pkt_ret_code == 0 )
+        return 0;
+    else 
+        return -1;
 }
 
 
@@ -389,7 +412,6 @@ int make_pkt__mdm_gps_info(unsigned char **pbuf, unsigned short *packet_len)
 
     static int last_total_distance = 0;
     int cur_total_distance = mileage_get_m();
-    int vector_total_distance = cur_total_distance - last_total_distance;
 
     last_total_distance = cur_total_distance;
 
@@ -412,7 +434,7 @@ int make_pkt__mdm_gps_info(unsigned char **pbuf, unsigned short *packet_len)
     target_pkt.total_distance = cur_total_distance; // (b-4) 누적거리 meter
     target_pkt.day_distance = get_daily_info__daily_distance(cur_total_distance); // (b-4) 일일 운행거리 meter
     target_pkt.section_distance = chk_keyon_section_distance(cur_total_distance); // (b-4) 구간운행거리 : ig1 on ~ ig1 off 누적거리
-    target_pkt.gps_vector = vector_total_distance; // (b-4) 이동거리 : 이전좌표와 현재 좌표와의 거리
+    target_pkt.gps_vector = get_diff_distance_prev(cur_total_distance); // (b-4) 이동거리 : 이전좌표와 현재 좌표와의 거리
 //    target_pkt.reserved[2]; // reserved
 
     if (!( send_dm_log % 30 ))
@@ -455,6 +477,7 @@ int make_pkt__mdm_gps_info(unsigned char **pbuf, unsigned short *packet_len)
 
 int parse_pkt__mdm_gps_info(ALLOC_PKT_RECV__MDM_GPS_INFO* recv_buff)
 {
+    /*
     LOGT(eSVC_MODEL, "%s() START\r\n", __func__);
 
     printf("parse_pkt__mdm_gps_info ----------------------------------------------------------\r\n");
@@ -468,8 +491,17 @@ int parse_pkt__mdm_gps_info(ALLOC_PKT_RECV__MDM_GPS_INFO* recv_buff)
     printf("recv_buff->reserved => [0x%s]\r\n", recv_buff->reserved);
 
     printf("parse_pkt__mdm_gps_info ----------------------------------------------------------\r\n");
-
-    return 0;
+*/
+    int pkt_ret_code = 0;
+    //pkt_ret_code = recv_buff->reserved[0] + recv_buff->reserved[1] ;
+    pkt_ret_code = recv_buff->reserved[0];
+    
+    LOGT(eSVC_MODEL, "%s() PARSE RET [%d]\r\n", __func__, pkt_ret_code);
+    
+    if ( pkt_ret_code == 0 )
+        return 0;
+    else 
+        return -1;
 }
 
 
@@ -520,6 +552,7 @@ int make_pkt__obd_dev_info(unsigned char **pbuf, unsigned short *packet_len)
 
 int parse_pkt__obd_dev_info(ALLOC_PKT_RECV__OBD_DEV_INFO* recv_buff)
 {
+    /*
     LOGT(eSVC_MODEL, "%s() START\r\n", __func__);
 
     printf("parse_pkt__obd_dev_info ----------------------------------------------------------\r\n");
@@ -535,8 +568,21 @@ int parse_pkt__obd_dev_info(ALLOC_PKT_RECV__OBD_DEV_INFO* recv_buff)
     printf("recv_buff->reserved => [0x%s]\r\n", recv_buff->reserved);
 
     printf("parse_pkt__obd_dev_info ----------------------------------------------------------\r\n");
+    */
+    
+
+    int pkt_ret_code = 0;
+    pkt_ret_code = recv_buff->reserved[0] + recv_buff->reserved[1] ;
+    
+    LOGT(eSVC_MODEL, "%s() PARSE RET [%d]\r\n", __func__, pkt_ret_code);
+    
     set_obd_dev_pkt_info(recv_buff);
     set_cur_status(e_SEND_TO_OBD_INFO_COMPLETE);
+
+    if ( pkt_ret_code == 0 )
+        return 0;
+    else 
+        return -1;
 
     return 0;
 }
@@ -597,6 +643,17 @@ int make_pkt__obd_stat(unsigned char **pbuf, unsigned short *packet_len, ALLOC_P
 
 int parse_pkt__obd_stat(ALLOC_PKT_RECV__OBD_STAT* recv_buff)
 {
+    int pkt_ret_code = 0;
+    pkt_ret_code = recv_buff->reserved[0] + recv_buff->reserved[1] ;
+    
+    LOGT(eSVC_MODEL, "%s() PARSE RET [%d]\r\n", __func__, pkt_ret_code);
+    
+    if ( pkt_ret_code == 0 )
+        return 0;
+    else 
+        return -1;
+
+    /*
     LOGT(eSVC_MODEL, "%s() START\r\n", __func__);
 
     printf("parse_pkt__obd_stat ----------------------------------------------------------\r\n");
@@ -612,6 +669,7 @@ int parse_pkt__obd_stat(ALLOC_PKT_RECV__OBD_STAT* recv_buff)
     printf("parse_pkt__obd_stat ----------------------------------------------------------\r\n");
 
     return 0;
+*/
 }
 
 
@@ -718,6 +776,17 @@ int make_pkt__obd_data(unsigned char **pbuf, unsigned short *packet_len)
 
 int parse_pkt__obd_data(ALLOC_PKT_RECV__OBD_DATA* recv_buff)
 {
+    int pkt_ret_code = 0;
+    pkt_ret_code = recv_buff->reserved[0] + recv_buff->reserved[1] ;
+    
+    LOGT(eSVC_MODEL, "%s() PARSE RET [%d]\r\n", __func__, pkt_ret_code);
+    
+    if ( pkt_ret_code == 0 )
+        return 0;
+    else 
+        return -1;
+
+    /*
     LOGT(eSVC_MODEL, "%s() START\r\n", __func__);
     
     printf("parse_pkt__obd_data ----------------------------------------------------------\r\n");
@@ -733,6 +802,7 @@ int parse_pkt__obd_data(ALLOC_PKT_RECV__OBD_DATA* recv_buff)
     printf("parse_pkt__obd_data ----------------------------------------------------------\r\n");
 
     return 0;
+    */
 }
 
 
@@ -787,6 +857,16 @@ int make_pkt__bcm_statting_val(unsigned char **pbuf, unsigned short *packet_len)
 
 int parse_pkt__bcm_statting_val(ALLOC_PKT_RECV__BCM_ALLKEY_DATA* recv_buff)
 {
+    int pkt_ret_code = 0;
+    pkt_ret_code = recv_buff->reserved[0] + recv_buff->reserved[1] ;
+    
+    LOGT(eSVC_MODEL, "%s() PARSE RET [%d]\r\n", __func__, pkt_ret_code);
+    
+    if ( pkt_ret_code == 0 )
+        return 0;
+    else 
+        return -1;
+    /*
     LOGT(eSVC_MODEL, "%s() START\r\n", __func__);
     
     printf("parse_pkt__bcm_statting_val ----------------------------------------------------------\r\n");
@@ -814,6 +894,7 @@ int parse_pkt__bcm_statting_val(ALLOC_PKT_RECV__BCM_ALLKEY_DATA* recv_buff)
     printf("parse_pkt__bcm_statting_val ----------------------------------------------------------\r\n");
 
     return 0;
+    */
 }
 
 
@@ -885,8 +966,16 @@ int make_pkt__sms_recv_info(unsigned char **pbuf, unsigned short *packet_len, AL
 
 int parse_pkt__sms_recv_info(ALLOC_PKT_RECV__SMS_RECV_INFO* recv_buff)
 {
-    LOGT(eSVC_MODEL, "%s() START\r\n", __func__);
+    int pkt_ret_code = 0;
+    pkt_ret_code = recv_buff->reserved[0] + recv_buff->reserved[1] ;
     
+    LOGT(eSVC_MODEL, "%s() PARSE RET [%d]\r\n", __func__, pkt_ret_code);
+    
+    if ( pkt_ret_code == 0 )
+        return 0;
+    else 
+        return -1;
+    /*
     printf("parse_pkt__sms_recv_info ----------------------------------------------------------\r\n");
     printf("recv_buff->header.pkt_total_len => [%d]\r\n", recv_buff->header.pkt_total_len);
     printf("recv_buff->header.mdm_phonenum => [%d]\r\n", recv_buff->header.mdm_phonenum);
@@ -899,6 +988,7 @@ int parse_pkt__sms_recv_info(ALLOC_PKT_RECV__SMS_RECV_INFO* recv_buff)
     printf("parse_pkt__sms_recv_info ----------------------------------------------------------\r\n");
 
     return 0;
+    */
 }
 
 
@@ -965,8 +1055,16 @@ int make_pkt__firmware_info(unsigned char **pbuf, unsigned short *packet_len)
 
 int parse_pkt__firm_info(ALLOC_PKT_SEND__FIRMWARE_INFO* recv_buff)
 {
-    LOGT(eSVC_MODEL, "%s() START\r\n", __func__);
+    int pkt_ret_code = 0;
+    pkt_ret_code = recv_buff->reserved[0] + recv_buff->reserved[1] ;
     
+    LOGT(eSVC_MODEL, "%s() PARSE RET [%d]\r\n", __func__, pkt_ret_code);
+    
+    if ( pkt_ret_code == 0 )
+        return 0;
+    else 
+        return -1;
+    /*
     printf("parse_pkt__firm_info ----------------------------------------------------------\r\n");
     printf("recv_buff->header.pkt_total_len => [%d]\r\n", recv_buff->header.pkt_total_len);
     printf("recv_buff->header.mdm_phonenum => [%d]\r\n", recv_buff->header.mdm_phonenum);
@@ -977,8 +1075,8 @@ int parse_pkt__firm_info(ALLOC_PKT_SEND__FIRMWARE_INFO* recv_buff)
     printf("recv_buff->reserved => [0x%s]\r\n", recv_buff->reserved);
 
     printf("parse_pkt__firm_info ----------------------------------------------------------\r\n");
+    */
 
-    return 0;
 }
 
 

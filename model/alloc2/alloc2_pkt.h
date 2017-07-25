@@ -6,7 +6,9 @@
 typedef enum {
     e_mdm_setting_val = 0x01,   // 0x01 : 단말 기본 설정 정보
     e_mdm_stat_evt = 0x02,      // 0x02 : 단말 상태 정보 (이벤트)
+    e_mdm_stat_evt_fifo = 0x92,      // 0x02 : 단말 상태 정보 (이벤트)
     e_mdm_gps_info = 0x03,       // 0x03 : GPS 정보
+    e_mdm_gps_info_fifo = 0x93,       // 0x03 : GPS 정보
     e_obd_dev_info = 0x11,   // 0x11 : OBD 기본 설정 정보
     e_obd_stat = 0x12,      // 0x12 : OBD 상태 정보 (이벤트)
     e_obd_data = 0x13,          // 0x13 : OBD 수집 정보

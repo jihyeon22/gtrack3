@@ -30,9 +30,24 @@ static daliy_car_info_t 	g_daliy_car_info = {0,};
 
 static ALLOC2_DAILY_OVERSPEED_MGR_T g_over_speed_mgr;
 
+
 // -----------------------------------------
 // daily info.
 // -----------------------------------------
+
+int set_total_gps_distance(int distance)
+{
+	mileage_set_m(distance);
+	
+	alloc2_clr_car_daily_info();
+	save_daily_info__total_distance(-1, -1);
+	init_keyon_section_distance(distance);
+	init_diff_distance_prev();
+
+	mileage_write();
+}
+
+
 int alloc2_init_car_daily_info()
 {
 	daliy_car_info_t tmp_daliy_car_info = {0,};
@@ -59,11 +74,18 @@ int alloc2_init_car_daily_info()
 	
 	memset(&g_over_speed_mgr, 0x00, sizeof(g_over_speed_mgr));
 
-	for ( i = 0 ; i < SECO_OBD_CMD_TOTAL_CNT ; i ++ )
-		alloc2_obd_mgr__clr_cmd_proc(i);
 		
 	return 0;
 }
+
+int alloc2_clr_car_daily_info()
+{
+	memset(&g_daliy_car_info, 0x00, sizeof(daliy_car_info_t));
+	g_daliy_car_info.total_distance = -1;
+	return 0;
+}
+
+
 
 int save_daily_info__total_distance(int yyyymmdd, int total_distance)
 {
@@ -76,6 +98,11 @@ int save_daily_info__total_distance(int yyyymmdd, int total_distance)
 		printf("save!!!!! dail info!!!\r\n");
 	}
 
+	if ( yyyymmdd == -1 )
+	{
+		g_daliy_car_info.yyyymmdd = 0;
+		g_daliy_car_info.total_distance = total_distance;
+	}
 	//printf("set daily info :: g_daliy_car_info.yyyymmdd is [%d]\r\n", g_daliy_car_info.yyyymmdd);
 	//printf("set daily info :: g_daliy_car_info.total_distance is [%d]\r\n", g_daliy_car_info.total_distance);
 
@@ -90,6 +117,12 @@ int get_daily_info__daily_distance(int total_disatance)
 	//if ( total_disatance < g_daliy_car_info.total_distance)
 	//	 total_disatance = g_daliy_car_info.total_distance;
 
+	if ( g_daliy_car_info.total_distance == -1)
+	{
+		g_daliy_car_info.total_distance = total_disatance;
+		g_daliy_car_info.yyyymmdd = 0;
+	}
+
 	daily_distance = total_disatance - g_daliy_car_info.total_distance;
 
 	if ( ( daily_distance >= 0 ) && ( daily_distance >= saved_daily_distance) )
@@ -101,16 +134,75 @@ int get_daily_info__daily_distance(int total_disatance)
 		daily_distance = saved_daily_distance;
 	}
 
-	printf("get daily info :: g_daliy_car_info.yyyymmdd is [%d]\r\n", g_daliy_car_info.yyyymmdd);
-	printf("get daily info :: g_daliy_car_info.total_distance is [%d]\r\n", g_daliy_car_info.total_distance);
+	//printf("get daily info :: g_daliy_car_info.yyyymmdd is [%d]\r\n", g_daliy_car_info.yyyymmdd);
+	//printf("get daily info :: g_daliy_car_info.total_distance is [%d]\r\n", g_daliy_car_info.total_distance);
 
-	printf("get daily info :: daily_distance is [%d]\r\n", daily_distance);
+	//printf("get daily info :: daily_distance is [%d]\r\n", daily_distance);
 
 	return daily_distance;
 }
 
 
 
+static int _keyon_distance = 0;
+int chk_keyon_section_distance(int total_distance)
+{
+    int cur_keyon_distance = 0;
+    static int saved_keyon_distance = 0;
+
+    if ( _keyon_distance > 0 )
+    {
+        cur_keyon_distance =  total_distance - _keyon_distance;
+    }
+    else
+    {
+        _keyon_distance = total_distance;
+        cur_keyon_distance = 0;
+    }
+
+	if ( ( cur_keyon_distance >= 0 ) && ( cur_keyon_distance >= saved_keyon_distance) )
+	{
+		saved_keyon_distance = cur_keyon_distance;
+	}
+	else
+	{
+		cur_keyon_distance = saved_keyon_distance;
+	}
+
+    return cur_keyon_distance;
+}
+
+int init_keyon_section_distance(int total_distance)
+{
+    _keyon_distance = total_distance;
+    return 0;
+}
+
+
+
+static int _diff_last_distance = 0;
+int get_diff_distance_prev(int total_distance)
+{
+	if ( _diff_last_distance == 0 )
+	{
+		_diff_last_distance = total_distance;
+		return 0;
+	}
+
+	if ( _diff_last_distance >= total_distance )
+	{
+		_diff_last_distance = total_distance;
+		return 0;
+	}
+
+	return total_distance - _diff_last_distance;
+}
+
+int init_diff_distance_prev()
+{
+    _diff_last_distance = 0;
+    return 0;
+}
 
 // 본 펑셔는 초당 불려야한다.
 int set_overspeed_info(gpsData_t* gps_info)
@@ -180,6 +272,8 @@ int get_overspeed_info(ALLOC2_DAILY_OVERSPEED_MGR_T* over_speed_info)
 	g_over_speed_mgr.over_speed_cnt = 0;
 	return ALLOC2_DAILY_INFO_SUCCESS;
 }
+
+
 #if 0
 
 int alloc2_save_car_daliy_info(int yymmdd, long long trip, int fuel)

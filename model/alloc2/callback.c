@@ -23,6 +23,8 @@
 
 #include <at/at_util.h>
 
+#include "alloc2_nettool.h"
+
 #include "alloc2_pkt.h"
 #include "alloc2_senario.h"
 #include "alloc2_obd_mgr.h"
@@ -39,6 +41,7 @@ ALLKEY_BCM_1_INFO_T g_allkey_bcm_info = {0,};
 
 int mdm_bcm_evt_proc(const int evt_code, const unsigned char stat_1, const unsigned char stat_2, const unsigned char err_list);
 
+int test_code = 0;
 
 
 void init_model_callback(void)
@@ -84,13 +87,15 @@ void button1_callback(void)
 {
 	//allkey_bcm_ctr__door_lock(1);
 	printf("gtrack calback ::: button1_callback !!!\r\n");
+	//test_code = 0; 
 }
 
 void button2_callback(void)
 {
 	//allkey_bcm_ctr__door_lock(0);
 	printf("gtrack calback ::: button2_callback !!!\r\n");
-	set_no_send_pwr_evt_reboot();
+	//test_code = 2;
+	
 }
 
 void ignition_on_callback(void)
@@ -103,13 +108,13 @@ void ignition_on_callback(void)
 	
 	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_IGI_ON) == SEND_TO_PWR_EVT_OK )
 	{
-		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
-		sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
+		sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+		sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
 	}
 	else
 		LOGE(eSVC_MODEL, "NEED TO IGI_ON EVT : BUT SKIP\r\n");
 
-	sender_add_data_to_buffer(e_firm_info, NULL, ePIPE_2);
+	sender_add_data_to_buffer(e_firm_info, NULL, get_pkt_pipe_type(e_firm_info,0));
 }
 
 void ignition_off_callback(void)
@@ -121,8 +126,8 @@ void ignition_off_callback(void)
 
 	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_IGI_OFF) == SEND_TO_PWR_EVT_OK )
 	{
-		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
-		sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
+		sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
+		sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
 	}
 	else
 		LOGE(eSVC_MODEL, "NEED TO IGI_OFF EVT : BUT SKIP\r\n");
@@ -135,8 +140,8 @@ void power_on_callback(void)
 
 	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_POWER_ON) == SEND_TO_PWR_EVT_OK )
 	{
-		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
-		sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
+		sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+		sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
 	}
 	else
 		LOGE(eSVC_MODEL, "NEED TO POWER_ON EVT : BUT SKIP\r\n");
@@ -152,8 +157,8 @@ void power_off_callback(void)
 	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_POWER_OFF) == SEND_TO_PWR_EVT_OK )
 	{
 		//if ( get_cur_status() > e_SEND_TO_SETTING_INFO_ING )
-		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
-		sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
+		sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
+		sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
 	}
 	else
 		LOGE(eSVC_MODEL, "NEED TO POWER_OFF EVT : BUT SKIP\r\n");
@@ -187,9 +192,6 @@ void gps_parse_one_context_callback(void)
 	gpsData_t gpsdata = {0,};
 
 	gps_get_curr_data(&gpsdata);
-
-	if ( model_ignition_stat == 1 )
-		mileage_process(&gpsdata);
 
 	current_senario = get_cur_status();
 	p_mdm_setting_val = get_mdm_setting_val();
@@ -259,8 +261,6 @@ void gps_parse_one_context_callback(void)
 			else
 				LOGE(eSVC_MODEL, "NEED TO RESET BUT SKIP: spd[%d], igi[%d]\r\n",gpsdata.speed, model_ignition_stat);
 		}
-
-		
 	}
 	
 	gps_run_cnt++;
@@ -284,8 +284,8 @@ void gps_parse_one_context_callback(void)
 		int evt_code = e_evt_code_normal;
 		//if ( current_senario == e_SEND_TO_ONLY_GPS_DATA )
 		LOGT(eSVC_MODEL, "[GPS THREAD] send gps info!!!! [%d]/[%d]\r\n", gps_run_cnt, report_interval);
-		sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_1);
-		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_1);
+		sender_add_data_to_buffer(e_mdm_gps_info, NULL, get_pkt_pipe_type(e_mdm_gps_info,0));
+		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt,evt_code));
 
 		gps_run_cnt = 0;
 	}
@@ -304,8 +304,8 @@ void gps_parse_one_context_callback(void)
 			int evt_code = e_evt_code_car_low_batt;
 			LOGT(eSVC_MODEL, "[GPS THREAD] send low batt!!!!!! [%d]/[%d]\r\n", gps_run_cnt, report_interval);
 
-			sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
-			sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
+			sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
+			sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
 		}
 		batt_chk_cnt = 0;
 	}
@@ -315,6 +315,8 @@ void gps_parse_one_context_callback(void)
 		save_daily_info__total_distance(cur_daily_date_num, mileage_get_m());
 	}
 
+	if ( model_ignition_stat == 1 )
+		mileage_process(&gpsdata);
 }
 
 void main_loop_callback(void)
@@ -324,6 +326,7 @@ void main_loop_callback(void)
 	int keyon_obd_send_interval = 0;
 	int keyoff_obd_send_interval = 0;
 	int report_obd_interval = 0;
+	int sms_chk_interval = 0;
 
 	
 	/*
@@ -341,6 +344,7 @@ void main_loop_callback(void)
  		
 		main_loop_cnt ++;
 		no_send_pwr_evt_flag_clr ++;
+		sms_chk_interval++;
 		// -----------------------------------------------------------
 		// hw check
 		// -----------------------------------------------------------
@@ -352,13 +356,13 @@ void main_loop_callback(void)
 		if ( get_cur_status() == e_SEND_TO_SETTING_INFO )
 		{
 			set_cur_status(e_SEND_TO_SETTING_INFO_ING);
-			sender_add_data_to_buffer(e_mdm_setting_val, NULL, ePIPE_1);
+			sender_add_data_to_buffer(e_mdm_setting_val, NULL, get_pkt_pipe_type(e_mdm_setting_val,0));
 		}
 	
 		if ( get_cur_status() == e_SEND_TO_OBD_INFO )
 		{
 			set_cur_status(e_SEND_TO_OBD_INFO_ING);
-			sender_add_data_to_buffer(e_obd_dev_info, NULL, ePIPE_1);
+			sender_add_data_to_buffer(e_obd_dev_info, NULL, get_pkt_pipe_type(e_obd_dev_info,0));
 			{
 				ALLOC_PKT_SEND__OBD_STAT_ARG obd_stat_arg;
 				obd_stat_arg.obd_stat_flag = 0;
@@ -367,7 +371,7 @@ void main_loop_callback(void)
 				obd_stat_arg.obd_evt_code = 0;;
 				obd_stat_arg.obd_fuel_type = 0;;
 				obd_stat_arg.obd_remain_fuel = 0;;
-				sender_add_data_to_buffer(e_obd_stat, &obd_stat_arg, ePIPE_1);
+				sender_add_data_to_buffer(e_obd_stat, &obd_stat_arg, get_pkt_pipe_type(e_obd_stat,0));
 			}
 		}
 		
@@ -399,8 +403,8 @@ void main_loop_callback(void)
 		if ( (report_obd_interval > 0 ) && ( main_loop_cnt > report_obd_interval ) )
 		{
 			int evt_code = e_evt_code_normal;
-			sender_add_data_to_buffer(e_obd_data, NULL, ePIPE_1);
-			sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_1);
+			sender_add_data_to_buffer(e_obd_data, NULL, get_pkt_pipe_type(e_obd_data,0));
+			sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt,evt_code));
 			main_loop_cnt = 0;
 		}
 
@@ -412,6 +416,13 @@ void main_loop_callback(void)
 		// 부팅한지 30초가 지나면 기존의 no send pwr 플래그는 강제로 지운다.
 		if ( no_send_pwr_evt_flag_clr == 30 )
 			clr_no_send_pwr_evt_reboot();
+
+		if ( sms_chk_interval > CHK_SMS_INTERVAL_SEC )
+		{
+			sms_chk_interval = 0;
+		//	chk_read_sms();
+		}
+		
 		sleep(1);
 	}
 }

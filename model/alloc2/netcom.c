@@ -6,6 +6,7 @@
 #include <pthread.h>
 
 #include <base/config.h>
+#include <base/sender.h>
 #include <board/power.h>
 #include <board/led.h>
 #include <util/tools.h>
@@ -35,12 +36,14 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 			res = make_pkt__mdm_setting_val(packet_buf, packet_len);
 			break;
 		}
+		case e_mdm_stat_evt_fifo:
     	case e_mdm_stat_evt :      // 0x02 : 단말 상태 정보 (이벤트)
 		{
 			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_mdm_stat_evt / evt code [%d]\r\n", e_mdm_stat_evt, *((int *)param));
 			res = make_pkt__mdm_stat_evt(packet_buf, packet_len, *((int *)param));
 			break;
 		}
+		case e_mdm_gps_info_fifo:
     	case e_mdm_gps_info :       // 0x03 : GPS 정보
 		{
 			LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_mdm_gps_info \r\n", e_mdm_gps_info);
@@ -132,6 +135,7 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 	return 0;
 }
 
+extern int test_code;
 int send_packet(char op, unsigned char *packet_buf, int packet_len)
 {
 	transferSetting_t network_setting_info = {0,};
@@ -140,7 +144,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 	int recv_ret = 0;
 
 	int send_pkt_ret = 0;
-
+	int fifo_pkt_fail_cnt = 0;
 
 	ALLOC_PKT_RECV__MDM_SETTING_VAL* p_mdm_setting_val = NULL;
 
@@ -167,7 +171,12 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 	}
 
 
+RETRY_SEND:
+	LOGI(eSVC_MODEL, "op [0x%x] ==> pipe [%d] / fifo fail cnt [%d]\r\n", op, get_pkt_pipe_type(op,0), fifo_pkt_fail_cnt );
 
+	if ( fifo_pkt_fail_cnt > MAX_FIFO_FAIL_CNT )
+		devel_webdm_send_log("SEND FIFO FAIL CNT :: [%d]\n", fifo_pkt_fail_cnt);
+	
 	switch (op)
 	{
 		case e_mdm_setting_val :   // 0x01 : 단말 기본 설정 정보
@@ -189,10 +198,8 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 				//mds_api_debug_hexdump_buff(&recv_buff, recv_buff_len);
 				//printf("-------------------------------------------------\r\n");
 				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_mdm_setting_val >> SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
-				parse_pkt__mdm_setting_val(&recv_buff, network_setting_info.ip, network_setting_info.port);
+				send_pkt_ret = parse_pkt__mdm_setting_val(&recv_buff, network_setting_info.ip, network_setting_info.port);
 				// printf("[ALLOC2 PKT TRANS] evtcode [%d] success!!!", e_mdm_setting_val);
-				fail_retry_cnt = 0;
-				send_pkt_ret = 0;
 			}
 			else
 			{
@@ -210,6 +217,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 
 			break;
 		}
+		case e_mdm_stat_evt_fifo:
     	case e_mdm_stat_evt :      // 0x02 : 단말 상태 정보 (이벤트)
 		{
 			ALLOC_PKT_RECV__MDM_STAT_EVT recv_buff;
@@ -227,8 +235,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 				//printf("recv -------------------------------------------------\r\n");
 				//mds_api_debug_hexdump_buff(&recv_buff, recv_buff_len);
 				//printf("-------------------------------------------------\r\n");
-				parse_pkt__mdm_stat_evt(&recv_buff);
-				send_pkt_ret = 0;
+				send_pkt_ret = parse_pkt__mdm_stat_evt(&recv_buff);
 			}
 			else
 			{
@@ -239,6 +246,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 
 			break;
 		}
+		case e_mdm_gps_info_fifo:
     	case e_mdm_gps_info :       // 0x03 : GPS 정보
 		{
 			ALLOC_PKT_RECV__MDM_GPS_INFO recv_buff;
@@ -256,8 +264,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 				//mds_api_debug_hexdump_buff(&recv_buff, recv_buff_len);
 				//printf("-------------------------------------------------\r\n");
 				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_mdm_gps_info >> SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
-				parse_pkt__mdm_gps_info(&recv_buff);
-				send_pkt_ret = 0;
+				send_pkt_ret = parse_pkt__mdm_gps_info(&recv_buff);
 			}
 			else
 			{
@@ -284,8 +291,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 				//mds_api_debug_hexdump_buff(&recv_buff, recv_buff_len);
 				//printf("-------------------------------------------------\r\n");
 				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_obd_dev_info >> SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
-				parse_pkt__obd_dev_info(&recv_buff);
-				send_pkt_ret = 0;
+				send_pkt_ret = parse_pkt__obd_dev_info(&recv_buff);
 			}
 			else
 			{
@@ -313,8 +319,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 				//mds_api_debug_hexdump_buff(&recv_buff, recv_buff_len);
 				//printf("-------------------------------------------------\r\n");
 				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_obd_stat >> SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
-				parse_pkt__obd_stat(&recv_buff);
-				send_pkt_ret = 0;
+				send_pkt_ret = parse_pkt__obd_stat(&recv_buff);
 			}
 			else
 			{
@@ -343,9 +348,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 				//printf("-------------------------------------------------\r\n");
 				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_obd_data >> SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 
-				parse_pkt__obd_data(&recv_buff);
-
-				send_pkt_ret = 0;
+				send_pkt_ret = parse_pkt__obd_data(&recv_buff);
 			}
 			else
 			{
@@ -424,9 +427,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 				//printf("-------------------------------------------------\r\n");
 				LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_firm_info >> SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
 
-				parse_pkt__firm_info(&recv_buff);
-
-				send_pkt_ret = 0;
+				send_pkt_ret = parse_pkt__firm_info(&recv_buff);
 			}
 			else
 			{
@@ -463,8 +464,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 				//printf("recv -------------------------------------------------\r\n");
 				//mds_api_debug_hexdump_buff(&recv_buff, recv_buff_len);
 				//printf("-------------------------------------------------\r\n");
-				parse_pkt__sms_recv_info(&recv_buff);
-				send_pkt_ret = 0;
+				send_pkt_ret = parse_pkt__sms_recv_info(&recv_buff);
 			}
 			else
 			{	
@@ -477,6 +477,32 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 		}
 	}
 
+/*
+	if ( test_code > 1)
+		if ( get_pkt_pipe_type(op,0) == ePIPE_2 )
+			send_pkt_ret = -1;
+*/
+
+	if ( send_pkt_ret < 0 )
+	{
+		sleep(5);
+		// ePIPE_2 is fifo... retry ..
+		if ( get_pkt_pipe_type(op,0) == ePIPE_2 )
+		{
+			LOGE(eSVC_MODEL, "SEND FAIL!! GOTO SEND RETRY!!!! => FIFO [%d] / [%d]\r\n", op, fifo_pkt_fail_cnt);
+			fifo_pkt_fail_cnt++;
+			goto RETRY_SEND;
+		}
+		else
+			LOGE(eSVC_MODEL, "SEND FAIL!! GOTO SEND NO RETRY!!!! => LIFO [%d]\r\n", op);
+	}
+	else
+	{
+		if ( get_pkt_pipe_type(op,0) == ePIPE_2 )
+			fifo_pkt_fail_cnt = 0;
+	}
+	
+	
 	printf("------------- send packet :: pkt id [0x%x] end -------------------\r\n", op);
 	return send_pkt_ret;
 }

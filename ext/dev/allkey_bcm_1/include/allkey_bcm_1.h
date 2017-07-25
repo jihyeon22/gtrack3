@@ -29,6 +29,7 @@ int allkey_bcm_1_init(int (*p_mdm_evt_proc)(const int evt_code, const unsigned c
 int allkey_bcm_1_chk_stat(const unsigned int evt, const unsigned char stat);
 
 int allkey_bcm_ctr__get_info(ALLKEY_BCM_1_INFO_T* allkey_bcm_info);
+int allkey_bcm_ctr__set_horn_light(int horn_cnt, int light_cnt);
 
 int allkey_bcm_ctr__light_on(int stat);
 int allkey_bcm_ctr__theft_on(int stat);

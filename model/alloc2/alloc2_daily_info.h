@@ -20,5 +20,14 @@ typedef struct {
 int set_overspeed_info(gpsData_t* gps_info);
 int get_overspeed_info(ALLOC2_DAILY_OVERSPEED_MGR_T* over_speed_info);
 
+
+int chk_keyon_section_distance(int total_distance);
+int init_keyon_section_distance(int total_distance);
+
+int get_diff_distance_prev(int total_distance);
+int init_diff_distance_prev();
+
+int set_total_gps_distance(int distance);
+
 #endif
 
