@@ -2,6 +2,7 @@
 #define __MODEL_CALLBACK_H__
 
 #define WAIT_PIPE_CLEAN_SECS	60
+#define MAX_FIFO_FAIL_CNT       100 // 5sec * 100 => 500sec
 
 int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len, const void *param);
 int send_packet(char op, unsigned char *packet_buf, int packet_len);

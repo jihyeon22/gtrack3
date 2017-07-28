@@ -29,6 +29,7 @@
 #include "data-list.h"
 #include "debug.h"
 #include "netcom.h"
+#include "custom.h"
 
 #include <mdt800/packet.h>
 #include <mdt800/gpsmng.h>
@@ -108,6 +109,11 @@ void button2_callback(void)
 #ifdef FEATURE_GEO_FENCE_SIMULATION
 	geo_test_flag = 1; //geo in
 #endif
+
+// neognp 버튼이벤트
+#ifdef SERVER_ABBR_NEO
+	sender_add_data_to_buffer(eNEO_MDM_BTN2_EVT, NULL, ePIPE_2);
+#endif
 	//test_gps_func();
 }
 void button1_callback(void)
@@ -118,6 +124,12 @@ void button1_callback(void)
 #ifdef FEATURE_GEO_FENCE_SIMULATION
 	geo_test_flag = 0; //geo out
 #endif
+
+// neognp 버튼이벤트
+#ifdef SERVER_ABBR_NEO
+	sender_add_data_to_buffer(eNEO_MDM_BTN1_EVT, NULL, ePIPE_2);
+#endif
+
 	//test_gps_func();
 }
 

@@ -396,6 +396,49 @@ int allkey_bcm_ctr__get_info(ALLKEY_BCM_1_INFO_T* allkey_bcm_info)
 }
 
 
+int allkey_bcm_ctr__set_horn_light(int horn_cnt, int light_cnt)
+{
+    unsigned char recv_buff[8];
+    unsigned char send_cmd = 0;
+    unsigned char send_data = 0;
+
+    unsigned char conv_horn_cnt = ( horn_cnt << 4 ) & 0xf0;
+    unsigned char conv_light_cnt = light_cnt & 0x0f ;
+
+    send_cmd = 'O';
+
+    send_data = conv_horn_cnt + conv_light_cnt;
+    printf( " >>> horn cnt conv [0x%x]\r\n", conv_horn_cnt);
+    printf( " >>> light cnt conv [0x%x]\r\n", conv_light_cnt);
+    printf( " >>> send data conv [0x%x]\r\n", send_data);
+    
+
+    if ( _allkey_bcm_cmd(USE_MUTEX_LOCK, send_cmd, send_data, recv_buff) == ALLKEY_BCM_RET_FAIL )
+        return ALLKEY_BCM_RET_FAIL;
+
+    printf("%s() success\r\n", __func__);
+/*
+    if ( allkey_bcm_info != NULL )
+    {
+        allkey_bcm_info->init_stat = 1;
+        allkey_bcm_info->horn_cnt = recv_buff[4] >> 4;
+        allkey_bcm_info->light_cnt = recv_buff[4] & 0x0f;
+        allkey_bcm_info->bcm_swver = recv_buff[5];
+    }
+*/
+    // debug..
+    if(1)
+    {
+        int i = 0;
+        for ( i = 0 ; i < 8 ; i ++ )
+            printf("recv buf [%d] => [0x%x]\r\n", i, recv_buff[i]);
+    }
+
+    return ALLKEY_BCM_RET_SUCCESS;
+}
+
+
+
 
 void allkey_bcm_1_read_thread(void)
 {

@@ -7,3 +7,4 @@ OBJS_MODEL	+= $(MODEL_PATH)/alloc2_senario.o
 OBJS_MODEL	+= $(MODEL_PATH)/alloc2_obd_mgr.o
 OBJS_MODEL	+= $(MODEL_PATH)/alloc2_bcm_mgr.o
 OBJS_MODEL	+= $(MODEL_PATH)/alloc2_daily_info.o
+OBJS_MODEL	+= $(MODEL_PATH)/alloc2_nettool.o

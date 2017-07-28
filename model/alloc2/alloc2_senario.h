@@ -36,9 +36,6 @@ ALLOC_PKT_RECV__OBD_DEV_INFO* get_obd_dev_info();
 
 int get_sms_pkt_cmd_code(unsigned char code);
 
-int chk_keyon_section_distance(int total_distance);
-int init_keyon_section_distance(int total_distance);
-
 void alloc2_poweroff_proc(char* msg);
 
 #define CAR_CTRL_ENABLE     1
@@ -59,6 +56,9 @@ int get_car_ctrl_enable();
 
 int set_no_send_pwr_evt_reboot();
 int get_no_send_pwr_evt_reboot(int flag);
+
+#define CHK_SMS_INTERVAL_SEC   15
+int chk_read_sms();
 
 #endif // __ALLOC2_SENARIO_H__
 

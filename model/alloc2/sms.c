@@ -12,6 +12,8 @@
 
 #include "sms.h"
 
+#include "alloc2_nettool.h"
+
 #include "alloc2_pkt.h"
 #include "alloc2_senario.h"
 
@@ -152,8 +154,7 @@ static int _sms_cmd_proc_set__mdm_gps_total_distance(int argc, char* argv[], con
 	if ( mds_api_check_is_num(argv[1], strlen(argv[1])) != DEFINES_MDS_API_OK )
 		return SMS_CMD_ALLOC2_RET_FAIL;
 	
-	mileage_set_m(atoi(argv[1]));
-	mileage_write();
+	set_total_gps_distance(atoi(argv[1]));
 
 	return SMS_CMD_ALLOC2_RET_SUCCESS;
 }
@@ -194,7 +195,88 @@ static int _sms_cmd_proc_set__mdm_reset_time(int argc, char* argv[], const char*
 
 	p_mdm_setting_val->mdm_reset_interval= atoi(argv[1]);
 	return SMS_CMD_ALLOC2_RET_SUCCESS;
+}
+
+//    {eSMS_CMD_SET__BCM_HORN_CNT, "&20", _sms_cmd_proc_set__dummy_test_fail},  // 경적횟수 설정	1 ~ 10
+static int _sms_cmd_proc_set__bcm_horn_cnt(int argc, char* argv[], const char* phonenum)
+{
+	ALLOC_PKT_RECV__MDM_SETTING_VAL* p_mdm_setting_val = NULL;
+	p_mdm_setting_val = get_mdm_setting_val();
+
+	if ( p_mdm_setting_val == NULL )
+		return SMS_CMD_ALLOC2_RET_FAIL;
 	
+	if ( argc != 2 )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+	
+	if ( mds_api_check_is_num(argv[1], strlen(argv[1])) != DEFINES_MDS_API_OK )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+
+	p_mdm_setting_val->warnning_horn_cnt= atoi(argv[1]);
+
+	allkey_bcm_ctr__set_horn_light(p_mdm_setting_val->warnning_horn_cnt, p_mdm_setting_val->warnning_light_cnt);
+
+	return SMS_CMD_ALLOC2_RET_SUCCESS;
+}
+
+//    {eSMS_CMD_SET__BCM_LIGHT_CNT, "&21", _sms_cmd_proc_set__dummy_test_fail},  // 비상등 횟수 설정	1 ~ 10
+static int _sms_cmd_proc_set__bcm_light_cnt(int argc, char* argv[], const char* phonenum)
+{
+	ALLOC_PKT_RECV__MDM_SETTING_VAL* p_mdm_setting_val = NULL;
+	p_mdm_setting_val = get_mdm_setting_val();
+
+	if ( p_mdm_setting_val == NULL )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+	
+	if ( argc != 2 )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+	
+	if ( mds_api_check_is_num(argv[1], strlen(argv[1])) != DEFINES_MDS_API_OK )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+
+	p_mdm_setting_val->warnning_light_cnt= atoi(argv[1]);
+
+	allkey_bcm_ctr__set_horn_light(p_mdm_setting_val->warnning_horn_cnt, p_mdm_setting_val->warnning_light_cnt);
+	
+	return SMS_CMD_ALLOC2_RET_SUCCESS;
+}
+
+//     {eSMS_CMD_SET__OBD_OVERSPEED_KMH, "&22", _sms_cmd_proc_set__dummy_test_fail},  // 과속기준 속도 설정	Km/h 단위
+static int _sms_cmd_proc_set__overspeed_kmh(int argc, char* argv[], const char* phonenum)
+{
+	ALLOC_PKT_RECV__MDM_SETTING_VAL* p_mdm_setting_val = NULL;
+	p_mdm_setting_val = get_mdm_setting_val();
+
+	if ( p_mdm_setting_val == NULL )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+	
+	if ( argc != 2 )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+	
+	if ( mds_api_check_is_num(argv[1], strlen(argv[1])) != DEFINES_MDS_API_OK )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+
+	p_mdm_setting_val->over_speed_limit_km= atoi(argv[1]);
+	return SMS_CMD_ALLOC2_RET_SUCCESS;
+}
+
+//    {eSMS_CMD_SET__OBD_OVERSPEED_TIME, "&23", _sms_cmd_proc_set__dummy_test_fail},  // 과속기준 시간 설정	secs
+static int _sms_cmd_proc_set__overspeed_time(int argc, char* argv[], const char* phonenum)
+{
+	ALLOC_PKT_RECV__MDM_SETTING_VAL* p_mdm_setting_val = NULL;
+	p_mdm_setting_val = get_mdm_setting_val();
+
+	if ( p_mdm_setting_val == NULL )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+	
+	if ( argc != 2 )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+	
+	if ( mds_api_check_is_num(argv[1], strlen(argv[1])) != DEFINES_MDS_API_OK )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+
+	p_mdm_setting_val->over_speed_limit_time= atoi(argv[1]);
+	return SMS_CMD_ALLOC2_RET_SUCCESS;
 }
 
 // 시동 차단 설정 명령	0 : 시동차단 설정 1 : 시동차단 해제
@@ -255,7 +337,7 @@ static int _sms_cmd_proc_set__req_mdm_stat(int argc, char* argv[], const char* p
 	if ( opt_val == 0 ) // 단말 상태요청
 	{
 		int evt_code = e_evt_code_normal;
-		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);;
+		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt,evt_code));;
 	}
 	else
 		return SMS_CMD_ALLOC2_RET_FAIL;
@@ -501,6 +583,9 @@ static int _sms_cmd_proc_set__obd_total_distance(int argc, char* argv[], const c
 
 }
 
+
+
+
 static SMS_CMD_FUNC_T sms_cmd_func[] =
 {
 	{eSMS_CMD_SET__SERVER_INFO, "&11", _sms_cmd_proc_set__server_info} , // 중계서버의 IP:port	111.112.113.114:1234
@@ -509,10 +594,10 @@ static SMS_CMD_FUNC_T sms_cmd_func[] =
     {eSMS_CMD_SET__MDM_GPS_TOTAL_DISTANCE, "&17", _sms_cmd_proc_set__mdm_gps_total_distance},  // GPS기반 누적거리 설정	meter단위
     {eSMS_CMD_SET__CAR_LOW_BATT_VOLT, "&18", _sms_cmd_proc_set__car_low_batt},  // 저전압 경고 설정	0.1단위 예)12.0 -> 120
     {eSMS_CMD_SET__MDM_RESET_TIME, "&19", _sms_cmd_proc_set__mdm_reset_time},  // 주기적 리셋 타임 설정	분단위 예)03:20 -> 320
-    {eSMS_CMD_SET__BCM_HORN_CNT, "&20", _sms_cmd_proc_set__dummy_test_fail},  // 경적횟수 설정	1 ~ 10
-    {eSMS_CMD_SET__BCM_LIGHT_CNT, "&21", _sms_cmd_proc_set__dummy_test_fail},  // 비상등 횟수 설정	1 ~ 10
-    {eSMS_CMD_SET__OBD_OVERSPEED_KMH, "&22", _sms_cmd_proc_set__dummy_test_fail},  // 과속기준 속도 설정	Km/h 단위
-    {eSMS_CMD_SET__OBD_OVERSPEED_TIME, "&23", _sms_cmd_proc_set__dummy_test_fail},  // 과속기준 시간 설정	secs
+    {eSMS_CMD_SET__BCM_HORN_CNT, "&20", _sms_cmd_proc_set__bcm_horn_cnt},  // 경적횟수 설정	1 ~ 10
+    {eSMS_CMD_SET__BCM_LIGHT_CNT, "&21", _sms_cmd_proc_set__bcm_light_cnt},  // 비상등 횟수 설정	1 ~ 10
+    {eSMS_CMD_SET__OBD_OVERSPEED_KMH, "&22", _sms_cmd_proc_set__overspeed_kmh},  // 과속기준 속도 설정	Km/h 단위
+    {eSMS_CMD_SET__OBD_OVERSPEED_TIME, "&23", _sms_cmd_proc_set__overspeed_time},  // 과속기준 시간 설정	secs
     {eSMS_CMD_SET__CAR_ENGINE_OFF, "&30", _sms_cmd_proc_set__engine_off},  // 시동 차단 설정 명령	0 : 시동차단 설정 1 : 시동차단 해제
     {eSMS_CMD_SET__MDM_STAT_REQ, "&40", _sms_cmd_proc_set__req_mdm_stat},  // 단말기 상태 요청	0
     {eSMS_CMD_SET__BCM_KNOCK_REGI_REQ, "&45", _sms_cmd_proc_set__dummy_test_fail},  // 마스터 키 등록 요청	0
@@ -638,9 +723,9 @@ int parse_model_sms(const char *time, const char *phonenum, const char *sms)
 		sms_pkt_arg.sms_cmd_success = sms_cmd_ret;
 		strcpy(sms_pkt_arg.sms_cmd_contents, original_sms_backup);
 
-		sender_add_data_to_buffer(e_mdm_stat_evt, &pkt_evt_code, ePIPE_2);
-		sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
-		sender_add_data_to_buffer(e_sms_recv_info, &sms_pkt_arg, ePIPE_2);
+		sender_add_data_to_buffer(e_mdm_stat_evt, &pkt_evt_code, get_pkt_pipe_type(e_mdm_stat_evt,pkt_evt_code));
+		sender_add_data_to_buffer(e_mdm_gps_info, NULL, get_pkt_pipe_type(e_mdm_gps_info,0));
+		sender_add_data_to_buffer(e_sms_recv_info, &sms_pkt_arg, get_pkt_pipe_type(e_sms_recv_info,0));
 		
 		return SMS_CMD_ALLOC2_RET_FAIL;
 	}
@@ -706,9 +791,9 @@ int parse_model_sms(const char *time, const char *phonenum, const char *sms)
 
 		if ( get_cur_status() > e_SEND_TO_SETTING_INFO_ING )
 		{
-			sender_add_data_to_buffer(e_mdm_stat_evt, &pkt_evt_code, ePIPE_2);
-			sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
-			sender_add_data_to_buffer(e_sms_recv_info, &sms_pkt_arg, ePIPE_2);
+			sender_add_data_to_buffer(e_mdm_stat_evt, &pkt_evt_code, get_pkt_pipe_type(e_mdm_stat_evt,pkt_evt_code));
+			sender_add_data_to_buffer(e_mdm_gps_info, NULL, get_pkt_pipe_type(e_mdm_gps_info,0));
+			sender_add_data_to_buffer(e_sms_recv_info, &sms_pkt_arg, get_pkt_pipe_type(e_sms_recv_info,0));
 		}
 		else
 			LOGE(eSVC_MODEL, "[MODEL SMS] cannot send pkt : senario is not init");

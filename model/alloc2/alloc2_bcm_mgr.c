@@ -23,6 +23,8 @@
 #include <callback.h>
 #include <config.h>
 
+#include "alloc2_nettool.h"
+
 #include "alloc2_pkt.h"
 #include "alloc2_senario.h"
 
@@ -59,7 +61,7 @@ int mdm_bcm_evt_proc(const int evt_code, const unsigned char stat_1, const unsig
 				LOGT(eSVC_MODEL, " +++ [BCM EVT] - code [%d] ==> door close => pkt evt code [%d] \r\n", evt_code, pkt_evt_code);
 			}
 			
-			sender_add_data_to_buffer(e_mdm_stat_evt, &pkt_evt_code, ePIPE_2);
+			sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &pkt_evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,pkt_evt_code));
 			break;
 		}
 		case e_bcm_evt_small_shock:
@@ -83,7 +85,7 @@ int mdm_bcm_evt_proc(const int evt_code, const unsigned char stat_1, const unsig
 				LOGT(eSVC_MODEL, " +++ [BCM EVT] - code [%d] ==> door close => pkt evt code [%d] \r\n", evt_code, pkt_evt_code);
 			}
 
-			sender_add_data_to_buffer(e_mdm_stat_evt, &pkt_evt_code, ePIPE_2);
+			sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &pkt_evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,pkt_evt_code));
 			break;
 		}
 		case e_bcm_evt_monitor_on_trunk_stat:
@@ -99,7 +101,7 @@ int mdm_bcm_evt_proc(const int evt_code, const unsigned char stat_1, const unsig
 				LOGT(eSVC_MODEL, " +++ [BCM EVT] - code [%d] ==> trunk close => pkt evt code [%d] \r\n", evt_code, pkt_evt_code);
 			}
 
-			sender_add_data_to_buffer(e_mdm_stat_evt, &pkt_evt_code, ePIPE_2);
+			sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &pkt_evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,pkt_evt_code));
 			break;
 		}
 		case e_bcm_evt_monitor_on_hood_stat:

@@ -23,10 +23,14 @@
 #include "netcom.h"
 #include <logd_rpc.h>
 
+#include "alloc2_nettool.h"
+
 #include "alloc2_senario.h"
 #include "seco_obd_1.h"
 
 #include <mdsapi/mds_api.h>
+
+#include <at/at_util.h>
 
 static int _g_cur_stat = e_STAT_NONE;
 
@@ -133,39 +137,6 @@ ALLOC_PKT_RECV__OBD_DEV_INFO* get_obd_dev_info()
 }
 
 
-static int _keyon_distance = 0;
-int chk_keyon_section_distance(int total_distance)
-{
-    int cur_keyon_distance = 0;
-    static int saved_keyon_distance = 0;
-
-    if ( _keyon_distance > 0 )
-    {
-        cur_keyon_distance =  total_distance - _keyon_distance;
-    }
-    else
-    {
-        _keyon_distance = total_distance;
-        cur_keyon_distance = 0;
-    }
-
-	if ( ( cur_keyon_distance >= 0 ) && ( cur_keyon_distance >= saved_keyon_distance) )
-	{
-		saved_keyon_distance = cur_keyon_distance;
-	}
-	else
-	{
-		cur_keyon_distance = saved_keyon_distance;
-	}
-
-    return cur_keyon_distance;
-}
-
-int init_keyon_section_distance(int total_distance)
-{
-    _keyon_distance = total_distance;
-    return 0;
-}
 
 
 int get_sms_pkt_cmd_code(unsigned char code)
@@ -231,8 +202,8 @@ int set_no_send_pwr_evt_reboot()
     system(touch_cmd);
     
 
-	sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, ePIPE_2);
-	sender_add_data_to_buffer(e_mdm_gps_info, NULL, ePIPE_2);
+	sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+	sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
 
 	alloc2_poweroff_proc("senario power off");
 }
@@ -284,4 +255,13 @@ int clr_no_send_pwr_evt_reboot()
         unlink(NO_SEND_TO_PWR_EVT_FLAG_PATH);
     }
     
+}
+
+int chk_read_sms()
+{
+    // SK
+//    AT+CMGR=0
+    // KT / LG
+//    AT+CMGR=24
+    at_chk_read_sms();
 }

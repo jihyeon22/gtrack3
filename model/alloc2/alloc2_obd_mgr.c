@@ -91,6 +91,9 @@ int alloc2_obd_mgr__init()
 
     alloc2_obd_mgr__obd_broadcast_start();
     
+    for ( i = 0 ; i < SECO_OBD_CMD_TOTAL_CNT ; i ++ )
+		alloc2_obd_mgr__clr_cmd_proc(i);
+
     return 0;
 }
 
@@ -138,7 +141,7 @@ int alloc2_obd_mgr__chk_fail_proc()
     memset(&g_cur_seco_obd_data, 0x00, sizeof(SECO_OBD_DATA_T));
     pthread_mutex_unlock(&obd_data_mutex);
 
-    sender_add_data_to_buffer(e_obd_stat, &obd_stat_arg, ePIPE_2);
+    sender_add_data_to_buffer(e_obd_stat, &obd_stat_arg, get_pkt_pipe_type(e_obd_stat,0));
 
     init_seco_obd_mgr("/dev/ttyHSL1", 115200, alloc2_obd_mgr__obd_broadcast_proc);
     alloc2_obd_mgr__init();
@@ -222,7 +225,7 @@ broadcast value : [6]/[7] => [X]
     // 3 : BAT : 배터리전압 
     {
         tmp_cur_seco_obd_data.obd_data_car_volt = (int)(atof(argv[3])*10);
-        printf("tmp_cur_seco_obd_data.obd_data_car_volt is [%d]\r\n",tmp_cur_seco_obd_data.obd_data_car_volt);
+        //printf("tmp_cur_seco_obd_data.obd_data_car_volt is [%d]\r\n",tmp_cur_seco_obd_data.obd_data_car_volt);
     }
     // 4 : SPD : 현재속도
     {
