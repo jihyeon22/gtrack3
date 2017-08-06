@@ -478,8 +478,20 @@ int sms_device_status_req(char *sender)
 
 	memset(sms_buf, 0x20, sizeof(sms_buf));
 
-	strncpy(&sms_buf[idx], "W200K", 5);
-	idx += 5;
+#if defined(BOARD_TL500S)
+	strncpy(&sms_buf[idx], "TL500S", 6);
+	idx += 6;
+#elif defined(BOARD_TL500K)
+	strncpy(&sms_buf[idx], "TL500K", 6);
+	idx += 6;
+#elif defined(BOARD_TL500L)
+	strncpy(&sms_buf[idx], "TL500L", 6);
+	idx += 6;
+#else
+	strncpy(&sms_buf[idx], "TL500?", 6);
+	idx += 6;
+#endif
+	
 	sms_buf[idx++] = 0x20; //0x20 is space
 
 	strncpy(&sms_buf[idx], SW_VERSION, 5); //SW_VERSION : vx.xx

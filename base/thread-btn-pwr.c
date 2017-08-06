@@ -206,7 +206,9 @@ void _check_ign_onoff(void)
 
 			wd_dbg[eWdPwr] = 36;
 			LOGT(LOG_TARGET, "Run ignition-off process\n");
+#ifndef SERVER_ABBR_DSKL
 			dmmgr_send(eEVENT_KEY_OFF, NULL, 0);
+#endif
 
 			wd_dbg[eWdPwr] = 37;
 #ifdef USE_GPS_MODEL
@@ -251,7 +253,11 @@ void _check_ign_onoff(void)
 			LOGT(LOG_TARGET, "Run ignition-on process\n");
 			nettool_init_hostbyname_func();
 			wd_dbg[eWdPwr] = 45;
+
+#ifndef SERVER_ABBR_DSKL
 			dmmgr_send(eEVENT_KEY_ON, NULL, 0);
+#endif
+
 			wd_dbg[eWdPwr] = 46;
 #ifdef USE_GPS_MODEL
 			gps_restart_check_distance();
@@ -305,7 +311,10 @@ void _check_pwr_onoff(void)
 			kt_fota_deinit();
 #endif
 			wd_dbg[eWdPwr] = 56;
+
+#ifndef SERVER_ABBR_DSKL
 			dmmgr_send(eEVENT_PWR_OFF, NULL, 0);
+#endif
 			wd_dbg[eWdPwr] = 57;
 			// critical data backup. for simulation
 			crit_backup_simul();
@@ -344,7 +353,11 @@ void _check_pwr_onoff(void)
 		{
 			wd_dbg[eWdPwr] = 69;
 			LOGT(LOG_TARGET, "Run power-on process\n");
+
+#ifndef SERVER_ABBR_DSKL
 			dmmgr_send(eEVENT_PWR_ON, NULL, 0);
+#endif
+
 			wd_dbg[eWdPwr] = 70;
 			power_on_callback();
 			wd_dbg[eWdPwr] = 71;
@@ -385,7 +398,10 @@ void *thread_btn_pwr(void *args)
 	{
 		time_pwr_hold_time = tools_get_kerneltime();
 		pwr_on = POWER_SRC_DC;
+
+#ifndef SERVER_ABBR_DSKL
 		dmmgr_send(eEVENT_PWR_ON, NULL, 0);
+#endif
 		power_on_callback();
 	}
 	else
@@ -395,7 +411,10 @@ void *thread_btn_pwr(void *args)
 			
 			time_pwr_hold_time = tools_get_kerneltime();
 			pwr_on = POWER_SRC_BATTERY;
+
+#ifndef SERVER_ABBR_DSKL
 			dmmgr_send(eEVENT_PWR_OFF, NULL, 0);
+#endif
 			power_off_callback();
 		}
 		else
@@ -403,7 +422,9 @@ void *thread_btn_pwr(void *args)
 			
 			time_pwr_hold_time = tools_get_kerneltime();
 			pwr_on = POWER_SRC_DC;
+#ifndef SERVER_ABBR_DSKL
 			dmmgr_send(eEVENT_PWR_ON, NULL, 0);
+#endif
 			power_on_callback();
 		}
 	}
@@ -413,7 +434,9 @@ void *thread_btn_pwr(void *args)
 		
 		time_ign_hold_time = tools_get_kerneltime();
 		ign_on = POWER_IGNITION_OFF;
+#ifndef SERVER_ABBR_DSKL
 		dmmgr_send(eEVENT_KEY_OFF, NULL, 0);
+#endif
 		ignition_off_callback();
 	}
 	else
@@ -421,7 +444,9 @@ void *thread_btn_pwr(void *args)
 		
 		time_ign_hold_time = tools_get_kerneltime();
 		ign_on = POWER_IGNITION_ON;
+#ifndef SERVER_ABBR_DSKL
 		dmmgr_send(eEVENT_KEY_ON, NULL, 0);
+#endif
 		ignition_on_callback();
 	}
 	btn_1_push_time = btn_2_push_time = tools_get_kerneltime();

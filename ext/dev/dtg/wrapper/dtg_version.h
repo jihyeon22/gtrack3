@@ -103,7 +103,7 @@
 		#define SW_VERSION	"v1.00"
 	#elif defined(DEVICE_MODEL_INNOCAR)
 		#define DTG_MODEL	"ino"
-		#define SW_VERSION	"v1.03"
+		#define SW_VERSION	"v1.01"
 	#elif defined(DEVICE_MODEL_INNOSNS)
 		#define DTG_MODEL	"ino"
 		#define SW_VERSION	"v1.00"
@@ -142,7 +142,7 @@
 		#define SW_VERSION	"v1.00"
 	#elif defined(DEVICE_MODEL_INNOCAR)
 		#define DTG_MODEL	"ino"
-		#define SW_VERSION	"v1.03"
+		#define SW_VERSION	"v1.01"
 	#elif defined(DEVICE_MODEL_INNOSNS)
 		#define DTG_MODEL	"ino"
 		#define SW_VERSION	"v1.00"

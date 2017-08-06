@@ -50,5 +50,6 @@ int atcmd_get_rssi()
 
 int atcmd_send_sms(const char *message, const char *sender, const char *receiver)
 {
+	printf("message : %s, tel : %s\n", message, receiver);
     return (at_send_sms(receiver, message));
 }
