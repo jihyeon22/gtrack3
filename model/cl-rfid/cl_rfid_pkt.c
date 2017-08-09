@@ -9,6 +9,7 @@
 #include <logd_rpc.h>
 
 #include "config.h"
+#include "cl_rfid_pkt.h"
 #include "cl_rfid_tools.h"
 
 #define LOG_TARGET eSVC_COMMON
@@ -19,20 +20,69 @@ static int __make_http_header__req_passenger(char* buff, char* version)
     // char *hdr_format = "GET /cd/getpassengerlist_tiny2.aspx?dn=%s&v=%d HTTP/1.1\r\nHost: test.2bt.kr:8887\r\n\r\n";
 
     configurationModel_t *conf = get_config_model();
+    int ver_int_date = 0;
+    int ver_int_time = 0;
 
-	char phonenum[AT_LEN_PHONENUM_BUFF] = {0};
+    char ver_str_date[16] = {0,};
+    char ver_str_time[16] = {0,};
+
+    char target_ver[32] = {0,};
+
+    char phonenum[AT_LEN_PHONENUM_BUFF] = {0};
     int str_len = 0;
 
     char host_ip[60] = {0,};
     int  host_port = 0;
 
-    at_get_phonenum(phonenum, sizeof(phonenum));
+    int  ver_int_sec = 0;
+
+    // 170807 202552 
+    if ( strlen(version) == 12 )
+    {
+        strncpy(ver_str_date, version, 6);
+        strncpy(ver_str_time, version + 6, 6);
+        ver_int_date = atoi(ver_str_date);
+        ver_int_time = atoi(ver_str_time);
+
+        // 시간 스트링을 초로 변환
+        ver_int_sec += (ver_int_time % 100);
+        // printf("ver_int_sec [%d] => [%d]\r\n", ver_int_sec, (ver_int_time % 100) );
+        ver_int_sec += ( (ver_int_time / 100) % 100 )  * 60;
+        // printf("ver_int_sec [%d] => [%d]\r\n", ver_int_sec, ( (ver_int_time / 100) % 100 ) );
+        ver_int_sec += ( (ver_int_time / 10000) % 100 ) * 3600;
+        // printf("ver_int_sec [%d] => [%d]\r\n", ver_int_sec, ( (ver_int_time / 10000) % 100 )  );
+
+        // 초로 변환한 데이터를 계산하고..
+        ver_int_sec -= REQ_PASSENGER_DATE_MARGIN_SEC;
+
+        // 계산한 초데이터를 다시 문자열로 만든다.
+        ver_int_time = ( ver_int_sec % 60 );
+        //printf("ver_int_time [%d] => [%d]\r\n", ver_int_time, ( ver_int_sec % 60 ) );
+        ver_int_time += (( ver_int_sec / 60 ) % 60) * 100;
+        //printf("ver_int_time [%d] => [%d]\r\n", ver_int_time,  (( ver_int_sec / 60 ) % 60) * 100);
+        ver_int_time += (( ver_int_sec / 3600 ) ) * 10000;
+        //printf("ver_int_time [%d] => [%d]\r\n", ver_int_time,   (( ver_int_sec / 3600 ) ) * 10000);
+        
+        sprintf(target_ver, "%d%d", ver_int_date, ver_int_time);
+        printf("ver_str_date [%s] / ver_str_time [%s] / ver_int_date [%d] / ver_int_time [%d]\r\n", ver_str_date, ver_str_time, ver_int_date, ver_int_time);
+        devel_webdm_send_log("RIFD TARGET VER [%s]\r\n", target_ver);
+    }
+    else
+    {
+        strcpy(target_ver,"0");
+    }
+    
+    
+
+	
+
+    //at_get_phonenum(phonenum, sizeof(phonenum));
 
     //strcpy(phonenum, "01222591191");
     strcpy(host_ip, conf->model.request_rfid);
     host_port = conf->model.request_rfid_port;
 
-    str_len += sprintf(buff + str_len, "GET /cd/getpassengerlist_tiny2.aspx?dn=%s&v=%s HTTP/1.1\r\n", phonenum, version);
+    str_len += sprintf(buff + str_len, "GET /cd/getpassengerlist_tiny2.aspx?dn=%s&v=%s HTTP/1.1\r\n", phonenum, target_ver);
     str_len += sprintf(buff + str_len, "Host: %s:%d\r\n",host_ip, host_port);
     str_len += sprintf(buff + str_len, "\r\n");
 

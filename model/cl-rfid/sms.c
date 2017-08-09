@@ -35,6 +35,8 @@ static SMS_CMD_FUNC_T sms_cmd_func[] =
 	{eSMS_CMD_GET__DEVICE_INFO, SMS_CMD_GET__DEVICE_INFO, _sms_cmd_proc_get_dev_info},
 	{eSMS_CMD_SET__DEVICE_CLR_REDOWN, SMS_CMD_SET__DEVICE_CLR_REDOWN, _sms_cmd_proc_clear_redown_rfid},
 	{eSMS_CMD_SET__DEVICE_RESET, SMS_CMD_SET__DEVICE_RESET, _sms_cmd_proc_device_reset},
+	{eSMS_CMD_GET__RFID_FW_VER, SMS_CMD_GET__RFID_FW_VER, _sms_cmd_proc_rfid_fw_ver},
+	{eSMS_CMD_SET__RFID_FW_DOWNLOAD, SMS_CMD_SET__RFID_FW_DOWNLOAD, _sms_cmd_proc_rfid_fw_down},
 };
 
 int parse_model_sms(char *time, char *phonenum, char *sms)
@@ -201,6 +203,7 @@ int _sms_cmd_proc_clear_redown_rfid(int argc, char* argv[], const char* phonenum
 }
 
 
+
 int _sms_cmd_proc_device_reset(int argc, char* argv[], const char* phonenum)
 {
 	int i = 0 ;
@@ -246,3 +249,123 @@ int _sms_cmd_proc_device_reset(int argc, char* argv[], const char* phonenum)
 	return 0;
 }
 
+
+int _sms_cmd_proc_rfid_fw_ver(int argc, char* argv[], const char* phonenum)
+{
+	int i = 0 ;
+	int str_len = 0;
+	
+	int max_fw_read_retry = 10;
+    int get_fw_ver_success = 0;
+    RFID_FIRMWARE_VER_T cur_ver_info;
+
+	unsigned char result_buff[80] = {0,};
+	unsigned char tmp_buff[32] = {0,};
+	
+	LOGI(LOG_TARGET, "SMS PROC : get - fw ver / from [%s]\n",phonenum);
+
+	for(i = 0; i <= argc; i++)
+	{
+		LOGD(LOG_TARGET, "SMS - arg [%d] - [%s]\n", i, argv[i]);
+	}
+	
+	// passwd argument check.
+	if ( argc == 0 )
+	{
+		LOGE(LOG_TARGET, "SMS - invalid arg [%d]\n", argc);
+		return -1;
+	}
+	
+	if ( strncasecmp(SMS_CMD_PWD, argv[1], strlen(argv[1]) ) != 0 )
+	{
+		LOGE(LOG_TARGET, " - SMS PWD invalid [%s] / [%s]\n", argv[1], SMS_CMD_PWD);
+		return -1;
+	}
+	
+    memset(&cur_ver_info, 0x00, sizeof(cur_ver_info));
+
+    while(max_fw_read_retry--)
+    {
+        if ( kjtec_rfid__firmware_ver_info(&cur_ver_info) == KJTEC_RFID_RET_SUCCESS )
+        {
+            LOGI(LOG_TARGET, "[sms] kjtec version info [%s]\n", cur_ver_info.data_result  );
+            //devel_webdm_send_log("FW DOWN CHK => [%s]", cur_ver_info.data_result);
+            get_fw_ver_success = 1;
+            break;
+        }
+        else
+            sleep(1);
+    }
+
+	if (get_fw_ver_success == 1)
+	{
+		sprintf(result_buff,"cur rfid firm ver [%s] / last ver [%s]", cur_ver_info.data_result, FW_DOWNLOAD_FILE_VER);
+	}
+	else
+	{
+		sprintf(result_buff,"cur rfid firm ver [%s] / last ver [%s]", "GET FAIL", FW_DOWNLOAD_FILE_VER);
+	}
+
+	// ---------------
+
+	
+	at_send_sms(phonenum, result_buff);
+	
+	return 0;
+}
+
+
+
+int _sms_cmd_proc_rfid_fw_down(int argc, char* argv[], const char* phonenum)
+{
+	int i = 0 ;
+	int str_len = 0;
+	
+	int max_fw_read_retry = 10;
+    int get_fw_ver_success = 0;
+    RFID_FIRMWARE_VER_T cur_ver_info;
+
+	unsigned char result_buff[80] = {0,};
+	unsigned char tmp_buff[32] = {0,};
+	
+	LOGI(LOG_TARGET, "SMS PROC : set - firmware down / from [%s]\n",phonenum);
+
+	for(i = 0; i <= argc; i++)
+	{
+		LOGD(LOG_TARGET, "SMS - arg [%d] - [%s]\n", i, argv[i]);
+	}
+	
+	// passwd argument check.
+	if ( argc == 0 )
+	{
+		LOGE(LOG_TARGET, "SMS - invalid arg [%d]\n", argc);
+		return -1;
+	}
+	
+	if ( strncasecmp(SMS_CMD_PWD, argv[1], strlen(argv[1]) ) != 0 )
+	{
+		LOGE(LOG_TARGET, " - SMS PWD invalid [%s] / [%s]\n", argv[1], SMS_CMD_PWD);
+		return -1;
+	}
+	
+    memset(&cur_ver_info, 0x00, sizeof(cur_ver_info));
+
+	kjtec_rfid_mgr__download_sms_noti_enable(1, phonenum);
+
+
+    if ( rfid_tool__get_senario_stat() != e_RFID_USER_INFO_WRITE_TO_DEV_SUCCESS )
+    {
+        //LOGI(LOG_TARGET, "[FWDOWN] INVALID STAT [%d]\n", rfid_tool__get_senario_stat()  );
+        devel_webdm_send_log("[FWDOWN] INVALID STAT [%d]\n", rfid_tool__get_senario_stat()  );
+        at_send_sms(phonenum, "FW DOWN CHK => FAIL : INVALID STAT. TRY LATER");
+		return -1;
+    }
+
+	rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_START);
+	// ---------------
+
+	
+	//at_send_sms(phonenum, result_buff);
+	
+	return 0;
+}

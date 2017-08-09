@@ -123,7 +123,9 @@ void button1_callback(void)
 	_send_location_data();
 
 	//kjtec_rfid_mgr__clr_all_user_data();
+	//kjtec_rfid_mgr__download_sms_noti_enable(1, "01086687577");
 	//rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_START);
+
 }
 
 void button2_callback(void)
@@ -340,6 +342,9 @@ void gps_parse_one_context_callback(void)
 
 #define MAIN_STAT_MSG_PRINT_INTERVAL 	5
 
+RFID_FIRMWARE_VER_T g_ver_info;
+int g_need_to_rfid_ver_chk = 0;
+
 void main_loop_callback(void)
 {
 
@@ -357,14 +362,7 @@ void main_loop_callback(void)
 
 	memset(&g_rfid_dev_info, 0x00, sizeof(g_rfid_dev_info) );
 
-	if (0)
-	{
-		RFID_FIRMWARE_VER_T ver_info;
-		if ( kjtec_rfid__firmware_ver_info(&ver_info) == KJTEC_RFID_RET_SUCCESS )
-			LOGI(LOG_TARGET, "[MAIN] kjtec version info [%s]\n", ver_info.data_result  );
-		else
-			LOGE(LOG_TARGET, "[MAIN] kjtec version info fail\n");
-	}
+	
 
 	while(flag_run_thread_main)
 	{
@@ -398,6 +396,18 @@ void main_loop_callback(void)
 		// -----------------------------------------------------
 		if ( ( main_loop_cnt % MAIN_STAT_MSG_PRINT_INTERVAL ) == 0 )
 			LOGI(LOG_TARGET, "[MAIN] pkt_stat [%s], rfid chk [%d]/[%d] \n", rfid_tool__get_senario_stat_str(), main_rfid_chk_cnt, rfid_tool__env_get_rfid_chk_interval()  );
+
+		if (g_need_to_rfid_ver_chk == 0)
+		{
+			if ( kjtec_rfid__firmware_ver_info(&g_ver_info) == KJTEC_RFID_RET_SUCCESS )
+			{
+				LOGI(LOG_TARGET, "[MAIN] kjtec version info [%s]\n", g_ver_info.data_result  );
+				devel_webdm_send_log("RFID FW VER [%s]", g_ver_info.data_result);
+				g_need_to_rfid_ver_chk = 1;
+			}
+			else
+				LOGE(LOG_TARGET, "[MAIN] kjtec version info fail\n");
+		}
 
 		// 1. rfid 단말을 확인한다.
 		if ( rfid_tool__get_senario_stat() == e_RFID_INIT )
@@ -445,12 +455,19 @@ void main_loop_callback(void)
 			// 다운로드 성공했으니, 새로운 정보로 갱신한다.
 			if ( ret == KJTEC_RFID_RET_SUCCESS )
 			{
+				RFID_DB_INFO_T result;
+				memset(&result, 0x00, sizeof(result));
+				kjtec_rfid__rfid_db_info(&result);
 				// 새로 얻어와야 하기때문에.
-				memset(&g_rfid_dev_info, 0x00, sizeof(g_rfid_dev_info) );
+				//memset(&g_rfid_dev_info, 0x00, sizeof(g_rfid_dev_info) );
 				
-				rfid_write_user_data_fail_cnt = 0;
-				if ( kjtec_rfid_mgr__dev_init_chk(&g_rfid_dev_info) == KJTEC_RFID_RET_SUCCESS )
+				if ( result.cmd_result == KJTEC_RFID_RET_SUCCESS )
 				{
+					g_rfid_dev_info.total_passenger_cnt = result.db_cnt;
+					strcpy(g_rfid_dev_info.saved_timestamp,result.db_date);
+					
+					printf("db info [%d] / cnt [%d] / date [%s]\r\n", result.cmd_result, result.db_cnt, result.db_date);
+
 					need_to_rfid_info = 0;
 					devel_webdm_send_log("[MAIN] USER DOWN OK 1 : model [%s], user cnt [%d], time [%s]", g_rfid_dev_info.model_no , g_rfid_dev_info.total_passenger_cnt , g_rfid_dev_info.saved_timestamp );
 				}
@@ -459,11 +476,14 @@ void main_loop_callback(void)
 					need_to_rfid_info = 1;
 					devel_webdm_send_log("[MAIN] USER DOWN OK 2 : model [%s], user cnt [%d], time [%s]", g_rfid_dev_info.model_no , g_rfid_dev_info.total_passenger_cnt , g_rfid_dev_info.saved_timestamp );
 				}
+
+				rfid_write_user_data_fail_cnt = 0;
+
 			}
 			else
 			{
 				LOGE(LOG_TARGET, "[MAIN] RFID WRITE FAIL [%d]/[%d]\r\n",rfid_write_user_data_fail_cnt, MAX_CHK_RFID_WRITE_FAIL_CNT);
-
+				devel_webdm_send_log("USER DATA WRITE FAIL!! [%d]", rfid_write_user_data_fail_cnt);
 				if ( rfid_write_user_data_fail_cnt++ > MAX_CHK_RFID_WRITE_FAIL_CNT ) 
 				{
 					devel_webdm_send_log("USER DATA WRITE FAIL!!");
@@ -474,11 +494,25 @@ void main_loop_callback(void)
 
 		if ( need_to_rfid_info == 1 )
 		{
+			RFID_DB_INFO_T result;
+			memset(&result, 0x00, sizeof(result));
+			kjtec_rfid__rfid_db_info(&result);
+			if ( result.cmd_result == KJTEC_RFID_RET_SUCCESS )
+			{
+				g_rfid_dev_info.total_passenger_cnt = result.db_cnt;
+				strcpy(g_rfid_dev_info.saved_timestamp,result.db_date);
+				
+				printf("db info [%d] / cnt [%d] / date [%s]\r\n", result.cmd_result, result.db_cnt, result.db_date);
+				need_to_rfid_info = 0;
+				devel_webdm_send_log("[MAIN] RFID DEV INFO : model [%s], user cnt [%d], time [%s]", g_rfid_dev_info.model_no , g_rfid_dev_info.total_passenger_cnt , g_rfid_dev_info.saved_timestamp );
+			}
+			/*
 			if ( kjtec_rfid_mgr__dev_init_chk(&g_rfid_dev_info) == KJTEC_RFID_RET_SUCCESS )
 			{
-				devel_webdm_send_log("[MAIN] RFID DEV INFO : model [%s], user cnt [%d], time [%s]", g_rfid_dev_info.model_no , g_rfid_dev_info.total_passenger_cnt , g_rfid_dev_info.saved_timestamp );
-				need_to_rfid_info = 0;
+				
+				
 			}
+			*/
 		}
 
 		// 4. 모두 write도 성공했으니, 승객정보를 주기적으로 요청한다.
@@ -529,10 +563,11 @@ void main_loop_callback(void)
 			}
 		}
 		
-		/*
+		
+		
 		if ( rfid_tool__get_senario_stat() == e_RFID_FIRMWARE_DOWNLOAD_START )
-			kjtec_rfid_mgr__download_fw("/system/rfid_fw.bin");
-*/
+			kjtec_rfid_mgr__download_fw(FW_DOWNLOAD_FILE_PATH);
+
 		main_loop_cnt++;
 		main_rfid_chk_cnt++;
 		sleep(1);

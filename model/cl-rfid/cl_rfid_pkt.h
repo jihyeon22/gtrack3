@@ -3,7 +3,9 @@
 
 #include "cl_rfid_tools.h"
 
-int make_clrfid_pkt__req_passenger(unsigned char **pbuf, unsigned short *packet_len);
+#define REQ_PASSENGER_DATE_MARGIN_SEC   1800
+
+int make_clrfid_pkt__req_passenger(unsigned char **pbuf, unsigned short *packet_len, char* version);
 int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff);
 
 int make_clrfid_pkt__set_boarding(unsigned char **pbuf, unsigned short *packet_len, RFID_BOARDING_MGR_T* boarding);

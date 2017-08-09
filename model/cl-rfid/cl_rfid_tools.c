@@ -15,7 +15,21 @@ static int _g_rfid_pkt_stat = e_RFID_INIT;
 
 int rfid_tool__set_senario_stat(int stat)
 {
+    /*
+    if ( stat == e_RFID_FIRMWARE_DOWNLOAD_START )
+    {
+        if ( _g_rfid_pkt_stat != e_RFID_USER_INFO_WRITE_TO_DEV_SUCCESS )
+        {
+            //LOGI(LOG_TARGET, "[FWDOWN] INVALID STAT [%d]\n", rfid_tool__get_senario_stat()  );
+            devel_webdm_send_log("[FWDOWN] INVALID STAT [%d]\n", rfid_tool__get_senario_stat()  );
+            kjtec_rfid_mgr__download_sms_noti_msg("FW DOWN CHK => FAIL : INVALID STAT. TRY LATER");
+            return _g_rfid_pkt_stat;
+        }
+    }
+    */
+    
     _g_rfid_pkt_stat = stat;
+    
     return _g_rfid_pkt_stat;
 }
 
