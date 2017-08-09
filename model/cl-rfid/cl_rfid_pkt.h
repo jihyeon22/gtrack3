@@ -3,7 +3,7 @@
 
 #include "cl_rfid_tools.h"
 
-#define REQ_PASSENGER_DATE_MARGIN_SEC   1800
+#define REQ_PASSENGER_DATE_MARGIN_SEC   20
 
 int make_clrfid_pkt__req_passenger(unsigned char **pbuf, unsigned short *packet_len, char* version);
 int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff);
