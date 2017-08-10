@@ -23,6 +23,8 @@
 #include "debug.h"
 #include "netcom.h"
 
+#include "thread-keypad.h"
+
 #include <mdt800/packet.h>
 #include <mdt800/gpsmng.h>
 #include <mdt800/hdlc_async.h>
@@ -213,9 +215,11 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 	ret = __send_packet(op, packet_buf, packet_len);
 	if(ret < 0) {
 		LOGE(LOG_TARGET, "op[%d] __send_packet error return\n", op);
+		keypad_server_result__set_result(op, KEY_RESULT_FALSE);
 		return -1;
 	}
 
+	keypad_server_result__set_result(op, KEY_RESULT_TRUE);
 	LOGI(LOG_TARGET, "send_packet op[%d] send success\n", op);
 
 	return 0;
