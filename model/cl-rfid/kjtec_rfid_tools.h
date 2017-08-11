@@ -6,7 +6,7 @@
 #define FW_DOWNLOAD_OFFSET_BYTE     4
 #define FW_DOWNLOAD_MAX_FAIL_RETRY_CNT   RFID_CMD_FIRMWARE_ONE_PKT_MAX_RETRY
 #define FW_DOWNLOAD_FILE_PATH           "/system/mds/system/bin/rfid_fw.bin"
-#define FW_DOWNLOAD_FILE_VER            "1.3.0.BusSR-t8"
+#define FW_DOWNLOAD_FILE_VER            "1.3.0.BusSR-t9"
 
 
 int kjtec_rfid_mgr__dev_init_chk(RFID_DEV_INFO_T* info);

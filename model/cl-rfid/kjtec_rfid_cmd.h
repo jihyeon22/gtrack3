@@ -76,8 +76,8 @@ typedef struct rfid_save_passenger_data
 }RFID_SAVE_PASSENGER_DATA_T;
 #define RFID_CMD_ID_REQ__SAVE_PASSENGER_DATA    0x31
 #define RFID_CMD_ID_RESP__SAVE_PASSENGER_DATA   0x32 // [Data Result,1,]
-#define RFID_CMD_PASSENGER_STR_MAX_LEN          253 // (256 -3)
-#define RFID_CMD_PASSENGER_STR_PADDING          3 // (256 -3)
+#define RFID_CMD_PASSENGER_STR_MAX_LEN          245  // (256 -3)
+#define RFID_CMD_PASSENGER_STR_PADDING          3    // (256 -3)
 #define RFID_USER_INFO_FRAME__START             0x01
 #define RFID_USER_INFO_FRAME__BODY              0x02
 #define RFID_USER_INFO_FRAME__END               0x03

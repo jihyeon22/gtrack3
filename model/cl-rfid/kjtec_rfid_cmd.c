@@ -1127,7 +1127,7 @@ int kjtec_rfid__dev_write_rfid_data(int flag, char* rfid_user_str)
 
     _kjtec_rfid_cmd(1, RFID_CMD_ID_REQ__SAVE_PASSENGER_DATA, cmd_str, strlen(cmd_str), NULL);
 
-    max_cmd_wait_time = KJTEC_RFID_CMD_RESP_WAIT_TIME;
+    max_cmd_wait_time = KJTEC_RFID_CMD_RESP_WAIT_TIME*4;
     while(max_cmd_wait_time--)
     {
         if ( g_rfid_save_passenger_data.cmd_result  == KJTEC_RFID_RET_SUCCESS )
