@@ -43,6 +43,11 @@ char* rfid_tool__get_senario_stat_str()
     int cur_stat = rfid_tool__get_senario_stat();
     switch(cur_stat)
     {
+        case  e_RFID_NONE:
+        {
+            return "RFID_NONE";
+            break;
+        }
         case  e_RFID_INIT:
         {
             return "RFID_INIT";
@@ -103,6 +108,7 @@ char* rfid_tool__get_senario_stat_str()
         }*/
         default : 
         {
+            return "STAT_NULL";
             break;
         }
     }

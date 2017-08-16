@@ -3,7 +3,7 @@
 #define __CL_RFID_PASSENGER_H__
 
 // WEB 에서 한번에 받아올수있는 최대갯수
-#define MAX_RFID_USER_SAVE          30000
+#define MAX_RFID_USER_SAVE          33000
 #define MAX_WRITE_FAIL_RETRY_CNT    10
 
 typedef struct rfid_user_info
@@ -40,6 +40,7 @@ typedef struct rifd_boarding_mgr
 
 typedef enum RFID_PKT_STATUS
 {
+    e_RFID_NONE = 0,
     e_RFID_INIT = 1,
     e_NEED_TO_RFID_USER_CHK = 2,
     e_RFID_DOWNLOAD_START =3 ,

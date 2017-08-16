@@ -132,7 +132,7 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 	return res;
 }
 
-unsigned char g_html_recv_buff[1024*500];
+unsigned char g_html_recv_buff[128*MAX_RFID_USER_SAVE];
 
 int send_packet(char op, unsigned char *packet_buf, int packet_len)
 {

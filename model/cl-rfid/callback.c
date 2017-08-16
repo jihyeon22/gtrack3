@@ -103,7 +103,7 @@ void init_model_callback(void)
 
 	init_kjtec_rfid();
 	
-	rfid_tool__set_senario_stat(e_RFID_INIT); 
+	rfid_tool__set_senario_stat(e_RFID_NONE); 
 	//rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_START);
 }
 
@@ -122,9 +122,9 @@ void button1_callback(void)
 	_make_location_data(&gpsdata, code);
 	_send_location_data();
 
-	//kjtec_rfid_mgr__clr_all_user_data();
+	kjtec_rfid_mgr__clr_all_user_data();
 	//kjtec_rfid_mgr__download_sms_noti_enable(1, "01086687577");
-	//rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_START);
+//	rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_START);
 
 }
 
@@ -156,8 +156,10 @@ void ignition_on_callback(void)
 	
 	_make_location_data(&gpsdata, code);
 	_send_location_data();
-
+//	kjtec_rfid_mgr__clr_all_user_data();
 //	sender_add_data_to_buffer(PACKET_TYPE_EVENT, &code, ePIPE_2);
+
+	rfid_tool__set_senario_stat(e_RFID_INIT); 
 }
 
 void ignition_off_callback(void)
@@ -345,6 +347,12 @@ void gps_parse_one_context_callback(void)
 RFID_FIRMWARE_VER_T g_ver_info;
 int g_need_to_rfid_ver_chk = 0;
 
+int clear_main_watchdog()
+{
+	watchdog_set_cur_ktime(eWdMain);
+	return 0;
+}
+
 void main_loop_callback(void)
 {
 
@@ -371,8 +379,8 @@ void main_loop_callback(void)
 		{
 			count_run_watchdog = 0;
 			watchdog_process();
-			watchdog_set_cur_ktime(eWdMain);
-			_check_device_poweroff();			
+			clear_main_watchdog();
+			_check_device_poweroff();
 		}
 
 		if ( ( main_loop_cnt % GPS_ANT_CHK_INTERVAL_SEC ) == 0 )
@@ -484,10 +492,12 @@ void main_loop_callback(void)
 			{
 				LOGE(LOG_TARGET, "[MAIN] RFID WRITE FAIL [%d]/[%d]\r\n",rfid_write_user_data_fail_cnt, MAX_CHK_RFID_WRITE_FAIL_CNT);
 				devel_webdm_send_log("USER DATA WRITE FAIL!! [%d]", rfid_write_user_data_fail_cnt);
+				sleep(30);
 				if ( rfid_write_user_data_fail_cnt++ > MAX_CHK_RFID_WRITE_FAIL_CNT ) 
 				{
 					devel_webdm_send_log("USER DATA WRITE FAIL!!");
-					rfid_tool__set_senario_stat(e_RFID_USER_INFO_WRITE_TO_DEV_FAIL);
+					//rfid_tool__set_senario_stat(e_RFID_USER_INFO_WRITE_TO_DEV_FAIL);
+					rfid_tool__set_senario_stat(e_RFID_USER_INFO_WRITE_TO_DEV_SUCCESS);
 				}
 			}
 		}

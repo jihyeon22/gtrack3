@@ -55,6 +55,7 @@ static int _parse_cmd__rfid_db_info(const char* buf);
 static int _parse_cmd__firmware_write_one_pkt(const char* buf);
 
 int kjtec_rfid__dev_rfid_req_clr();
+int clear_main_watchdog();
 
 char _check_xor_sum(char* write_buff, int len)
 {
@@ -348,6 +349,11 @@ FINISH:
     //    printf("[KJTEC RFID] read cmd ret [%d] ++++++++++++++++++++ \r\n", read_len);
     }
     //printf("[KJTEC RFID >> WRITE CMD] sleep timing [%d]\r\n", sleep_timing);
+
+    // userdata 쓸때는 sleep 없다.
+    if ( cmd_code == RFID_CMD_ID_REQ__SAVE_PASSENGER_DATA )
+        sleep_timing = 0;
+
     usleep(sleep_timing);
 
     return ret_val;
@@ -813,6 +819,7 @@ static int _parse_cmd__chk_ready(const char* buf)
 int kjtec_rfid__dev_rfid_all_clear(RIFD_DATA_ALL_CLR_T* result)
 {
     int max_cmd_wait_time;
+    int sleep_time_usec = 200000;
 
     LOGT(LOG_TARGET, "[KJTEC RFID] SEND CMD :: ALL CLR SAVED RFID USER INFO\r\n");
 
@@ -821,7 +828,7 @@ int kjtec_rfid__dev_rfid_all_clear(RIFD_DATA_ALL_CLR_T* result)
 
     _kjtec_rfid_cmd(1, RFID_CMD_ID_REQ__DATA_ALL_CLR, "Init Data", strlen("Init Data"), NULL);
     
-    max_cmd_wait_time = KJTEC_RFID_CMD_RESP_WAIT_TIME;
+    max_cmd_wait_time = 300; // 300 * 2sec = 10min
     while(max_cmd_wait_time--)
     {
         if ( g_rfid_all_clr.cmd_result  == KJTEC_RFID_RET_SUCCESS )
@@ -829,8 +836,13 @@ int kjtec_rfid__dev_rfid_all_clear(RIFD_DATA_ALL_CLR_T* result)
             printf("[KJTEC RFID] write cmd [%s] -> resp success\r\n", __func__);
             break;
         }
+
+        LOGE(LOG_TARGET, "[KJTEC RFID] write cmd [%s] -> [%d] : resp wait... [%d] usec sleep\r\n", __func__, max_cmd_wait_time, sleep_time_usec);
         printf("[KJTEC RFID] write cmd [%s] -> resp wait...\r\n", __func__);
-        usleep(KJTEC_RFID_CMD_RESP_WAIT_ONE_INTERVAL);
+        usleep(sleep_time_usec);
+
+        if ( max_cmd_wait_time & 20 )
+            clear_main_watchdog();
     }
 
     if ( g_rfid_all_clr.cmd_result  != KJTEC_RFID_RET_SUCCESS )
@@ -1105,6 +1117,7 @@ int kjtec_rfid__dev_rfid_req_clr()
 int kjtec_rfid__dev_write_rfid_data(int flag, char* rfid_user_str)
 {
     int max_cmd_wait_time;
+    int sleep_time_usec = 100000;
 
     char cmd_str[RFID_CMD_PASSENGER_STR_MAX_LEN] = {0,};
 
@@ -1114,7 +1127,10 @@ int kjtec_rfid__dev_write_rfid_data(int flag, char* rfid_user_str)
     //printf("flag [%d] rfid_user_str [%d]/[%d] is ==> \"%s\" \r\n", flag, strlen(rfid_user_str),RFID_CMD_PASSENGER_STR_MAX_LEN, rfid_user_str);
 
     if ( strlen(rfid_user_str) > RFID_CMD_PASSENGER_STR_MAX_LEN )
+    {
+        LOGE(LOG_TARGET, "[KJTEC RFID] SEND CMD :: WRITE RFID USER INFO - FAIL CASE 99\r\n");
         return KJTEC_RFID_RET_FAIL;
+    }
 
     cmd_str[0] = flag;
 
@@ -1127,7 +1143,7 @@ int kjtec_rfid__dev_write_rfid_data(int flag, char* rfid_user_str)
 
     _kjtec_rfid_cmd(1, RFID_CMD_ID_REQ__SAVE_PASSENGER_DATA, cmd_str, strlen(cmd_str), NULL);
 
-    max_cmd_wait_time = KJTEC_RFID_CMD_RESP_WAIT_TIME*4;
+    max_cmd_wait_time = KJTEC_RFID_CMD_RESP_WAIT_TIME * 10;
     while(max_cmd_wait_time--)
     {
         if ( g_rfid_save_passenger_data.cmd_result  == KJTEC_RFID_RET_SUCCESS )
@@ -1135,8 +1151,15 @@ int kjtec_rfid__dev_write_rfid_data(int flag, char* rfid_user_str)
         //    printf("[KJTEC RFID] write cmd [%s] -> resp success\r\n", __func__);
             break;
         }
-       //  printf("[KJTEC RFID] write cmd [%s] -> resp wait...\r\n", __func__);
-        usleep(KJTEC_RFID_CMD_RESP_WAIT_ONE_INTERVAL);
+        LOGE(LOG_TARGET, "[KJTEC RFID] write cmd [%s] -> [%d] : resp wait... [%d] usec \r\n", __func__, max_cmd_wait_time, sleep_time_usec );
+        printf("[KJTEC RFID] write cmd [%s] -> resp wait...\r\n", __func__);
+        usleep(sleep_time_usec);
+
+        if ( sleep_time_usec <  2000000 )
+            sleep_time_usec = sleep_time_usec + 100000;
+        
+        if ( max_cmd_wait_time & 20 )
+            clear_main_watchdog();
     }
 
     if ( g_rfid_save_passenger_data.cmd_result  != KJTEC_RFID_RET_SUCCESS )
@@ -1457,7 +1480,7 @@ int kjtec_rfid__firmware_write_one_pkt(char* buff, int buff_len)
 
     _kjtec_rfid_cmd2(1, RFID_CMD_ID_REQ__FIRMWARE_DOWNLOAD_ONE_PKT, buff, buff_len, NULL);
 
-    max_cmd_wait_time = 2;
+    max_cmd_wait_time = 1;
     while(max_cmd_wait_time--)
     {
         if ( g_rfid_firm_down_pkt.cmd_result  == KJTEC_RFID_RET_SUCCESS )

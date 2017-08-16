@@ -44,7 +44,7 @@ static int __make_http_header__req_passenger(char* buff, char* version)
         ver_int_date = atoi(ver_str_date);
         ver_int_time = atoi(ver_str_time);
 
-        // ½Ã°£ ½ºÆ®¸µÀ» ÃÊ·Î º¯È¯
+        // ï¿½Ã°ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½ï¿½ï¿½ ï¿½Ê·ï¿½ ï¿½ï¿½È¯
         ver_int_sec += (ver_int_time % 100);
         // printf("ver_int_sec [%d] => [%d]\r\n", ver_int_sec, (ver_int_time % 100) );
         ver_int_sec += ( (ver_int_time / 100) % 100 )  * 60;
@@ -52,10 +52,10 @@ static int __make_http_header__req_passenger(char* buff, char* version)
         ver_int_sec += ( (ver_int_time / 10000) % 100 ) * 3600;
         // printf("ver_int_sec [%d] => [%d]\r\n", ver_int_sec, ( (ver_int_time / 10000) % 100 )  );
 
-        // ÃÊ·Î º¯È¯ÇÑ µ¥ÀÌÅÍ¸¦ °è»êÇÏ°í..
+        // ï¿½Ê·ï¿½ ï¿½ï¿½È¯ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½Ï°ï¿½..
         ver_int_sec -= REQ_PASSENGER_DATE_MARGIN_SEC;
 
-        // °è»êÇÑ ÃÊµ¥ÀÌÅÍ¸¦ ´Ù½Ã ¹®ÀÚ¿­·Î ¸¸µç´Ù.
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Êµï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½Ù½ï¿½ ï¿½ï¿½ï¿½Ú¿ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½.
         ver_int_time = ( ver_int_sec % 60 );
         //printf("ver_int_time [%d] => [%d]\r\n", ver_int_time, ( ver_int_sec % 60 ) );
         ver_int_time += (( ver_int_sec / 60 ) % 60) * 100;
@@ -73,12 +73,10 @@ static int __make_http_header__req_passenger(char* buff, char* version)
     }
     
     
+	at_get_phonenum(phonenum, sizeof(phonenum));
 
-	
-
-    //at_get_phonenum(phonenum, sizeof(phonenum));
-
-    //strcpy(phonenum, "01222591191");
+    //strcpy(phonenum, "01220003257"); // http://test.2bt.kr:8887 í…ŒìŠ¤íŠ¸ìš© 
+    
     strcpy(host_ip, conf->model.request_rfid);
     host_port = conf->model.request_rfid_port;
 
@@ -154,6 +152,23 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
         return -1;
     }
     
+
+    json_start_p = strstr(buff, "\r\n\r\n");
+
+    if ( json_start_p == NULL ) 
+    {
+        LOGE(LOG_TARGET, "%s:%d> http return fail 2 \r\n", __func__, __LINE__);
+        devel_webdm_send_log("DOWNLOAD USER : server ret fail 2");
+        return -1;
+    }
+
+    printf("json_start_p is [%s]\r\n",json_start_p);
+    if ( strncmp(json_start_p+strlen("\r\n\r\n"),"-301", strlen("-301") ) == 0 )
+    {
+        LOGE(LOG_TARGET, "%s:%d> http return fail 3 \r\n", __func__, __LINE__);
+        devel_webdm_send_log("DOWNLOAD USER : server ret fail 3");
+        return 0;
+    }
     // init passenger info
     rfid_tool__user_info_init();
     

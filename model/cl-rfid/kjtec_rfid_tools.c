@@ -32,6 +32,8 @@
 #define WRITE_RFID_MAX_READY_WAIT_CNT   10
 #define WRITE_RFID_MAX_FAIL_CNT         4
 
+int clear_main_watchdog();
+
 int kjtec_rfid_mgr__dev_init_chk(RFID_DEV_INFO_T* info)
 {
 	RFID_DEV_INFO_T cur_info;
@@ -121,7 +123,7 @@ int kjtec_rfid_mgr__write_to_dev_user_info(int all_erase)
 
     while(1)
     {
-        watchdog_set_cur_ktime(eWdMain); // 오래걸릴수있으므로 WATCHDOG CLEAR
+        clear_main_watchdog();// 오래걸릴수있으므로 WATCHDOG CLEAR
 
         if ( write_cmd_max_fail_cnt > MAX_WRITE_FAIL_RETRY_CNT )
         {
@@ -195,10 +197,11 @@ int kjtec_rfid_mgr__write_to_dev_user_info(int all_erase)
                 sprintf(tmp_frame_str1, "[%s]",tmp_frame_str2);
             }
 
+            //printf(" type [%d] / write cmd [%s] / [%i]\r\n", pkt_frame_flag, tmp_frame_str1, i);
             if ( kjtec_rfid__dev_write_rfid_data(pkt_frame_flag, tmp_frame_str1) == KJTEC_RFID_RET_SUCCESS )
             {
-                LOGI(LOG_TARGET, "[KJTEC-RFID TOOL] WRITE USER INFO : WRITE SUCCESS -> SEQ [%d], [%d]/[%d] \r\n" ,seq_no, remain_frame_cnt, total_frame_len);
-                printf( "[KJTEC-RFID TOOL] WRITE USER INFO : WRITE SUCCESS -> SEQ [%d], [%d]/[%d] \r\n" ,seq_no, remain_frame_cnt, total_frame_len);
+                LOGI(LOG_TARGET, "[KJTEC-RFID TOOL] WRITE USER INFO : WRITE SUCCESS -> SEQ [%d], [%d]/[%d] : write total [%d]  \r\n" ,seq_no, remain_frame_cnt, total_frame_len, i);
+                printf( "[KJTEC-RFID TOOL] WRITE USER INFO : WRITE SUCCESS -> SEQ [%d], [%d]/[%d] : write total [%d]  \r\n" ,seq_no, remain_frame_cnt, total_frame_len, i);
 
                 total_frame_len = 0;
                 memset(&total_frame_str, 0x00, sizeof(total_frame_str));
@@ -213,8 +216,8 @@ int kjtec_rfid_mgr__write_to_dev_user_info(int all_erase)
             }
             else
             {
-                LOGE(LOG_TARGET, "[KJTEC-RFID TOOL] WRITE USER INFO : WRITE FAIL -> SEQ [%d] , [%d]/[%d] \r\n",seq_no, write_cmd_max_fail_cnt, MAX_WRITE_FAIL_RETRY_CNT);
-                printf( "[KJTEC-RFID TOOL] WRITE USER INFO : WRITE FAIL -> SEQ [%d] , [%d]/[%d] \r\n",seq_no, write_cmd_max_fail_cnt, MAX_WRITE_FAIL_RETRY_CNT);
+                LOGE(LOG_TARGET, "[KJTEC-RFID TOOL] WRITE USER INFO : WRITE FAIL -> SEQ [%d] , [%d]/[%d] : write total [%d]  \r\n",seq_no, write_cmd_max_fail_cnt, MAX_WRITE_FAIL_RETRY_CNT, i);
+                printf( "[KJTEC-RFID TOOL] WRITE USER INFO : WRITE FAIL -> SEQ [%d] , [%d]/[%d] : write total [%d]  \r\n",seq_no, write_cmd_max_fail_cnt, MAX_WRITE_FAIL_RETRY_CNT, i);
                 write_cmd_max_fail_cnt++;
                 sleep(1);
                 continue;
