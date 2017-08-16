@@ -122,7 +122,7 @@ void button1_callback(void)
 	_make_location_data(&gpsdata, code);
 	_send_location_data();
 
-	kjtec_rfid_mgr__clr_all_user_data();
+	//kjtec_rfid_mgr__clr_all_user_data();
 	//kjtec_rfid_mgr__download_sms_noti_enable(1, "01086687577");
 //	rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_START);
 

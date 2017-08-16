@@ -1124,7 +1124,7 @@ int kjtec_rfid__dev_write_rfid_data(int flag, char* rfid_user_str)
     LOGT(LOG_TARGET, "[KJTEC RFID] SEND CMD :: WRITE RFID USER INFO\r\n");
 
     // printf("[KJTEC RFID] write rfid data [%s] \r\n", __func__);
-    //printf("flag [%d] rfid_user_str [%d]/[%d] is ==> \"%s\" \r\n", flag, strlen(rfid_user_str),RFID_CMD_PASSENGER_STR_MAX_LEN, rfid_user_str);
+    printf("flag [%d] rfid_user_str [%d]/[%d] is ==> \"%s\" \r\n", flag, strlen(rfid_user_str),RFID_CMD_PASSENGER_STR_MAX_LEN, rfid_user_str);
 
     if ( strlen(rfid_user_str) > RFID_CMD_PASSENGER_STR_MAX_LEN )
     {
