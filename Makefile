@@ -20,6 +20,7 @@ EMER_BIN := $(DESTDIR)/system/sbin/emer3
 MONCHK_BIN := $(DESTDIR)/system/sbin/monchk3
 CHKPROG_BIN := $(DESTDIR)/system/sbin/chkprog3
 WDPROG_BIN := $(DESTDIR)/system/sbin/wdprog3
+GPSD_BIN := $(DESTDIR)/system/sbin/mds_gpsd3
 ###############################################################################
 # Compile
 
@@ -421,8 +422,10 @@ install-progchkg : $(CHKPROG_BIN)
 install-wdprogkg : $(WDPROG_BIN)
 	$(Q)fakeroot cp -v $(WDPROG_BIN) $(DESTDIR)$(WORK_PATH)
 	
+install-gpsd : $(GPSD_BIN)
+	$(Q)fakeroot cp -v $(GPSD_BIN) $(DESTDIR)$(WORK_PATH)
 
-install: check install-binary install-script install-pathrun install-rssh install-dlpkg install-emerkg install-monchkg install-progchkg install-wdprogkg $(WDPROG_BIN)
+install: check install-binary install-script install-pathrun install-rssh install-dlpkg install-emerkg install-monchkg install-progchkg install-wdprogkg install-gpsd $(WDPROG_BIN)
 		@echo CORP=$(CORP)
 		@echo DEVICE=$(DEVICE)
 		@echo SERVER=$(SERVER_ABBR)
