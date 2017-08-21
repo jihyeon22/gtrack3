@@ -3,6 +3,12 @@
 
 #include "dtg_type.h"
 #include <pthread.h>
+#include <board/board_system.h>
+
+////////////////////////////////////////////////////////////
+//New Model Add Contents
+////////////////////////////////////////////////////////////
+
 
 ////////////////////////////////////////////////////////////
 //New Model Add Contents
@@ -10,53 +16,77 @@
 
 
 #if defined(SERVER_MODEL_GTRS)
-	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/gtrs.ini"
-	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/gtrs.ini"
+	//jwrho persistant data path modify++
+	//#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/gtrs.ini"
+	#define DTG_CONFIG_FILE_PATH_ORG	CONCAT_STR(SYSTEM_DIR, "/bin/gtrs.ini")
+	//#define DTG_CONFIG_FILE_PATH		"/data/mds/data/gtrs.ini"
+	#define DTG_CONFIG_FILE_PATH		CONCAT_STR(USER_DATA_DIR, "/gtrs.ini")
+	//jwrho persistant data path modify--
 	#define SERVER_IP					"112.169.88.14"
 	#define SERVER_PORT					5200
 
 	#define MDT_SERVER_IP				"112.169.88.14"
 	#define MDT_SERVER_PORT				5100
 #elif defined(SERVER_MODEL_GTRS_TB)
-	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/gtrs_tb.ini"
-	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/gtrs_tb.ini"
+	//jwrho persistant data path modify++
+	//#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/gtrs_tb.ini"
+	#define DTG_CONFIG_FILE_PATH_ORG	CONCAT_STR(SYSTEM_DIR, "/bin/gtrs_tb.ini")
+	//#define DTG_CONFIG_FILE_PATH		"/data/mds/data/gtrs_tb.ini"
+	#define DTG_CONFIG_FILE_PATH		CONCAT_STR(USER_DATA_DIR, "/gtrs_tb.ini")
+	//jwrho persistant data path modify--
+
 	#define SERVER_IP					"112.169.88.14"
 	#define SERVER_PORT					5200
 
 	#define MDT_SERVER_IP				"112.169.88.14"
 	#define MDT_SERVER_PORT				5100
 #elif defined(SERVER_MODEL_PRINET)
-	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/prinet.ini"
-	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/prinet.ini"
+	//jwrho persistant data path modify++
+	//#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/prinet.ini"
+	#define DTG_CONFIG_FILE_PATH_ORG	CONCAT_STR(SYSTEM_DIR, "/bin/prinet.ini")
+	//#define DTG_CONFIG_FILE_PATH		"/data/mds/data/prinet.ini"
+	#define DTG_CONFIG_FILE_PATH		CONCAT_STR(USER_DATA_DIR, "/prinet.ini")
+	//jwrho persistant data path modify--
+
 	#define SERVER_IP					"tacho.ezauto.co.kr"
 	#define SERVER_PORT					28911
 	#define MDT_SERVER_IP				"tacho.ezauto.co.kr"
 	#define MDT_SERVER_PORT				28911
 
 
-
-#elif defined(SERVER_MODEL_NEOGNP)
-	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/neognp.ini"
-	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/neognp.ini"
-	#define SERVER_IP					"210.116.106.71"
-	#define SERVER_PORT					5000
-
 #elif defined(SERVER_MODEL_MORAM)
-	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/moram.ini"
-	#define DTG_CONFIG_FILE_PATH		"/factory/moram.ini"
+	//jwrho persistant data path modify++
+	//#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/moram.ini"
+	#define DTG_CONFIG_FILE_PATH_ORG	CONCAT_STR(SYSTEM_DIR, "/bin/moram.ini")
+	//#define DTG_CONFIG_FILE_PATH		"/factory/moram.ini"
+	#define DTG_CONFIG_FILE_PATH		CONCAT_STR(USER_DATA_DIR, "/moram.ini")
+	//jwrho persistant data path modify--
 	#define SERVER_IP					"112.169.88.14"
 	#define SERVER_PORT					5200
 
 	#define MDT_SERVER_IP				"112.169.88.14"
-	#define MDT_SERVER_PORT	
+	#define MDT_SERVER_PORT				5100
 
+#elif defined(SERVER_MODEL_NEOGNP)
+	//jwrho persistant data path modify++
+	//#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/neognp.ini"
+	#define DTG_CONFIG_FILE_PATH_ORG	CONCAT_STR(SYSTEM_DIR, "/bin/neognp.ini")
+	//#define DTG_CONFIG_FILE_PATH		"/data/mds/data/neognp.ini"
+	#define DTG_CONFIG_FILE_PATH		CONCAT_STR(USER_DATA_DIR, "/neognp.ini")
+	//jwrho persistant data path modify--
+
+	#define SERVER_IP					"210.116.106.71"
+	#define SERVER_PORT					5000
 #else
 	#error "GTRS SEVER MODEL NOT DEFINE ERROR"
 #endif
 
 #if defined(BOARD_TL500K)
 	#if defined(SERVER_MODEL_GTRS) || defined(SERVER_MODEL_PRINET) || defined(SERVER_MODEL_MORAM)
-		#define KT_FOTA_CONFIG_FILE		"/system/mds/system/bin/kt_fota.ini"
+		//jwrho persistant data path modify++
+		//#define KT_FOTA_CONFIG_FILE		"/system/mds/system/bin/kt_fota.ini"
+		#define KT_FOTA_CONFIG_FILE		CONCAT_STR(SYSTEM_DIR, "/bin/kt_fota.ini")
+		//jwrho persistant data path modify--
 		#define KT_FOTA_DM_SVC_IP		"devicefota_dm.show.co.kr"
 		#define KT_FOTA_DM_SVC_PORT		80
 		#define KT_FOTA_QTY_SVC_IP		"devicefota_quality_automotive.show.co.kr"
@@ -64,7 +94,10 @@
 		#define ACC_QTY_REPORT			1800
 		#define ACC_FOTA_REQ_REPORT		0
 	#else
-		#define KT_FOTA_CONFIG_FILE		"/system/mds/system/bin/kt_fota_iot.ini"
+		//jwrho persistant data path modify++
+		//#define KT_FOTA_CONFIG_FILE		"/system/mds/system/bin/kt_fota_iot.ini"
+		#define KT_FOTA_CONFIG_FILE		CONCAT_STR(SYSTEM_DIR, "/bin/kt_fota_iot.ini")
+		//jwrho persistant data path modify--
 		#define KT_FOTA_DM_SVC_IP		"devicefota-tb-dm.show.co.kr"
 		#define KT_FOTA_DM_SVC_PORT		80
 		#define KT_FOTA_QTY_SVC_IP		"devicefota-tb-quality.show.co.kr"

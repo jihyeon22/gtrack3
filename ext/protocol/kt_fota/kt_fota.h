@@ -1,7 +1,12 @@
 #ifndef __BASE_KT_FOTA_H__
 #define __BASE_KT_FOTA_H__
 
-#define PATH_FOTA_DATA "/data/mds/data/fota.dat"
+#include <board/board_system.h>
+
+//jwrho persistant data path modify++
+//#define PATH_FOTA_DATA "/data/mds/data/fota.dat"
+#define PATH_FOTA_DATA CONCAT_STR(USER_DATA_DIR, "/fota.dat")
+//jwrho persistant data path modify--
 
 
 void kt_fota_init(void);

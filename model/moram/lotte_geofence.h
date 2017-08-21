@@ -1,9 +1,14 @@
 #pragma once
 
+#include <board/board_system.h>
+
 #ifdef TEST_CODE_ENABLE
 	#define GEO_FENCE_STATUS_FILE	"./geo_fence.dat"
 #else
-	#define GEO_FENCE_STATUS_FILE	"/data/geo_fence.dat"
+	//jwrho persistant data path modify++
+	//#define GEO_FENCE_STATUS_FILE	"/data/geo_fence.dat"
+	#define GEO_FENCE_STATUS_FILE	CONCAT_STR(USER_DATA_DIR, "/geo_fence.dat")
+	//jwrho persistant data path modify--
 #endif
 
 #define WAIT_TIME_UNTIL_NEXT_GEO_EVENT	30	//unit : unit(sec)

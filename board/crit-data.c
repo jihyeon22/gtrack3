@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <sys/utsname.h>
 
+#include <board/board_system.h>
 #include <util/crc16.h>
 #include "crit-data.h"
 
@@ -17,7 +18,11 @@ static int _check_crit_data(void);
 #define USE_CRIT		1
 
 #define CRITICAL_DATA_TMP_FS	"/tmp/critical.dat"
-#define CRITICAL_DATA_NAND_FS	"/data/mds/data/critical.dat"
+
+//jwrho persistant data path modify++
+//#define CRITICAL_DATA_NAND_FS	"/data/mds/data/critical.dat"
+#define CRITICAL_DATA_NAND_FS	CONCAT_STR(USER_DATA_DIR, "/critical.dat")
+//jwrho persistant data path modify--
 
 
 static critStruct_t critical_data;

@@ -1,11 +1,15 @@
 #ifndef __ALLOC2_DAILY_INFO_H__
 #define __ALLOC2_DAILY_INFO_H__
 
+#include <board/board_system.h>
 
 #define ALLOC2_DAILY_INFO_FAIL  -1
 #define ALLOC2_DAILY_INFO_SUCCESS  1
 
-#define ALLOC2_CAR_DAILY_INFO "/data/mds/data/alloc_daily_info.dat"
+//jwrho persistant data path modify++
+//#define ALLOC2_CAR_DAILY_INFO "/data/mds/data/alloc_daily_info.dat"
+#define ALLOC2_CAR_DAILY_INFO CONCAT_STR(USER_DATA_DIR, "/alloc_daily_info.dat")
+//jwrho persistant data path modify--
 
 int alloc2_init_car_daily_info();
 

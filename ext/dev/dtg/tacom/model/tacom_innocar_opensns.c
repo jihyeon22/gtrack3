@@ -11,6 +11,7 @@
 #include <string.h>
 #include <fcntl.h>
 
+#include <board/board_system.h>
 #include <wrapper/dtg_log.h>
 #include <tacom_internal.h>
 #include <tacom_protocol.h>
@@ -20,6 +21,7 @@
 #include <common/power.h>
 #include <common/w200_led.h>
 #include <termios.h>
+
 #include "uart.h"
 #include "convtools.h"
 #include "taco_store.h"
@@ -30,15 +32,27 @@
 
 #if defined(SERVER_MODEL_OPENSNS)
 	#include "iniutill.h"
-	#define CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/opensns.ini"
-	#define CONFIG_FILE_PATH		"/data/opensns.ini"
+	//#define CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/opensns.ini"
+	#define CONFIG_FILE_PATH_ORG	CONCAT_STR(SYSTEM_DIR, "/bin/opensns.ini")
+	
+	//jwrho persistant data path modify++
+	//#define CONFIG_FILE_PATH		"/data/opensns.ini"
+	#define CONFIG_FILE_PATH		CONCAT_STR(USER_DATA_DIR, "/opensns.ini")
+	//jwrho persistant data path modify--
+
 	#define CREATE_MDT_PERIOD		"mdt_config:create_period"
 	int g_mdt_collection_period		= 3; //default value
 	int g_mdt_count = 0;
 #elif defined(SERVER_MODEL_OPENSNS_TB)
 	#include "iniutill.h"
-	#define CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/opensns_tb.ini"
-	#define CONFIG_FILE_PATH		"/data/opensns_tb.ini"
+	//#define CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/opensns_tb.ini"
+	#define CONFIG_FILE_PATH_ORG	CONCAT_STR(SYSTEM_DIR, "/bin/opensns_tb.ini")
+	
+	//jwrho persistant data path modify++
+	//#define CONFIG_FILE_PATH		"/data/opensns_tb.ini"
+	#define CONFIG_FILE_PATH		CONCAT_STR(USER_DATA_DIR, "opensns_tb.ini")
+	//jwrho persistant data path modify--
+
 	#define CREATE_MDT_PERIOD		"mdt_config:create_period"
 	int g_mdt_collection_period		= 3; //default value
 	int g_mdt_count = 0;
@@ -145,36 +159,36 @@ struct p_table {
 };
 
 struct l_table locale_tbl[17] = {
-	{'A', "����"}, {'B', "����"}, {'C', "����"}, {'D', "�泲"}, 
-	{'E', "����"}, {'F', "����"}, {'G', "����"}, {'H', "�泲"}, 
-	{'I', "����"}, {'J', "����"}, {'K', "��õ"}, {'L', "����"},
-	{'M', "�λ�"}, {'N', "�뱸"}, {'O', "����"}, {'P', "����"}, 
-	{'Z', "����"}
+	{'A', "????"}, {'B', "????"}, {'C', "????"}, {'D', "??"}, 
+	{'E', "????"}, {'F', "????"}, {'G', "????"}, {'H', "??"}, 
+	{'I', "????"}, {'J', "????"}, {'K', "??o"}, {'L', "????"},
+	{'M', "?λ?"}, {'N', "?뱸"}, {'O', "????"}, {'P', "????"}, 
+	{'Z', "????"}
 };
 
 struct p_table part_tbl[44] = {
-	{"BA   ", "��", 2}, {"SA   ", "��", 2}, 
-	{"AH   ", "��", 2}, {"JA   ", "��", 2}, 
-	{"HEO  ", "��", 2}, {"GA   ", "��", 2}, 
-	{"NA   ", "��", 2}, {"DA   ", "��", 2}, 
-	{"RA   ", "��", 2}, {"MA   ", "��", 2}, 
-	{"GEO  ", "��", 2}, {"NEO  ", "��", 2}, 
-	{"DEO  ", "��", 2}, {"REO  ", "��", 2}, 
-	{"MEO  ", "��", 2}, {"BEO  ", "��", 2}, 
-	{"SEO  ", "��", 2}, {"EO   ", "��", 2}, 
-	{"JEO  ", "��", 2}, {"GO   ", "��", 2}, 
-	{"NO   ", "��", 2}, {"DO   ", "��", 2}, 
-	{"RO   ", "��", 2}, {"MO   ", "��", 2}, 
-	{"BO   ", "��", 2}, {"SO   ", "��", 2}, 
-	{"OH   ", "��", 2}, {"JO   ", "��", 2}, 
-	{"GU   ", "��", 2}, {"NU   ", "��", 2}, 
-	{"DU   ", "��", 2}, {"RU   ", "��", 2}, 
-	{"MU   ", "��", 2}, {"BU   ", "��", 2}, 
-	{"SU   ", "��", 2}, {"WO   ", "��", 2}, 
-	{"JU   ", "��", 2}, {"DIPL ", "��", 2}, 
-	{"CNSL ", "��", 2}, {"S-DIP", "�ؿ�", 4}, 
-	{"SCNSL", "�ؿ�", 4}, {"INTL ", "����", 4}, 
-	{"AGREE", "����", 4}, {"ETC  ", "��Ÿ", 4}, 
+	{"BA   ", "??", 2}, {"SA   ", "??", 2}, 
+	{"AH   ", "??", 2}, {"JA   ", "??", 2}, 
+	{"HEO  ", "??", 2}, {"GA   ", "??", 2}, 
+	{"NA   ", "??", 2}, {"DA   ", "??", 2}, 
+	{"RA   ", "??", 2}, {"MA   ", "??", 2}, 
+	{"GEO  ", "??", 2}, {"NEO  ", "??", 2}, 
+	{"DEO  ", "??", 2}, {"REO  ", "??", 2}, 
+	{"MEO  ", "??", 2}, {"BEO  ", "??", 2}, 
+	{"SEO  ", "??", 2}, {"EO   ", "??", 2}, 
+	{"JEO  ", "??", 2}, {"GO   ", "??", 2}, 
+	{"NO   ", "??", 2}, {"DO   ", "??", 2}, 
+	{"RO   ", "??", 2}, {"MO   ", "??", 2}, 
+	{"BO   ", "??", 2}, {"SO   ", "??", 2}, 
+	{"OH   ", "??", 2}, {"JO   ", "??", 2}, 
+	{"GU   ", "??", 2}, {"NU   ", "??", 2}, 
+	{"DU   ", "??", 2}, {"RU   ", "??", 2}, 
+	{"MU   ", "??", 2}, {"BU   ", "??", 2}, 
+	{"SU   ", "??", 2}, {"WO   ", "??", 2}, 
+	{"JU   ", "??", 2}, {"DIPL ", "??", 2}, 
+	{"CNSL ", "??", 2}, {"S-DIP", "???", 4}, 
+	{"SCNSL", "???", 4}, {"INTL ", "????", 4}, 
+	{"AGREE", "????", 4}, {"ETC  ", "???", 4}, 
 };
 
 static int _wait_read(int fd, unsigned char *buf, int buf_len, int ftime)
@@ -825,8 +839,8 @@ int data_convert(tacom_std_data_t *std_data, unsigned char *dtg_data, int debug_
 
 	std_data->bs = (inno_data->ex_input & 0x1) | 0x30; //0x30 is to make ascii (0x30('0'), 0x31('1'))
 
-	//x : latitude(����)
-	//y : longitude(�浵)
+	//x : latitude(????)
+	//y : longitude(??)
 	if(debug_flag == 0)
 		DTG_LOGT("DTG ORIGINAL GPS x, y = %ld, %ld", inno_data->latitude, inno_data->longitude);
 

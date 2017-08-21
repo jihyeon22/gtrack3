@@ -1,7 +1,13 @@
 #pragma once
 
-#define GEO_FENCE_SETUP_DATA_FILE    "/data/mds/data/geo_fence.dat"
-#define GEO_FENCE_STATUS_FILE	     "/data/mds/data/geo_fence_status.dat"
+#include <board/board_system.h>
+
+//jwrho persistant data path modify++
+//#define GEO_FENCE_SETUP_DATA_FILE    "/data/mds/data/geo_fence.dat"
+#define GEO_FENCE_SETUP_DATA_FILE    CONCAT_STR(USER_DATA_DIR, "/geo_fence.dat")
+//#define GEO_FENCE_STATUS_FILE	     "/data/mds/data/geo_fence_status.dat"
+#define GEO_FENCE_STATUS_FILE	     CONCAT_STR(USER_DATA_DIR, "/geo_fence_status.dat")
+//jwrho persistant data path modify--
 
 #define GEO_FENCE_MAX_COUNT				100
 //#define WAIT_TIME_UNTIL_NEXT_GEO_EVENT	30	//unit : unit(sec)

@@ -24,7 +24,11 @@
 #include "callback.h"
 
 #define LOG_ENABLE_PACKET 0
-#define LOG_PACKET_PATH "/data/mds/data/packet"
+
+//jwrho persistant data path modify++
+//#define LOG_PACKET_PATH "/data/mds/data/packet"
+#define LOG_PACKET_PATH CONCAT_STR(USER_DATA_DIR, "/packet")
+//jwrho persistant data path modify--
 
 // ----------------------------------------
 //  LOGD(LOG_TARGET, LOG_TARGET,  Target

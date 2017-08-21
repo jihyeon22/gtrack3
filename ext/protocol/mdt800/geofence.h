@@ -1,8 +1,12 @@
 #pragma once
 
+#include <board/board_system.h>
 #include <base/gpstool.h>
 
-#define GEO_FENCE_STATUS_FILE	"/data/mds/data/mdt800_geo_fence.dat"
+//jwrho persistant data path modify++
+//#define GEO_FENCE_STATUS_FILE	"/data/mds/data/mdt800_geo_fence.dat"
+#define GEO_FENCE_STATUS_FILE	CONCAT_STR(USER_DATA_DIR, "/mdt800_geo_fence.dat")
+//jwrho persistant data path modify--
 
 #define WAIT_TIME_UNTIL_NEXT_GEO_EVENT	30	//unit : unit(sec)
 

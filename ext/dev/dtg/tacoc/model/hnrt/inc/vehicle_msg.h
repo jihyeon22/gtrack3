@@ -1,5 +1,7 @@
 #pragma once
 
+#include <board/board_system.h>
+
 #pragma pack(push, 1)
 
 struct vehicle_vrn
@@ -20,8 +22,12 @@ typedef struct vehicle_gps vehicle_gps_t;
 
 #pragma pack(pop)
 
-#define VRN_INFO_FILE_PATH	"/data/mds/data/vrn.dat"
-#define VGPS_INFO_FILE_PATH	"/data/mds/data/vgps.dat"
+//jwrho persistant data path modify++
+//#define VRN_INFO_FILE_PATH	"/data/mds/data/vrn.dat"
+#define VRN_INFO_FILE_PATH	CONCAT_STR(USER_DATA_DIR, "/vrn.dat")
+//#define VGPS_INFO_FILE_PATH	"/data/mds/data/vgps.dat"
+#define VGPS_INFO_FILE_PATH	CONCAT_STR(USER_DATA_DIR, "/vgps.dat")
+//jwrho persistant data path modify--
 
 void load_vrn_info();
 void set_vrn_info(char *vrn);

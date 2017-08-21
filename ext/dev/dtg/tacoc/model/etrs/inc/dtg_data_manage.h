@@ -3,7 +3,7 @@
 
 #include "dtg_type.h"
 #include <pthread.h>
-
+#include <board/board_system.h>
 /*
 #if defined(BOARD_TL500S)
 	#define DTG_CONFIG_FILE_PATH	"/system/mds/system/bin/w200_etrs.ini"
@@ -16,22 +16,37 @@
 #define ENABLE_VOLTAGE_USED_SCINARIO
 
 #if defined(SERVER_MODEL_ETRS)
-	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/etrs.ini"
-	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/etrs.ini"
-	#define SERVER_IP				"218.153.4.33"
-	#define SERVER_PORT				8622
+	//jwrho persistant data path modify++
+	//#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/etrs.ini"
+	#define DTG_CONFIG_FILE_PATH_ORG	CONCAT_STR(SYSTEM_DIR, "/bin/etrs.ini")
+	//#define DTG_CONFIG_FILE_PATH		"/data/mds/data/etrs.ini"
+	#define DTG_CONFIG_FILE_PATH		CONCAT_STR(USER_DATA_DIR, "/etrs.ini")
+	//jwrho persistant data path modify--
+
+	#define SERVER_IP					"218.153.4.33"
+	#define SERVER_PORT					8622
 #elif defined(SERVER_MODEL_ETRS_TB)
-	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/etrs_tb.ini"
-	#define DTG_CONFIG_FILE_PATH		"/data/mds/data/etrs_tb.ini"
-	#define SERVER_IP				"218.153.4.33"
-	#define SERVER_PORT				7322
+
+	//jwrho persistant data path modify++
+	//#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/etrs_tb.ini"
+	#define DTG_CONFIG_FILE_PATH_ORG	CONCAT_STR(SYSTEM_DIR, "/bin/etrs_tb.ini")
+	//#define DTG_CONFIG_FILE_PATH		"/data/mds/data/etrs_tb.ini"
+	#define DTG_CONFIG_FILE_PATH		CONCAT_STR(USER_DATA_DIR, "/etrs_tb.ini")
+	//jwrho persistant data path modify--
+
+	#define SERVER_IP					"218.153.4.33"
+	#define SERVER_PORT					7322
 #else
 	#error "ETRS SEVER MODEL NOT DEFINE ERROR"
 #endif
 
 #if defined(BOARD_TL500K)
 	#if defined(SERVER_MODEL_ETRS)
-		#define KT_FOTA_CONFIG_FILE		"/system/mds/system/bin/kt_fota.ini"
+		//jwrho persistant data path modify++
+		//#define KT_FOTA_CONFIG_FILE		"/system/mds/system/bin/kt_fota.ini"
+		#define KT_FOTA_CONFIG_FILE		CONCAT_STR(SYSTEM_DIR, "/bin/kt_fota.ini")
+		//jwrho persistant data path modify--
+
 		#define KT_FOTA_DM_SVC_IP		"devicefota_dm.show.co.kr"
 		#define KT_FOTA_DM_SVC_PORT		80
 		#define KT_FOTA_QTY_SVC_IP		"devicefota_quality_automotive.show.co.kr"
@@ -39,7 +54,10 @@
 		#define ACC_QTY_REPORT			1800
 		#define ACC_FOTA_REQ_REPORT		0
 	#else
-		#define KT_FOTA_CONFIG_FILE		"/system/mds/system/bin/kt_fota_iot.ini"
+		//jwrho persistant data path modify++
+		//#define KT_FOTA_CONFIG_FILE		"/system/mds/system/bin/kt_fota_iot.ini"
+		#define KT_FOTA_CONFIG_FILE		CONCAT_STR(SYSTEM_DIR, "/bin/kt_fota_iot.ini")
+		//jwrho persistant data path modify--
 		#define KT_FOTA_DM_SVC_IP		"devicefota-tb-dm.show.co.kr"
 		#define KT_FOTA_DM_SVC_PORT		80
 		#define KT_FOTA_QTY_SVC_IP		"devicefota-tb-quality.show.co.kr"

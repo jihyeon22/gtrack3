@@ -11,6 +11,7 @@
 #include <string.h>
 #include <fcntl.h>
 
+#include <board/board_system.h>
 #include <wrapper/dtg_log.h>
 #include <tacom_internal.h>
 #include <tacom_protocol.h>
@@ -27,15 +28,27 @@
 
 #if defined(SERVER_MODEL_OPENSNS)
 	#include "iniutill.h"
-	#define CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/opensns.ini"
-	#define CONFIG_FILE_PATH		"/data/opensns.ini"
+	//#define CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/opensns.ini"
+	#define CONFIG_FILE_PATH_ORG	CONCAT_STR(SYSTEM_DIR, "/bin/opensns.ini")
+
+	//jwrho persistant data path modify++
+	//#define CONFIG_FILE_PATH		"/data/opensns.ini"
+	#define CONFIG_FILE_PATH		CONCAT_STR(USER_DATA_DIR, "/opensns.ini")
+	//jwrho persistant data path modify++
+
 	#define CREATE_MDT_PERIOD		"mdt_config:create_period"
 	int g_mdt_collection_period		= 3; //default value
 	int g_mdt_count = 0;
 #elif defined(SERVER_MODEL_OPENSNS_TB)
 	#include "iniutill.h"
-	#define CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/opensns_tb.ini"
-	#define CONFIG_FILE_PATH		"/data/opensns_tb.ini"
+	//#define CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/opensns_tb.ini"
+	#define CONFIG_FILE_PATH_ORG	CONCAT_STR(SYSTEM_DIR, "/bin/opensns_tb.ini")
+
+	//jwrho persistant data path modify++
+	//#define CONFIG_FILE_PATH		"/data/opensns_tb.ini"
+	#define CONFIG_FILE_PATH		CONCAT_STR(USER_DATA_DIR, "/opensns_tb.ini")
+	//jwrho persistant data path modify--
+
 	#define CREATE_MDT_PERIOD		"mdt_config:create_period"
 	int g_mdt_collection_period		= 3; //default value
 	int g_mdt_count = 0;
