@@ -463,7 +463,7 @@ clean:
 		make -C $$dir clean ; \
 	done
 	$(Q)rm -vrf $(APP) $(OBJS) \
-		$(CONFIG_FILE) $(CONFIG_USER_FILE)
+		$(CONFIG_FILE) $(CONFIG_USER_FILE) $(CONFIG_USR_MON_INI)
 	$(Q)rm -vrf $(CONFIG_FILE_KT_FOTA)
 
 uninstall:

@@ -108,8 +108,8 @@ typedef struct {
 	unsigned char gps_h;
 	unsigned char gps_min;
 	unsigned char gps_s;
-	unsigned long latitude;  /* ���� */
-	unsigned long longitude; /* �浵 */
+	unsigned long latitude;  /* ???? */
+	unsigned long longitude; /* ?? */
 	unsigned short azimuth;
 	unsigned char gps_speed;
 	short accelation_x;
@@ -129,7 +129,7 @@ typedef struct {
 /* value of expression 'MAX_INNO_DATA * MAX_INNO_DATA_PACK' 
  * have to set over inno_setup.max_records_per_once's value.
  */
-#if defined(SERVER_MODEL_GTRS) || defined (SERVER_MODEL_NEOGNP)
+#if defined(SERVER_MODEL_GTRS) || defined (SERVER_MODEL_NEOGNP) || defined(SERVER_MODEL_MORAM)
 	#define MAX_INNO_DATA_PACK	         300
 #elif defined(SERVER_MODEL_OPENSNS) || defined(SERVER_MODEL_OPENSNS_TB)
 	#define MAX_INNO_DATA_PACK	         300  //EA : 10

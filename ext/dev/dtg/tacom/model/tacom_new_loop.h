@@ -15,7 +15,7 @@
  * have to set over loop_setup.max_records_per_once's value.
  */
 #define MAX_LOOP2_DATA			10
-#if defined(SERVER_MODEL_GTRS) || defined (SERVER_MODEL_NEOGNP)
+#if defined(SERVER_MODEL_GTRS) || defined (SERVER_MODEL_NEOGNP) || defined(SERVER_MODEL_MORAM)
 	#define MAX_LOOP2_DATA_PACK		300
 #else
 	#define MAX_LOOP2_DATA_PACK		600

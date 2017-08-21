@@ -87,8 +87,12 @@ void init_model_callback(void)
 	
 	printf("%s ++\n", __func__);
 	stackdump_abort_callback = abort_callback; 
+
+#ifndef USE_DTG_MODEL
 	thread_model = thread_keypad;
 	exit_thread_model = exit_thread_keypad;
+#endif
+
 	LOGI(LOG_TARGET, "init_model_callback\n");
 	load_mileage_file(&mileage);
 	set_server_mileage(mileage);

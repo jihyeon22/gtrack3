@@ -49,7 +49,7 @@ int get_main_power_volt()
 	return voltage;
 }
 
-unsigned char convert_angle(float azimuth)
+unsigned char convert_angle_moram_mdt(float azimuth)
 {
 	int bearing;
 
@@ -106,7 +106,7 @@ void create_report_data(int ev_code, lotte_packet_t *packet, gpsData_t gpsdata)
 	packet->gps_pos.latitude = gpsdata.lat * 10000000.0;
 	packet->gps_pos.longitude = gpsdata.lon * 10000000.0;
 
-	packet->gps_dir = convert_angle(gpsdata.angle);
+	packet->gps_dir = convert_angle_moram_mdt(gpsdata.angle);
 	packet->speed = gpsdata.speed;
 
 	if(get_server_mileage() == MILEAGE_NOT_INIT)

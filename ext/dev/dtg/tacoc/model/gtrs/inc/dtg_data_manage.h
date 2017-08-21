@@ -34,6 +34,14 @@
 	#define MDT_SERVER_PORT				28911
 
 
+#elif defined(SERVER_MODEL_MORAM)
+	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/moram.ini"
+	#define DTG_CONFIG_FILE_PATH		"/factory/moram.ini"
+	#define SERVER_IP					"112.169.88.14"
+	#define SERVER_PORT					5200
+
+	#define MDT_SERVER_IP				"112.169.88.14"
+	#define MDT_SERVER_PORT				5100
 
 #elif defined(SERVER_MODEL_NEOGNP)
 	#define DTG_CONFIG_FILE_PATH_ORG	"/system/mds/system/bin/neognp.ini"
@@ -45,7 +53,7 @@
 #endif
 
 #if defined(BOARD_TL500K)
-	#if defined(SERVER_MODEL_GTRS) || defined(SERVER_MODEL_PRINET)
+	#if defined(SERVER_MODEL_GTRS) || defined(SERVER_MODEL_PRINET) || defined(SERVER_MODEL_MORAM)
 		#define KT_FOTA_CONFIG_FILE		"/system/mds/system/bin/kt_fota.ini"
 		#define KT_FOTA_DM_SVC_IP		"devicefota_dm.show.co.kr"
 		#define KT_FOTA_DM_SVC_PORT		80

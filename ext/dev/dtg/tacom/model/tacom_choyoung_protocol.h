@@ -13,7 +13,7 @@
  */
 #define MAX_CY_DATA			10
 
-#if defined(SERVER_MODEL_GTRS) || defined (SERVER_MODEL_NEOGNP)
+#if defined(SERVER_MODEL_GTRS) || defined (SERVER_MODEL_NEOGNP) || defined(SERVER_MODEL_MORAM)
 	#define MAX_CY_DATA_PACK	300
 #else
 	#define MAX_CY_DATA_PACK	600

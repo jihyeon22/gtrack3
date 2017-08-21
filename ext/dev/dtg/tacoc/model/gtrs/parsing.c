@@ -29,7 +29,7 @@ void print_dtg_msg(char *title, char *msg, int len)
 	DTG_LOGI("%s : %s", title, dmsg);
 }
 
-unsigned char convert_angle(int bearing)
+unsigned char convert_angle_gtrs(int bearing)
 {
 	if(bearing == 0) {
 		return 0;
@@ -150,7 +150,7 @@ int bulk_dtg_parsing(unsigned char *std_buff, int std_buff_len, unsigned char *d
 	p_gtrs_packet_body->gps_x = gps_x;
 	p_gtrs_packet_body->gps_y = gps_y;
 	azimuth = char_mbtol(g_current_std_data.azimuth, 3);
-	p_gtrs_packet_body->bearing = convert_angle(azimuth);
+	p_gtrs_packet_body->bearing = convert_angle_gtrs(azimuth);
 	p_gtrs_packet_body->speed = char_mbtol(g_current_std_data.speed, 3);
 
 	p_gtrs_packet_body->acc_dist = char_mbtol(g_current_std_data.cumul_run_dist, 7) * 1000;
@@ -366,7 +366,7 @@ printf("time : [%02d/%02d/%02d %02d:%02d:%02d\n", p_gtrs_packet_body->year, p_gt
 	p_gtrs_packet_body->gps_x = gps_x;
 	p_gtrs_packet_body->gps_y = gps_y;
 	azimuth = char_mbtol(p_std_data->azimuth, 3);
-	p_gtrs_packet_body->bearing = convert_angle(azimuth);
+	p_gtrs_packet_body->bearing = convert_angle_gtrs(azimuth);
 	p_gtrs_packet_body->speed = char_mbtol(p_std_data->speed, 3);
 
 	p_gtrs_packet_body->acc_dist = char_mbtol(p_std_data->cumul_run_dist, 7) * 1000;

@@ -38,7 +38,7 @@ typedef struct tacom_cj_data tacom_cj_data_t;
  */
 #define MAX_CJ_DATA		10
 
-#if defined(SERVER_MODEL_GTRS) || defined (SERVER_MODEL_NEOGNP)
+#if defined(SERVER_MODEL_GTRS) || defined (SERVER_MODEL_NEOGNP) || defined(SERVER_MODEL_MORAM)
 	#define MAX_CJ_DATA_PACK	1200
 #else
 	#define MAX_CJ_DATA_PACK	2400

@@ -125,6 +125,25 @@ DTG_SERVER_OBJ += ext/dev/dtg/tacoc/model/gtrs/dtg_data_manage.o            \
 DTG_SERVER_CFLAGS += -I./ext/dev/dtg/tacoc/model/gtrs/inc/
 DTG_SERVER_CFLAGS += -DSERVER_MODEL_NEOGNP
 # ----------------------------------------------------
+else ifeq ($(DTG_SERVER),moram)
+DTG_CONFIG_FILE=moram.ini
+DTG_SERVER_OBJ += ext/dev/dtg/tacoc/model/moram/dtg_data_manage.o            \
+				  ext/dev/dtg/tacoc/model/moram/dtg_ini_utill.o      \
+				  ext/dev/dtg/tacoc/model/moram/dtg_net_com.o        \
+				  ext/dev/dtg/tacoc/model/moram/dtg_regist_process.o \
+				  ext/dev/dtg/tacoc/model/moram/rpc_clnt_operation.o \
+				  ext/dev/dtg/tacoc/model/moram/sms_msg_process.o    \
+				  ext/dev/dtg/tacoc/model/moram/tacoc_api.o          \
+				  ext/dev/dtg/tacoc/model/moram/tacoc_main_process.o \
+				  ext/dev/dtg/tacoc/model/moram/parsing.o
+
+	ifeq ($(SERVER),dtg-skel)
+		DTG_SERVER_OBJ += ext/dev/dtg/tacoc/model/moram/mdt_data_manage.o
+	endif
+	
+DTG_SERVER_CFLAGS += -I./ext/dev/dtg/tacoc/model/gtrs/inc/
+DTG_SERVER_CFLAGS += -DSERVER_MODEL_MORAM
+# ----------------------------------------------------
 else
 $(error DTG_SERVER is not correct, please define correct DTG_SERVER)
 endif
@@ -135,6 +154,7 @@ endif
 OBJ_DTG += $(DTG_MODEL_OBJ)
 OBJ_DTG += $(DTG_SERVER_OBJ)
 
+DTG_CFLAGS += -DUSE_DTG_MODEL
 DTG_CFLAGS += $(DTG_MODEL_CFLAGS)
 DTG_CFLAGS += $(DTG_SERVER_CFLAGS)
 
