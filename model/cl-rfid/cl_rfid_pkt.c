@@ -128,6 +128,9 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
     int i = 0;
     int j = 0;
 
+    int passenger_list_add = 0;
+    int passenger_list_del = 0;
+
     char* json_start_p = NULL;
     const char* return_str = NULL;
     json_t *array;
@@ -212,6 +215,10 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
                 {
                     return_str = json_string_value(element);
                     cur_user.is_use = atoi(return_str);
+                    if ( cur_user.is_use == 1)
+                        passenger_list_add++;
+                    else
+                        passenger_list_del++;
                     break;
                 }
                 case 3:
@@ -234,9 +241,9 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
        // printf("----------------------------------------\r\n");
     }
 
-    printf( "DOWNLOAD USER INFO SUCCESS : CNT [%d]\r\n", rfid_tool__user_info_total_cnt());
-    LOGI(LOG_TARGET, "DOWNLOAD USER INFO SUCCESS : CNT [%d]\r\n", rfid_tool__user_info_total_cnt());
-    devel_webdm_send_log("DOWNLOAD USER INFO SUCCESS : CNT [%d]", rfid_tool__user_info_total_cnt());
+    printf( "DOWNLOAD USER INFO SUCCESS : CNT [%d] - ADD [%d] DEL [%d]\r\n", rfid_tool__user_info_total_cnt(), passenger_list_add, passenger_list_del);
+    LOGI(LOG_TARGET, "DOWNLOAD USER INFO SUCCESS : CNT [%d] - ADD [%d] DEL [%d]\r\n", rfid_tool__user_info_total_cnt(), passenger_list_add, passenger_list_del);
+    devel_webdm_send_log("DOWNLOAD USER INFO SUCCESS : CNT [%d] - ADD [%d] DEL [%d]\r\n", rfid_tool__user_info_total_cnt(), passenger_list_add, passenger_list_del);
 /*
     while(1)
     {
