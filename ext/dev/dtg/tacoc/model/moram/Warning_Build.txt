@@ -1,0 +1,11 @@
+1. �����ÿ� ���� ���� ����
+	��Ʈ���̽��� SMS�� ������ Ȯ�� ������.
+	������ ���� Release������ ������ ������ ������.
+
+	tacoc/model/gtrs/sms_msg_process.c : sms_device_status_req �Լ����� ����
+	SW_VERSION ���� ������ �ָ���.
+
+	SW_VERSION : wrapper/dtg_version.h�� ���ǵǾ� ����.
+
+	
+
