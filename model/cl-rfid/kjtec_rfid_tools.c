@@ -198,6 +198,8 @@ int kjtec_rfid_mgr__write_to_dev_user_info(int all_erase)
             }
 
             //printf(" type [%d] / write cmd [%s] / [%i]\r\n", pkt_frame_flag, tmp_frame_str1, i);
+            clear_main_watchdog();
+
             if ( kjtec_rfid__dev_write_rfid_data(pkt_frame_flag, tmp_frame_str1) == KJTEC_RFID_RET_SUCCESS )
             {
                 LOGI(LOG_TARGET, "[KJTEC-RFID TOOL] WRITE USER INFO : WRITE SUCCESS -> SEQ [%d], [%d]/[%d] : write total [%d]  \r\n" ,seq_no, remain_frame_cnt, total_frame_len, i);
@@ -379,7 +381,7 @@ int kjtec_rfid_mgr__alive_dev()
 
 static _download_one_pkt(char* buff, int buff_len)
 {
-    int write_retry_cnt = 2; // 여러번 해봤자 헛수고;;;
+    int write_retry_cnt = 5; // 여러번 해봤자 헛수고;;;
     int write_one_pkt_ret = KJTEC_RFID_RET_FAIL;
 
     while (write_retry_cnt--)
@@ -387,6 +389,7 @@ static _download_one_pkt(char* buff, int buff_len)
         write_one_pkt_ret = kjtec_rfid__firmware_write_one_pkt (buff, buff_len);
         if ( write_one_pkt_ret == KJTEC_RFID_RET_SUCCESS )
             return KJTEC_RFID_RET_SUCCESS;
+        usleep(10000);
     }
 
     return KJTEC_RFID_RET_FAIL;
@@ -415,9 +418,24 @@ int kjtec_rfid_mgr__chk_need_to_fw_download()
 
     if (get_fw_ver_success == 1)
     {
-        if ( strcmp(cur_ver_info.data_result, FW_DOWNLOAD_FILE_VER) != 0 )
+        char req_fwver[FW_NAME_MAX_LEN] = {0,};
+        char req_fwver_str[FW_NAME_MAX_LEN] = {0,};
+
+        get_fwdown_target_ver(req_fwver);
+        sprintf(req_fwver_str,"1.3.0.BusSR-%s", req_fwver);
+        
+        printf("cur_ver_info.data_result [%s] / req_fwver_str [%s]\r\n",cur_ver_info.data_result, req_fwver_str);
+        if ( strcmp(cur_ver_info.data_result, req_fwver_str) != 0 )
         {
-            devel_webdm_send_log("FW DOWN CHK => NEED TO FW DOWN");
+            if ( strcmp(cur_ver_info.data_result, "1.3.0.BusSR-t8") == 0 )
+                set_fwdown_chksum_offset(0);
+            else if ( strcmp(cur_ver_info.data_result, "1.3.0.BusSR-t9") == 0 )
+                set_fwdown_chksum_offset(0);
+            else 
+                set_fwdown_chksum_offset(6);
+            
+            devel_webdm_send_log("FW DOWN CHK => NEED TO FW DOWN / CHKSUM [%d] => [%s]",get_fwdown_chksum_offset(),req_fwver);
+
             return 1;
         }
         else
@@ -450,6 +468,16 @@ int kjtec_rfid_mgr__download_fw(char* path)
 
     int write_one_pkt_ret = KJTEC_RFID_RET_FAIL;
 
+    int watchdog_cnt = 0;
+
+    if ( file_size <= 0)
+    {
+        LOGE(LOG_TARGET, "[KJTEC-RFID TOOL] FW DOWNLOAD -> TARGET FILE NOT EXIST [%s] / file_size [%d] \r\n", path, file_size);
+        //kjtec_rfid_mgr__download_sms_noti_msg("FW DOWN -> FAIL");
+        ret_val = KJTEC_RFID_RET_FAIL;
+        goto FINISH;
+    }
+
     if ( kjtec_rfid_mgr__chk_need_to_fw_download() != 1)
     {
         rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_END);
@@ -459,7 +487,13 @@ int kjtec_rfid_mgr__download_fw(char* path)
     LOGT(LOG_TARGET, "[KJTEC-RFID TOOL] FW DOWNLOAD -> START [%s] / file_size [%d] \r\n", path, file_size);
     
     devel_webdm_send_log("RFID FIRM DOWN START [%s] / file_size [%d] \r\n", path, file_size);
-    kjtec_rfid_mgr__download_sms_noti_msg("FW DOWN -> START");
+    {
+        char send_msg[512] = {0,};
+        char ver_str[FW_NAME_MAX_LEN] = {0,};
+        get_fwdown_target_ver(ver_str);
+        sprintf(send_msg, "FW DOWN -> START :: target ver [%s] ",ver_str);
+        kjtec_rfid_mgr__download_sms_noti_msg(send_msg);
+    }
 
 
     rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_ING);
@@ -521,6 +555,10 @@ int kjtec_rfid_mgr__download_fw(char* path)
         }
 
         toal_write_size += read_size;
+
+        if ( watchdog_cnt++ & 10 )
+            clear_main_watchdog();
+
     }
 
 FINISH:
@@ -531,11 +569,16 @@ FINISH:
 
     if ( ret_val == KJTEC_RFID_RET_FAIL ) 
     {
-        devel_webdm_send_log("RFID FIRM DOWN FAIL 3 \r\n", path, file_size);
-        kjtec_rfid_mgr__download_sms_noti_msg("FW DOWN -> FAIL");
+        devel_webdm_send_log("RFID FIRM DOWN FAIL 3 [%s] [%d] [%s] \r\n", path, file_size, path);
+
+        if ( file_size > 0 )
+            kjtec_rfid_mgr__download_sms_noti_msg("FW DOWN -> FAIL");
+        else
+            kjtec_rfid_mgr__download_sms_noti_msg("FW DOWN -> FAIL : file not exist");
     }
 
     rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_END);
+
     kjtec_rfid_mgr__download_sms_noti_enable(0,"01000000000");
     
     return ret_val;
@@ -560,3 +603,34 @@ int kjtec_rfid_mgr__download_sms_noti_msg(char* msg)
     at_send_sms(_g_sms_noti_phonenum, msg);
 }
 
+
+static int _g_fwdown_chksum_offset = 6;
+int set_fwdown_chksum_offset(int offset)
+{
+    _g_fwdown_chksum_offset = offset;
+}
+
+int get_fwdown_chksum_offset()
+{
+    return _g_fwdown_chksum_offset;
+}
+
+
+static char _g_fwdown_taget_ver[FW_NAME_MAX_LEN] = {0,};
+int set_fwdown_target_ver(char* buff)
+{
+    memset(_g_fwdown_taget_ver, 0x00, sizeof(_g_fwdown_taget_ver));
+    strcpy(_g_fwdown_taget_ver, buff);
+    return 0;
+}
+
+int get_fwdown_target_ver(char* buff)
+{
+    strcpy(buff, _g_fwdown_taget_ver);
+    return 0;
+}
+
+int get_fwdown_target_path(char* ver)
+{
+    snprintf(ver, FW_NAME_MAX_LEN, "%s/rfid_fw_%s.bin", FW_DOWNLOAD_FILE_PATH,_g_fwdown_taget_ver);
+}

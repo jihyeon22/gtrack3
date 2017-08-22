@@ -299,11 +299,11 @@ int _sms_cmd_proc_rfid_fw_ver(int argc, char* argv[], const char* phonenum)
 
 	if (get_fw_ver_success == 1)
 	{
-		sprintf(result_buff,"cur rfid firm ver [%s] / last ver [%s]", cur_ver_info.data_result, FW_DOWNLOAD_FILE_VER);
+		sprintf(result_buff,"cur rfid firm ver [%s] / last ver [%s]", cur_ver_info.data_result, FW_DOWNLOAD_FILE_LAST_VER_STR);
 	}
 	else
 	{
-		sprintf(result_buff,"cur rfid firm ver [%s] / last ver [%s]", "GET FAIL", FW_DOWNLOAD_FILE_VER);
+		sprintf(result_buff,"cur rfid firm ver [%s] / last ver [%s]", "GET FAIL", FW_DOWNLOAD_FILE_LAST_VER_STR);
 	}
 
 	// ---------------
@@ -360,6 +360,14 @@ int _sms_cmd_proc_rfid_fw_down(int argc, char* argv[], const char* phonenum)
         at_send_sms(phonenum, "FW DOWN CHK => FAIL : INVALID STAT. TRY LATER");
 		return -1;
     }
+
+	
+	if ( argc >= 2 )
+	{
+		set_fwdown_target_ver(argv[2]);
+	}
+	else
+		set_fwdown_target_ver(FW_DOWNLOAD_FILE_LAST_VER_NUM);
 
 	rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_START);
 	// ---------------

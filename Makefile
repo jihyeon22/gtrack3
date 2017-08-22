@@ -383,7 +383,7 @@ endif
 
 # cl rfid firmware binary
 ifeq ($(SERVER),cl-rfid)
-	$(Q)fakeroot cp -v $(MODEL_PATH)/rfid_fw/rfid_fw.bin $(DESTDIR)$(WORK_PATH)/rfid_fw.bin
+	$(Q)fakeroot cp -v $(MODEL_PATH)/rfid_fw/rfid_fw*.bin $(DESTDIR)$(WORK_PATH)/
 endif
 
 ifeq ($(USE_TL500S_FOTA),y)

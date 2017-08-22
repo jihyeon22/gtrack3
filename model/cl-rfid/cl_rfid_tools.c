@@ -45,11 +45,13 @@ char* rfid_tool__get_senario_stat_str()
     {
         case  e_RFID_NONE:
         {
+            clear_req_passenger_fail_cnt();
             return "RFID_NONE";
             break;
         }
         case  e_RFID_INIT:
         {
+            clear_req_passenger_fail_cnt();
             return "RFID_INIT";
             break;
         }
@@ -139,6 +141,9 @@ int rfid_tool__user_info_insert(RFID_USER_INFO_T rfid_user)
          rfid_tool__env_set_all_clear(1);
          return 0;
     }
+
+    if ( strlen(rfid_user.rfid_uid) <= 0 )
+        return 0;
 #if 0
     memcpy(rifd_user_mgr.user_info[idx], rfid_user, sizeof(RFID_USER_INFO_T));
 #else
@@ -217,6 +222,7 @@ int rfid_tool__env_set_all_clear(int flag)
 int rfid_tool__env_get_all_clear()
 {
     return _g_rfid_all_clr;
+    
 } 
 
 // --------------------------------------------------------

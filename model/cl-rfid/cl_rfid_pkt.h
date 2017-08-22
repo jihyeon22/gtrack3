@@ -11,4 +11,6 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff);
 int make_clrfid_pkt__set_boarding(unsigned char **pbuf, unsigned short *packet_len, RFID_BOARDING_MGR_T* boarding);
 int parse_clrfid_pkt__set_boarding(unsigned char * buff, int len_buff);
 
+int clear_req_passenger_fail_cnt();
+
 #endif // __CL_RFID_PKT_H__

@@ -72,7 +72,6 @@ static int __make_http_header__req_passenger(char* buff, char* version)
         strcpy(target_ver,"0");
     }
     
-    
 	at_get_phonenum(phonenum, sizeof(phonenum));
 
     //strcpy(phonenum, "01220003257"); // http://test.2bt.kr:8887 테스트용 
@@ -80,7 +79,9 @@ static int __make_http_header__req_passenger(char* buff, char* version)
     strcpy(host_ip, conf->model.request_rfid);
     host_port = conf->model.request_rfid_port;
 
-    str_len += sprintf(buff + str_len, "GET /cd/getpassengerlist_tiny2.aspx?dn=%s&v=%s HTTP/1.1\r\n", phonenum, target_ver);
+    // change tiny2 -> tiny3 : 20180821 : cl requre 
+    str_len += sprintf(buff + str_len, "GET /cd/getpassengerlist_tiny3.aspx?dn=%s&v=%s HTTP/1.1\r\n", phonenum, target_ver);
+    //str_len += sprintf(buff + str_len, "GET /cd/getpassengerlist_tiny2.aspx?dn=%s&v=%s HTTP/1.1\r\n", phonenum, target_ver);
     str_len += sprintf(buff + str_len, "Host: %s:%d\r\n",host_ip, host_port);
     str_len += sprintf(buff + str_len, "\r\n");
 
@@ -122,6 +123,13 @@ int make_clrfid_pkt__req_passenger(unsigned char **pbuf, unsigned short *packet_
 
 }
 
+#define MAX_CLRFID_PKT_PARSE_FAIL   2
+static int _g_parse_fail_cnt = 0;
+int clear_req_passenger_fail_cnt()
+{
+    _g_parse_fail_cnt = 0;
+}
+
 int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
 {
     int result;
@@ -151,7 +159,12 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
     if ( strncmp("HTTP/1.1 200 OK", buff, strlen("HTTP/1.1 200 OK")  ) )
     {
         LOGE(LOG_TARGET, "%s:%d> http return fail \r\n", __func__, __LINE__);
-        devel_webdm_send_log("DOWNLOAD USER : server ret fail");
+        devel_webdm_send_log("DOWNLOAD USER : server ret fail cnt [%d]", _g_parse_fail_cnt);
+        if ( _g_parse_fail_cnt++ > MAX_CLRFID_PKT_PARSE_FAIL )
+        {
+            //parse_fail_cnt = 0;
+            return 0;
+        }
         return -1;
     }
     
@@ -160,18 +173,16 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
 
     if ( json_start_p == NULL ) 
     {
-        LOGE(LOG_TARGET, "%s:%d> http return fail 2 \r\n", __func__, __LINE__);
-        devel_webdm_send_log("DOWNLOAD USER : server ret fail 2");
+        LOGE(LOG_TARGET, "%s:%d> http return fail 2 [%d]\r\n", __func__, __LINE__, _g_parse_fail_cnt );
+        devel_webdm_send_log("DOWNLOAD USER : server ret fail 2 [%d]", _g_parse_fail_cnt);
+        if ( _g_parse_fail_cnt++ > MAX_CLRFID_PKT_PARSE_FAIL )
+        {
+            //parse_fail_cnt = 0;
+            return 0;
+        }
         return -1;
     }
 
-    printf("json_start_p is [%s]\r\n",json_start_p);
-    if ( strncmp(json_start_p+strlen("\r\n\r\n"),"-301", strlen("-301") ) == 0 )
-    {
-        LOGE(LOG_TARGET, "%s:%d> http return fail 3 \r\n", __func__, __LINE__);
-        devel_webdm_send_log("DOWNLOAD USER : server ret fail 3");
-        return 0;
-    }
     // init passenger info
     rfid_tool__user_info_init();
     
@@ -183,8 +194,9 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
 		LOGE(LOG_TARGET, "%s:%d> json_loads \n", __func__, __LINE__);
 		LOGE(LOG_TARGET, "error : on line %d: %s\n", error.line, error.text);
 		result = -20;
-        devel_webdm_send_log("DOWNLOAD USER : invaild json [%s]", error.text);
-		return -1;
+        devel_webdm_send_log("DOWNLOAD USER : invaild json [%s] [%d]", error.text, _g_parse_fail_cnt);
+        _g_parse_fail_cnt = 0;
+		return 0;
 	}
 
     json_array_size_cnt = json_array_size(root);
@@ -244,6 +256,7 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
     printf( "DOWNLOAD USER INFO SUCCESS : CNT [%d] - ADD [%d] DEL [%d]\r\n", rfid_tool__user_info_total_cnt(), passenger_list_add, passenger_list_del);
     LOGI(LOG_TARGET, "DOWNLOAD USER INFO SUCCESS : CNT [%d] - ADD [%d] DEL [%d]\r\n", rfid_tool__user_info_total_cnt(), passenger_list_add, passenger_list_del);
     devel_webdm_send_log("DOWNLOAD USER INFO SUCCESS : CNT [%d] - ADD [%d] DEL [%d]\r\n", rfid_tool__user_info_total_cnt(), passenger_list_add, passenger_list_del);
+    _g_parse_fail_cnt = 0;
 /*
     while(1)
     {

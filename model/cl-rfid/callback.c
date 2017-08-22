@@ -102,7 +102,7 @@ void init_model_callback(void)
 #endif
 
 	init_kjtec_rfid();
-	
+	set_fwdown_target_ver(FW_DOWNLOAD_FILE_LAST_VER_NUM);
 	rfid_tool__set_senario_stat(e_RFID_NONE); 
 	//rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_START);
 }
@@ -122,7 +122,7 @@ void button1_callback(void)
 	_make_location_data(&gpsdata, code);
 	_send_location_data();
 
-	//kjtec_rfid_mgr__clr_all_user_data();
+//	kjtec_rfid_mgr__clr_all_user_data();
 	//kjtec_rfid_mgr__download_sms_noti_enable(1, "01086687577");
 //	rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_START);
 
@@ -138,7 +138,7 @@ void button2_callback(void)
 	_make_location_data(&gpsdata, code);
 	_send_location_data();
 
-	//kjtec_rfid_mgr__clr_all_user_data();
+//	kjtec_rfid_mgr__clr_all_user_data();
 	//rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_START);
 
 }
@@ -340,7 +340,7 @@ void gps_parse_one_context_callback(void)
 
 #define KJTEC_CONN_DISCONN_CHK_CNT		3
 #define RFID_CHK_INTERVAL				60
-#define MAX_CHK_RFID_WRITE_FAIL_CNT 	3
+#define MAX_CHK_RFID_WRITE_FAIL_CNT 	1
 
 #define MAIN_STAT_MSG_PRINT_INTERVAL 	5
 
@@ -493,13 +493,15 @@ void main_loop_callback(void)
 				LOGE(LOG_TARGET, "[MAIN] RFID WRITE FAIL [%d]/[%d]\r\n",rfid_write_user_data_fail_cnt, MAX_CHK_RFID_WRITE_FAIL_CNT);
 				devel_webdm_send_log("USER DATA WRITE FAIL!! [%d]", rfid_write_user_data_fail_cnt);
 				sleep(30);
-				if ( rfid_write_user_data_fail_cnt++ > MAX_CHK_RFID_WRITE_FAIL_CNT ) 
+				if ( ++rfid_write_user_data_fail_cnt > MAX_CHK_RFID_WRITE_FAIL_CNT ) 
 				{
 					devel_webdm_send_log("USER DATA WRITE FAIL!!");
 					//rfid_tool__set_senario_stat(e_RFID_USER_INFO_WRITE_TO_DEV_FAIL);
 					rfid_tool__set_senario_stat(e_RFID_USER_INFO_WRITE_TO_DEV_SUCCESS);
 				}
 			}
+
+			g_need_to_rfid_ver_chk = 1;
 		}
 
 		if ( need_to_rfid_info == 1 )
@@ -574,9 +576,13 @@ void main_loop_callback(void)
 		}
 		
 		
-		
 		if ( rfid_tool__get_senario_stat() == e_RFID_FIRMWARE_DOWNLOAD_START )
-			kjtec_rfid_mgr__download_fw(FW_DOWNLOAD_FILE_PATH);
+		{
+			char fw_filename[FW_NAME_MAX_LEN] = {0,};
+			get_fwdown_target_path(fw_filename);
+			kjtec_rfid_mgr__download_fw(fw_filename);
+			rfid_tool__set_senario_stat(e_RFID_INIT); // 처음부터 루틴을 다시 태우도록
+		}
 
 		main_loop_cnt++;
 		main_rfid_chk_cnt++;

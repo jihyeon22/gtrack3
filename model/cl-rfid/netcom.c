@@ -270,8 +270,8 @@ static int _setting_network_param(void)
 	
 	strncpy(gRFID_request.ip, conf->model.request_rfid, 40);
 	gRFID_request.port = conf->model.request_rfid_port;
-	gRFID_request.retry_count_connect = 3;
-	gRFID_request.retry_count_send = 3;
+	gRFID_request.retry_count_connect = 2;
+	gRFID_request.retry_count_send = 2;
 	gRFID_request.retry_count_receive = 0;
 	gRFID_request.timeout_secs = 1;
 	
