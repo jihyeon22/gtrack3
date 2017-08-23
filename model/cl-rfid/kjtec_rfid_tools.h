@@ -7,8 +7,8 @@
 #define FW_DOWNLOAD_MAX_FAIL_RETRY_CNT   RFID_CMD_FIRMWARE_ONE_PKT_MAX_RETRY
 #define FW_DOWNLOAD_FILE_PATH           "/system/mds/system/bin"
 // full path : "/system/mds/system/bin/rfid_fw_%s.bin"
-#define FW_DOWNLOAD_FILE_LAST_VER_STR   "1.3.0.BusSR-t11"
-#define FW_DOWNLOAD_FILE_LAST_VER_NUM   "t11"
+#define FW_DOWNLOAD_FILE_LAST_VER_STR   "1.3.0.BusSR-t12"
+#define FW_DOWNLOAD_FILE_LAST_VER_NUM   "t12"
 
 int kjtec_rfid_mgr__dev_init_chk(RFID_DEV_INFO_T* info);
 

@@ -149,6 +149,7 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
     int json_array_size_cnt = 0;
 
     RFID_USER_INFO_T cur_user;
+    
     memset(&cur_user, 0x00, sizeof(RFID_USER_INFO_T));
 
     printf("%s() [%d]=> dump pkt -------------------------------------------------\r\n", __func__, len_buff);
@@ -189,6 +190,7 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
     json_start_p = strstr(buff, "\r\n\r\n");
     // [["61B849D9","0","1","0",""], ... ]
 
+    
 	root = json_loads(json_start_p, 0, &error);
 	if(!root){
 		LOGE(LOG_TARGET, "%s:%d> json_loads \n", __func__, __LINE__);
@@ -248,7 +250,12 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
             }
         }
 
-        rfid_tool__user_info_insert(cur_user);
+        if ( rfid_tool__user_info_insert(cur_user) != 0 )
+        {
+            devel_webdm_send_log("DOWNLOAD USER : FAIL OVERFLOW CNT \r\n");
+            kjtec_rfid_mgr__clr_all_user_data();
+            return -1;
+        }
 
        // printf("----------------------------------------\r\n");
     }

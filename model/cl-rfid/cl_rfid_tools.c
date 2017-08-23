@@ -139,6 +139,7 @@ int rfid_tool__user_info_insert(RFID_USER_INFO_T rfid_user)
     if ( strcasestr(rfid_user.rfid_uid, "INIT_DATA") != NULL )
     {
          rfid_tool__env_set_all_clear(1);
+         devel_webdm_send_log("ALL CLR USER DATA. ");
          return 0;
     }
 
@@ -162,6 +163,8 @@ int rfid_tool__user_info_insert(RFID_USER_INFO_T rfid_user)
     printf("_g_rifd_user_mgr.user_info[%d].last_boarding_date => [%s]\r\n", idx, _g_rifd_user_mgr.user_info[idx].last_boarding_date);
 */
     _g_rifd_user_mgr.rfid_user_idx++;
+    if  ( _g_rifd_user_mgr.rfid_user_idx > MAX_RFID_USER_SAVE )
+        return -1;
   //  printf(" --> _g_rifd_user_mgr.rfid_user_idx [%d]\r\n", _g_rifd_user_mgr.rfid_user_idx);
     return 0;
 }
