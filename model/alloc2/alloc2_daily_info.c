@@ -183,18 +183,22 @@ int init_keyon_section_distance(int total_distance)
 static int _diff_last_distance = 0;
 int get_diff_distance_prev(int total_distance)
 {
+	
 	if ( _diff_last_distance == 0 )
 	{
 		_diff_last_distance = total_distance;
+		printf(" get_diff_distance_prev -> _diff_last_distance [%d] / total_distance [%d] / return 0 \r\n", _diff_last_distance, total_distance);
 		return 0;
 	}
 
 	if ( _diff_last_distance >= total_distance )
 	{
 		_diff_last_distance = total_distance;
+		printf(" get_diff_distance_prev -> _diff_last_distance [%d] / total_distance [%d] / return 0 \r\n", _diff_last_distance, total_distance);
 		return 0;
 	}
 
+	printf(" get_diff_distance_prev -> _diff_last_distance [%d] / total_distance [%d] / return [%d] \r\n", _diff_last_distance, total_distance, total_distance - _diff_last_distance);
 	return total_distance - _diff_last_distance;
 }
 
@@ -488,3 +492,35 @@ int alloc2_clr_daily_info()
 
 
 #endif
+
+
+void save_resume_data()
+{
+	int try_cnt = 4;
+	ALLOC_RESUME_DATA resume_data = {0,};
+
+	resume_data.keyon_distance = _keyon_distance;
+	resume_data.diff_last_distance = _diff_last_distance;
+
+	while(try_cnt--)
+	{
+		if( storage_save_file(NO_SEND_TO_PWR_EVT_SAVE_INFO_PATH, &resume_data, sizeof(resume_data)) >= 0)
+			break;
+	}
+
+}
+
+void load_resume_data()
+{
+	ALLOC_RESUME_DATA resume_data = {0,};
+	int ret = 0;
+
+	if ( storage_load_file(NO_SEND_TO_PWR_EVT_SAVE_INFO_PATH, &resume_data, sizeof(resume_data)) >= 0 )
+	{
+		_keyon_distance = resume_data.keyon_distance;
+		_diff_last_distance = resume_data.diff_last_distance;
+	}
+
+	remove(NO_SEND_TO_PWR_EVT_SAVE_INFO_PATH);
+	remove(NO_SEND_TO_PWR_EVT_SAVE_INFO_PATH_2);
+}

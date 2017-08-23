@@ -53,6 +53,8 @@ int get_car_ctrl_enable();
 #define EVT_TYPE_IGI_OFF        4
 
 #define NO_SEND_TO_PWR_EVT_FLAG_PATH    CONCAT_STR(USER_DATA_DIR, "/no_send_pwr.dat")
+#define NO_SEND_TO_PWR_EVT_SAVE_INFO_PATH      CONCAT_STR(USER_DATA_DIR, "/no_send_pwr_info.dat")
+#define NO_SEND_TO_PWR_EVT_SAVE_INFO_PATH_2    CONCAT_STR(USER_DATA_DIR, "/no_send_pwr_info.dat.bak")
 
 int set_no_send_pwr_evt_reboot();
 int get_no_send_pwr_evt_reboot(int flag);

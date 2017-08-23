@@ -33,5 +33,13 @@ int init_diff_distance_prev();
 
 int set_total_gps_distance(int distance);
 
+typedef struct {
+    unsigned int 	diff_last_distance;  // 이전 gps 좌표와의 거리?
+    unsigned int 	keyon_distance;   // key on distance
+}__attribute__((packed))ALLOC_RESUME_DATA;
+
+void save_resume_data();
+void load_resume_data();
+
 #endif
 

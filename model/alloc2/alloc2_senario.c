@@ -174,9 +174,8 @@ void alloc2_poweroff_proc(char* msg)
 	devel_webdm_send_log(msg);
 
     devel_webdm_send_log("Accumulate distance : %um at the start\n", mileage_get_m());
-	sender_wait_empty_network(WAIT_PIPE_CLEAN_SECS);
+	sender_wait_empty_network(20);
 	poweroff("sernaio", strlen("sernaio"));
-
 }
 
 // --------------------------------------------------------
@@ -201,6 +200,7 @@ int set_no_send_pwr_evt_reboot()
     sprintf(touch_cmd, "touch %s &",NO_SEND_TO_PWR_EVT_FLAG_PATH);
     system(touch_cmd);
     
+    save_resume_data();
 
 	sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
 	sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
