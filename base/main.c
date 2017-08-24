@@ -270,21 +270,42 @@ void _gpio_check(void)
 
 void gtrack_at_noti_proc(const char* buffer, int len)
 {
-	LOGI(LOG_TARGET, "model at noti proc msg ==> [%s]\n", buffer);
+	int remove_cr_str_len = 0;
+	char temp_str[1024] = {0,};
+	remove_cr_str_len = mds_api_remove_cr(buffer, temp_str, 512);
+
+	if ( remove_cr_str_len <= 0 )
+	{
+		LOGE(LOG_TARGET, "model at noti proc msg (remove cr) : null ==> ori msg [%s] remove cr len [%d]\n", buffer, remove_cr_str_len);
+		return;
+	}
+
+	LOGI(LOG_TARGET, "model at noti proc msg (remove cr) ==> [%s] [%d]\n", temp_str, remove_cr_str_len);
+
 #if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
-	KT_FOTA_NOTI_RECEIVE(buffer);
+	KT_FOTA_NOTI_RECEIVE(temp_str);
 #endif
-	parse_model_at_noti(buffer, len);
+	parse_model_at_noti(temp_str, remove_cr_str_len);
 }
 
 void gtrack_at_sms_proc(const char* phone_num, const char* recv_time, const char* msg)
 {
-	LOGI(LOG_TARGET, "model sms proc msg ==> [%s]\n", msg);
+	int remove_cr_str_len = 0;
+	char temp_str[128] = {0,};
+	remove_cr_str_len = mds_api_remove_cr(msg, temp_str, 128);
+
+	if ( remove_cr_str_len <= 0 )
+	{
+		LOGE(LOG_TARGET, "model sms proc msg (remove cr) : null ==> ori msg [%s] remove cr len [%d]\n", msg, remove_cr_str_len);
+		return;
+	}
+
+	LOGI(LOG_TARGET, "model sms proc msg (remove cr) ==> [%s] [%d]\n", temp_str, remove_cr_str_len);
 	//int parse_model_sms(char *time, char *phonenum, char *sms);
-	parse_model_sms(recv_time, phone_num, msg);
+	parse_model_sms(recv_time, phone_num, temp_str);
 
 #ifdef DTG_ENABLE
-	tx_sms_to_tacoc(phone_num, msg);
+	tx_sms_to_tacoc(phone_num, temp_str);
 #endif
 }
 
