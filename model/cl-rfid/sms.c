@@ -32,11 +32,12 @@ extern RFID_DEV_INFO_T g_rfid_dev_info;
 
 static SMS_CMD_FUNC_T sms_cmd_func[] =
 {
-	{eSMS_CMD_GET__DEVICE_INFO, SMS_CMD_GET__DEVICE_INFO, _sms_cmd_proc_get_dev_info},
-	{eSMS_CMD_SET__DEVICE_CLR_REDOWN, SMS_CMD_SET__DEVICE_CLR_REDOWN, _sms_cmd_proc_clear_redown_rfid},
-	{eSMS_CMD_SET__DEVICE_RESET, SMS_CMD_SET__DEVICE_RESET, _sms_cmd_proc_device_reset},
-	{eSMS_CMD_GET__RFID_FW_VER, SMS_CMD_GET__RFID_FW_VER, _sms_cmd_proc_rfid_fw_ver},
-	{eSMS_CMD_SET__RFID_FW_DOWNLOAD, SMS_CMD_SET__RFID_FW_DOWNLOAD, _sms_cmd_proc_rfid_fw_down},
+	{eSMS_CMD_GET__DEVICE_INFO, "&0G", _sms_cmd_proc_get_dev_info},
+	{eSMS_CMD_SET__DEVICE_CLR_REDOWN, "&CLR0", _sms_cmd_proc_clear_redown_rfid},
+	{eSMS_CMD_SET__DEVICE_CLR, "&CLR1", _sms_cmd_proc_clear},
+	{eSMS_CMD_SET__DEVICE_RESET, "&RST", _sms_cmd_proc_device_reset},
+	{eSMS_CMD_GET__RFID_FW_VER, "&RFVER", _sms_cmd_proc_rfid_fw_ver},
+	{eSMS_CMD_SET__RFID_FW_DOWNLOAD, "&RFDN", _sms_cmd_proc_rfid_fw_down},
 };
 
 int parse_model_sms(char *time, char *phonenum, char *sms)
@@ -193,14 +194,91 @@ int _sms_cmd_proc_clear_redown_rfid(int argc, char* argv[], const char* phonenum
 	}
 	
 	// ---------------
-	sprintf(result_buff,"all rfid user clean and redownload start");
-	kjtec_rfid_mgr__clr_all_user_data();
+	if ( rfid_tool__get_senario_stat() == e_RFID_USER_INFO_WRITE_TO_DEV_SUCCESS )
+	{
+		sprintf(result_buff,"CLEAR SUCCESS : REDOWN USER LIST");
+		kjtec_rfid_mgr__clr_all_user_data();
+	}
+	else
+	{
+		sprintf(result_buff,"CLEAR FAIL : INVALID STAT, RETRY LATER");
+	}
 
 	if ( atoi(argv[2]) == 1 )
 		at_send_sms(phonenum, result_buff);
 	
 	return 0;
 }
+
+
+int _sms_cmd_proc_clear(int argc, char* argv[], const char* phonenum)
+{
+	int i = 0 ;
+	int str_len = 0;
+	
+	unsigned char result_buff[80] = {0,};
+	unsigned char tmp_buff[32] = {0,};
+	
+	LOGI(LOG_TARGET, "SMS PROC : get - devinfo / from [%s]\n",phonenum);
+
+	for(i = 0; i <= argc; i++)
+	{
+		LOGD(LOG_TARGET, "SMS - arg [%d] - [%s]\n", i, argv[i]);
+	}
+	
+	// passwd argument check.
+	if ( argc == 0 )
+	{
+		LOGE(LOG_TARGET, "SMS - invalid arg [%d]\n", argc);
+		return -1;
+	}
+	
+	if ( argc != 2 )
+	{
+		LOGE(LOG_TARGET, " - SMS argument invalid [%d] / [%d] \n", argc , 4);
+		return -1;
+	}
+
+	if ( strncasecmp(SMS_CMD_PWD, argv[1], strlen(argv[1]) ) != 0 )
+	{
+		LOGE(LOG_TARGET, " - SMS PWD invalid [%s] / [%s]\n", argv[1], SMS_CMD_PWD);
+		return -1;
+	}
+	
+	// ---------------
+	if ( rfid_tool__get_senario_stat() == e_RFID_USER_INFO_WRITE_TO_DEV_SUCCESS )
+	{
+		RIFD_DATA_ALL_CLR_T all_clr_result;
+		memset(&all_clr_result, 0x00, sizeof(all_clr_result));
+		if ( kjtec_rfid__dev_rfid_all_clear(&all_clr_result) == KJTEC_RFID_RET_SUCCESS )
+		{
+			LOGI(LOG_TARGET, "[KJTEC-RFID TOOL] WRITE USER INFO : ALL ERASE SUCCESS \r\n");
+			sprintf(result_buff ,"%s", "CLEAR SUCCESS");
+		}
+		else
+		{
+			// 모두지우는데 실패. 그러므로 다시 시도하기 위해서 리턴
+			LOGI(LOG_TARGET, "[KJTEC-RFID TOOL] WRITE USER INFO : ALL ERASE FAIL RETURN \r\n");
+			sprintf(result_buff,"%s", "CLEAR FAIL : CMD FAIL, RETRY LATER");
+		}
+
+		g_need_to_rfid_info = 1;
+	}
+	else
+	{
+		sprintf(result_buff,"%s", "CLEAR FAIL : INVLID STAT, RETRY LATER");
+	}
+
+	if ( atoi(argv[2]) == 1 )
+		at_send_sms(phonenum, result_buff);
+	
+	return 0;
+}
+
+
+
+
+
 
 
 

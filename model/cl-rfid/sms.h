@@ -16,6 +16,7 @@ typedef enum
 {
 	eSMS_CMD_GET__DEVICE_INFO,
     eSMS_CMD_SET__DEVICE_CLR_REDOWN,
+    eSMS_CMD_SET__DEVICE_CLR,
     eSMS_CMD_SET__DEVICE_RESET,
     eSMS_CMD_GET__RFID_FW_VER,
     eSMS_CMD_SET__RFID_FW_DOWNLOAD,
@@ -31,6 +32,7 @@ typedef struct
 
 int _sms_cmd_proc_get_dev_info(int argc, char* argv[], const char* phonenum);
 int _sms_cmd_proc_clear_redown_rfid(int argc, char* argv[], const char* phonenum);
+int _sms_cmd_proc_clear(int argc, char* argv[], const char* phonenum);
 int _sms_cmd_proc_device_reset(int argc, char* argv[], const char* phonenum);
 int _sms_cmd_proc_rfid_fw_ver(int argc, char* argv[], const char* phonenum);
 int _sms_cmd_proc_rfid_fw_down(int argc, char* argv[], const char* phonenum);

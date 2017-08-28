@@ -346,6 +346,7 @@ void gps_parse_one_context_callback(void)
 
 RFID_FIRMWARE_VER_T g_ver_info;
 int g_need_to_rfid_ver_chk = 0;
+int g_need_to_rfid_info = 0;
 
 int clear_main_watchdog()
 {
@@ -366,7 +367,7 @@ void main_loop_callback(void)
 	int rfid_read_fail_cnt = 0;
 	int rfid_write_user_data_fail_cnt = 0;
 	// rfid_init();
-	int need_to_rfid_info = 0;
+	
 
 	memset(&g_rfid_dev_info, 0x00, sizeof(g_rfid_dev_info) );
 
@@ -420,7 +421,7 @@ void main_loop_callback(void)
 		// 1. rfid 단말을 확인한다.
 		if ( rfid_tool__get_senario_stat() == e_RFID_INIT )
 		{
-			need_to_rfid_info = 0;
+			g_need_to_rfid_info = 0;
 
 			if ( kjtec_rfid_mgr__dev_init_chk(&g_rfid_dev_info) == KJTEC_RFID_RET_SUCCESS )
 			{
@@ -446,7 +447,7 @@ void main_loop_callback(void)
 		if ( rfid_tool__get_senario_stat() == e_NEED_TO_RFID_USER_CHK )
 		{
 			rfid_write_user_data_fail_cnt = 0;
-			need_to_rfid_info = 0;
+			g_need_to_rfid_info = 0;
 
 			if ( rfid_tool__env_get_all_clear() == 1 )
 				sender_add_data_to_buffer(PACKET_TYPE_HTTP_GET_PASSENGER_LIST, "0", ePIPE_2);
@@ -476,12 +477,12 @@ void main_loop_callback(void)
 					
 					printf("db info [%d] / cnt [%d] / date [%s]\r\n", result.cmd_result, result.db_cnt, result.db_date);
 
-					need_to_rfid_info = 0;
+					g_need_to_rfid_info = 0;
 					devel_webdm_send_log("[MAIN] USER DOWN OK 1 : model [%s], user cnt [%d], time [%s]", g_rfid_dev_info.model_no , g_rfid_dev_info.total_passenger_cnt , g_rfid_dev_info.saved_timestamp );
 				}
 				else
 				{
-					need_to_rfid_info = 1;
+					g_need_to_rfid_info = 1;
 					devel_webdm_send_log("[MAIN] USER DOWN OK 2 : model [%s], user cnt [%d], time [%s]", g_rfid_dev_info.model_no , g_rfid_dev_info.total_passenger_cnt , g_rfid_dev_info.saved_timestamp );
 				}
 
@@ -504,7 +505,7 @@ void main_loop_callback(void)
 			g_need_to_rfid_ver_chk = 1;
 		}
 
-		if ( need_to_rfid_info == 1 )
+		if ( g_need_to_rfid_info == 1 )
 		{
 			RFID_DB_INFO_T result;
 			memset(&result, 0x00, sizeof(result));
@@ -515,7 +516,7 @@ void main_loop_callback(void)
 				strcpy(g_rfid_dev_info.saved_timestamp,result.db_date);
 				
 				printf("db info [%d] / cnt [%d] / date [%s]\r\n", result.cmd_result, result.db_cnt, result.db_date);
-				need_to_rfid_info = 0;
+				g_need_to_rfid_info = 0;
 				devel_webdm_send_log("[MAIN] RFID DEV INFO : model [%s], user cnt [%d], time [%s]", g_rfid_dev_info.model_no , g_rfid_dev_info.total_passenger_cnt , g_rfid_dev_info.saved_timestamp );
 			}
 			/*

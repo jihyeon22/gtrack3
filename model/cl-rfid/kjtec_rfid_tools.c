@@ -150,7 +150,7 @@ int kjtec_rfid_mgr__write_to_dev_user_info(int all_erase)
         printf(" >> one_frame_str => [%s]\r\n",one_frame_str);
 */
 
-        if ( ( ( total_frame_len + one_frame_len ) > RFID_CMD_PASSENGER_STR_MAX_LEN ) || ( remain_frame_cnt <= 0) )
+        if ( ( ( total_frame_len + one_frame_len ) > (RFID_CMD_PASSENGER_STR_MAX_LEN-3) ) || ( remain_frame_cnt <= 0) )
         {
             int pkt_frame_type = 0;
             int pkt_frame_flag = 0;
@@ -422,9 +422,18 @@ int kjtec_rfid_mgr__chk_need_to_fw_download()
         char req_fwver_str[FW_NAME_MAX_LEN] = {0,};
 
         get_fwdown_target_ver(req_fwver);
-        sprintf(req_fwver_str,"1.3.0.BusSR-%s", req_fwver);
+
+        if ( strcmp(req_fwver, "t13n") == 0 )
+            strcpy(req_fwver_str, "1.3.0NBUS-t13");
+        else if ( strcmp(req_fwver, "t13n") == 0 )
+            strcpy(req_fwver_str, "1.3.0NBUS-t13");
+        else if ( strcmp(req_fwver, "t13h") == 0 )
+            strcpy(req_fwver_str, "1.3.0HBUS-t13");
+        else
+            sprintf(req_fwver_str,"1.3.0.BusSR-%s", req_fwver);
         
         printf("cur_ver_info.data_result [%s] / req_fwver_str [%s]\r\n",cur_ver_info.data_result, req_fwver_str);
+
         if ( strcmp(cur_ver_info.data_result, req_fwver_str) != 0 )
         {
             if ( strcmp(cur_ver_info.data_result, "1.3.0.BusSR-t8") == 0 )

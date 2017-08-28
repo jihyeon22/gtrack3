@@ -1152,7 +1152,7 @@ int kjtec_rfid__dev_write_rfid_data(int flag, char* rfid_user_str)
     if ( flag == 2 ) // flag 2 :: RFID_USER_INFO_FRAME__END / RFID_USER_INFO_FRAME__ONLY_ONE_PKT
         max_cmd_wait_time = KJTEC_RFID_CMD_RESP_WAIT_TIME * 20;
     else
-        max_cmd_wait_time = 20;
+        max_cmd_wait_time = 30;
 
     while(max_cmd_wait_time--)
     {

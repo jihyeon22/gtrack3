@@ -168,7 +168,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 		else
 			rfid_tool__set_senario_stat(e_RFID_DOWNLOAD_END);
 
-		return res;
+		return 0;
 	}
 
 	if ( op == PACKET_TYPE_HTTP_SET_BOARDING_LIST )

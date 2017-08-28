@@ -187,6 +187,10 @@ else ifeq ($(SUB),fms0)
 SERVER_ABBR   :=      FMS0
 else ifeq ($(SUB),fms1)
 SERVER_ABBR   :=      FMS1
+else ifeq ($(SUB),clr0)
+SERVER_ABBR   :=      CLR0
+else ifeq ($(SUB),clr1)
+SERVER_ABBR   :=      CLR1
 else
 $(error SUB is not registerd in Makefile, please input registred sub-model)
 endif

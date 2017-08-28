@@ -67,7 +67,7 @@ char* rfid_tool__get_senario_stat_str()
         }
         case  e_RFID_DOWNLOAD_END:
         {
-            return "DOWNLOAD_END-RFID_READ";
+            return "DOWNLOAD_END-WRITE_DEV";
             break;
         }
         case  e_RFID_USER_INFO_WRITE_TO_DEV_START:
