@@ -1,0 +1,9 @@
+[user]
+model_name=gtrs
+date=170905
+report_ip=211.115.67.22
+report_port=5100
+collect_interval_keyon = 60
+report_interval_keyon = 60
+collect_interval_keyoff = 3600
+report_interval_keyoff = 3600

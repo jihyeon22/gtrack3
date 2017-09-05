@@ -42,6 +42,12 @@ static int _fence_set (int argc, char **argv);
 static int _rpt_cycle2(int argc, char **argv);
 static int _mdt_reset (int argc, char **argv);
 
+#if defined(SERVER_ABBR_GTRS)
+static int _server_ip_set_gtrace(int argc, char **argv);
+static int _rpt_cycle2_gtrace (int argc, char **argv);
+#endif
+
+
 #ifdef BOARD_TL500K
 #ifdef KT_FOTA_ENABLE
 static int _get_version (char *pn);
@@ -105,6 +111,19 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 		return -1;
 	}
 	
+#if defined(SERVER_ABBR_GTRS)
+	if(model_argv[0][0] == '&' && model_argv[0][1] == 'C')
+	{
+		if(model_argv[0][2] == '1') {
+			_server_ip_set_gtrace(model_argc, model_argv);
+		}
+		else if(model_argv[0][2] == '2') {
+			_rpt_cycle2_gtrace(model_argc, model_argv);
+		}
+		return 0;
+	} 
+#endif
+
 	model_argv[0][0] = '0';
 	sms_cmd = atoi(model_argv[0]);
 	
@@ -154,6 +173,45 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 	LOGD(LOG_TARGET, "parse_model_sms = %d\n", ret);
 	return ret;
 }
+
+
+#if defined(SERVER_ABBR_GTRS)
+static int _server_ip_set_gtrace(int argc, char **argv)
+{
+	configurationModel_t * conf = get_config_model();
+	char *p_str_passrd;
+	char *p_str_ip;
+	char *p_str_port;
+
+	if(argc != 2)
+	{
+		LOGE(LOG_TARGET, "<%s> Incorrect SMS format\n", __FUNCTION__);
+		return -1;
+	}
+	
+	p_str_ip       = argv[1];
+	p_str_port     = argv[2];
+			
+	LOGD(LOG_TARGET, "%s> setting IP = %s \n"  , __func__, p_str_ip);
+	LOGD(LOG_TARGET, "%s> setting PORT = %s \n", __func__, p_str_port);
+
+	strncpy(conf->model.report_ip, p_str_ip, sizeof(conf->model.report_ip));
+	conf->model.report_port = atoi(p_str_port);
+
+	if(save_config_user("user:report_ip", p_str_ip) < 0)
+	{
+		LOGE(LOG_TARGET, "<%s> save config error #1\n", __FUNCTION__);
+		return -1;
+	}
+	if(save_config_user("user:report_port", p_str_port) < 0)
+	{
+		LOGE(LOG_TARGET, "<%s> save config error #2\n", __FUNCTION__);
+		return -1;
+	}
+
+	return 0;
+}
+#endif
 
 static int _server_ip_set(int argc, char **argv)
 {
@@ -370,6 +428,99 @@ static int _mdt_reset (int argc, char **argv)
 	
 	return 0;
 }
+
+#if defined(SERVER_ABBR_GTRS)
+static int _rpt_cycle2_gtrace (int argc, char **argv)
+{
+	configurationModel_t * conf = get_config_model();
+	unsigned int report_interval_keyon;
+	unsigned int collect_interval_keyon;
+	unsigned int report_interval_keyoff;
+	unsigned int collect_interval_keyoff;
+
+	char *p_str_report_interval_keyon;
+	char *p_str_report_interval_keyoff;
+	char *p_str_collect_interval_keyon;
+	char *p_str_collect_interval_keyoff;
+
+	if(argc != 2)
+	{
+		LOGE(LOG_TARGET, "<%s> Incorrect SMS", __FUNCTION__);
+		return -1;
+	}
+
+	p_str_report_interval_keyon   = argv[1];
+	p_str_collect_interval_keyon  = argv[2];
+	p_str_report_interval_keyoff  = argv[1];
+	p_str_collect_interval_keyoff = argv[2];
+
+	report_interval_keyon   = atoi(p_str_report_interval_keyon);
+	collect_interval_keyon  = atoi(p_str_collect_interval_keyon);
+	report_interval_keyoff  = atoi(p_str_report_interval_keyoff);
+	collect_interval_keyoff = atoi(p_str_collect_interval_keyoff);
+	
+	if(collect_interval_keyon > report_interval_keyon) 
+	{
+		LOGE(LOG_TARGET, "key on collection is greater report time", __FUNCTION__);
+		return -1;
+	}
+
+	if(collect_interval_keyoff > report_interval_keyoff)
+	{
+		LOGE(LOG_TARGET, "key off collection is greater report time", __FUNCTION__);
+		return -1;
+	}
+
+	LOGD(LOG_TARGET, "%s> keyon report cycle = %d \n" , __func__, report_interval_keyon);
+	LOGD(LOG_TARGET, "%s> keyon create cycle = %d \n" , __func__, collect_interval_keyon);
+	LOGD(LOG_TARGET, "%s> keyoff report cycle = %d \n", __func__, report_interval_keyoff);
+	LOGD(LOG_TARGET, "%s> keyoff create cycle = %d \n", __func__, collect_interval_keyoff);
+
+	if(validation_model_report_interval(collect_interval_keyon, report_interval_keyon) < 0)
+	{
+		LOGE(LOG_TARGET, "<%s> Validation interval SMS #1", __FUNCTION__);
+		return -1;
+	}
+
+	if(validation_model_report_interval(collect_interval_keyoff, report_interval_keyoff) < 0)
+	{
+		LOGE(LOG_TARGET, "<%s> Validation interval SMS #2", __FUNCTION__);
+		return -1;
+	}
+
+	conf->model.report_interval_keyon   = report_interval_keyon;
+	conf->model.collect_interval_keyon  = collect_interval_keyon;
+	conf->model.report_interval_keyoff  = report_interval_keyoff;
+	conf->model.collect_interval_keyoff = collect_interval_keyoff;
+
+	thread_network_set_warn_timeout(MAX(conf->model.report_interval_keyon, conf->model.report_interval_keyoff) * 2);
+	
+	if(save_config_user("user:collect_interval_keyon", p_str_collect_interval_keyon) < 0)
+	{
+		LOGE(LOG_TARGET, "<%s> save config error #1\n", __FUNCTION__);
+		return -1;
+	}
+	if(save_config_user("user:report_interval_keyon", p_str_report_interval_keyon) < 0)
+	{
+		LOGE(LOG_TARGET, "<%s> save config error #2\n", __FUNCTION__);
+		return -1;
+	}
+
+	if(save_config_user("user:collect_interval_keyoff", p_str_collect_interval_keyoff) < 0)
+	{
+		LOGE(LOG_TARGET, "<%s> save config error #3\n", __FUNCTION__);
+		return -1;
+	}
+	if(save_config_user("user:report_interval_keyoff", p_str_report_interval_keyoff) < 0)
+	{
+		LOGE(LOG_TARGET, "<%s> save config error #4\n", __FUNCTION__);
+		return -1;
+	}
+
+	return 0;
+}
+#endif
+
 
 static int _rpt_cycle2 (int argc, char **argv)
 {

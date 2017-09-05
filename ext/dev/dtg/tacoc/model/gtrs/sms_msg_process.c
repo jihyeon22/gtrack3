@@ -11,6 +11,11 @@
 #include <string.h>
 #include <termios.h>
 #include <fcntl.h>
+
+#ifdef SERVER_ABBR_GTRS
+#include <model/gtrace/config.h>
+#endif
+
 #include <wrapper/dtg_atcmd.h>
 #include "dtg_debug.h"
 
@@ -184,7 +189,7 @@ int set_dtg_value(unsigned char *buf, int nbytes)
 	newtio.c_cflag = CS8 | CLOCAL | CREAD;
 
 	newtio.c_cflag |= B115200;
-	newtio.c_lflag = 0;		 // non-canonical ??력 모드
+	newtio.c_lflag = 0;		 // non-canonical ????모드
 	newtio.c_cc[VTIME] = 0;	 // 무제???????	newtio.c_cc[VMIN] = 1;	 
 	
 	tcgetattr(fd, &oldtio);
@@ -511,7 +516,8 @@ int sms_device_status_req(char *sender)
 #ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
 	sprintf(tmp, "%s:%d,%s:%d", get_server_ip_addr(), get_server_port(), mdt_ip, get_mdt_server_port());
 #else
-	sprintf(tmp, "%s:%d,%s:%d", get_server_ip_addr(), get_server_port(), "null", 0);
+	configurationModel_t * conf = get_config_model();
+	sprintf(tmp, "%s:%d,%s:%d", get_server_ip_addr(), get_server_port(), conf->model.report_ip, conf->model.report_port);
 #endif
 	len = strlen(tmp);
 	strncpy(&sms_buf[idx], tmp, len);

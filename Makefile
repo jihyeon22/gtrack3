@@ -101,6 +101,8 @@ else ifeq ($(SERVER),gtnb-mdt)
 SERVER_ABBR := GTM
 else ifeq ($(SERVER),etrace)
 SERVER_ABBR	:=	ETR
+else ifeq ($(SERVER),gtrace)
+SERVER_ABBR	:=	GTRS
 else ifeq ($(SERVER),bizincar)
 SERVER_ABBR := BIC
 else ifeq ($(SERVER),moram)
