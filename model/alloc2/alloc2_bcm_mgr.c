@@ -113,8 +113,8 @@ int mdm_bcm_evt_proc(const int evt_code, const unsigned char stat_1, const unsig
 	
 	return ALLKEY_BCM_RET_SUCCESS;
 }
-#define CHK_ALLKEY_BCM_INTERVAL		5
-#define CHK_ALLKEY_BCM_FAIL_CNT		3
+
+
 // 1초에 한번씩불린다.
 void chk_allkey_bcm()
 {
@@ -141,8 +141,9 @@ void chk_allkey_bcm()
 	if ( cmd_ret == ALLKEY_BCM_RET_SUCCESS )
 //	if ( cur_allkey_bcm_info.init_stat == 1 )
 	{
+		LOGI(eSVC_MODEL, "[ALLKEY MGR] obd chk success\r\n");
 		if ( fail_cnt > CHK_ALLKEY_BCM_FAIL_CNT )
-			devel_webdm_send_log("[ALLKEY MGR] allkey comm success\r\n");
+			devel_webdm_send_log("[ALLKEY MGR] allkey re-comm success\r\n");
 		fail_cnt = 0;
 		return;
 	}
@@ -153,7 +154,11 @@ void chk_allkey_bcm()
 
 	if ( fail_cnt == CHK_ALLKEY_BCM_FAIL_CNT )
 	{
+		int evt_code = e_evt_code_dev_bcm_err;
+
 		devel_webdm_send_log("[ALLKEY MGR] allkey comm fail\r\n");
+		sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+		sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
 	}
 
 }

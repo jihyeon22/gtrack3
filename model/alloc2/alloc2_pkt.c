@@ -225,8 +225,6 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
     gpsData_t gpsdata = {0,}; 
     gps_get_curr_data(&gpsdata);
 
-
-    printf("%s()-%d\r\n", __func__, __LINE__);
     // make body..
     //target_pkt.mdm_sn = htonl(_get_phonenum_int_type());
     // ------------------------------------------------
@@ -236,7 +234,7 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
         else 
             target_pkt.car_stat = 1;
     }
-    printf("%s()-%d\r\n", __func__, __LINE__);
+
     // ------------------------------------------------
     {
         static int last_rssi = 0;
@@ -248,7 +246,7 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
 
         target_pkt.mdm_rssi = cur_rssi;   // (b-1) 모뎀 수신레벨 : rssi
     }
-    printf("%s()-%d\r\n", __func__, __LINE__);
+
     // ------------------------------------------------
     if ( p_mdm_setting_val == NULL ) 
     {
@@ -260,7 +258,7 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
         target_pkt.key_on_gps_report_interval = p_mdm_setting_val->key_on_gps_report_interval;    // (b-2) ig on gps 정보보고 시간설정(초단위) 운행시
         target_pkt.key_off_gps_report_interval = p_mdm_setting_val->key_off_gps_report_interval;    // (b-2) ig off gps 정보보고 시간설정(초단위) 비운행시
     }
-    printf("%s()-%d\r\n", __func__, __LINE__);
+
     target_pkt.low_batt_voltage = p_mdm_setting_val->low_batt_voltage;    // (b-1) 저전압설정 : 0.1v 단위 설정
     target_pkt.warnning_horn_cnt = p_mdm_setting_val->warnning_horn_cnt;    // (b-1) 경적횟수 : 1~10
     target_pkt.warnning_light_cnt = p_mdm_setting_val->warnning_light_cnt;   // (b-1) 비상등횟수
@@ -268,7 +266,6 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
     target_pkt.over_speed_limit_time = p_mdm_setting_val->over_speed_limit_time;     // (b-1) 과속 과속기준시간 secs
 
     // ------------------------------------------------
-    printf("%s()-%d\r\n", __func__, __LINE__);
     {
         if ( power_get_power_source() == POWER_SRC_DC )
             target_pkt.main_pwr = 0; // (b-1) 주전원 유형 : 0 상시전원 , 1 내장배터리
@@ -297,15 +294,12 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
                 target_pkt.mdm_gps_stat = 1;
         }
     }
-    printf("%s()-%d\r\n", __func__, __LINE__);
     // ------------------------------------------------
-    printf("%s()-%d\r\n", __func__, __LINE__);
     {
         int car_voltage = 0;
         at_get_adc_main_pwr(&car_voltage);
         target_pkt.car_batt_volt = car_voltage*10; // (b-2) 차량배터리전압 : 0.1 volt 단위
     }
-    printf("%s()-%d\r\n", __func__, __LINE__);
     // ------------------------------------------------
     {
         int internal_batt = 0;
@@ -314,33 +308,31 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
     }
     target_pkt.car_start_stop = 0; // (b-1) 시동차단여부 : 0: 정상 1: 시동차단중
     target_pkt.event_code = evt_code; // (b-2) 발생 이벤트 code : 
-    printf("%s()-%d\r\n", __func__, __LINE__);
     {
         ALLOC2_DAILY_OVERSPEED_MGR_T cur_over_speed_info;
         get_overspeed_info(&cur_over_speed_info);
         target_pkt.over_speed_cnt = cur_over_speed_info.over_speed_cnt;     // (b-1) 과속 과속기준시간 secs
     }
-    printf("%s()-%d\r\n", __func__, __LINE__);
 
-    printf("target_pkt.car_stat [%d]\r\n", target_pkt.car_stat);
-    printf("target_pkt.mdm_rssi [%d]\r\n", target_pkt.mdm_rssi);
-    printf("target_pkt.key_on_gps_report_interval [%d]\r\n", target_pkt.key_on_gps_report_interval);
-    printf("target_pkt.key_off_gps_report_interval [%d]\r\n", target_pkt.key_off_gps_report_interval);
-    printf("target_pkt.low_batt_voltage [%d]\r\n", target_pkt.low_batt_voltage);
-    printf("target_pkt.warnning_horn_cnt [%d]\r\n", target_pkt.warnning_horn_cnt);
-    printf("target_pkt.warnning_light_cnt [%d]\r\n", target_pkt.warnning_light_cnt);
-    printf("target_pkt.over_speed_limit_km [%d]\r\n", target_pkt.over_speed_limit_km);
-    printf("target_pkt.over_speed_limit_time [%d]\r\n", target_pkt.over_speed_limit_time);
-    printf("target_pkt.main_pwr [%d]\r\n", target_pkt.main_pwr);
-    printf("target_pkt.always_pwr_stat [%d]\r\n", target_pkt.always_pwr_stat);
-    printf("target_pkt.mdm_reset_interval [%d]\r\n", target_pkt.mdm_reset_interval);
-    printf("target_pkt.mdm_internal_batt_stat [%d]\r\n", target_pkt.mdm_internal_batt_stat);
-    printf("target_pkt.mdm_gps_stat [%d]\r\n", target_pkt.mdm_gps_stat);
-    printf("target_pkt.car_batt_volt [%d]\r\n", target_pkt.car_batt_volt);
-    printf("target_pkt.mdm_internal_batt_volt [%d]\r\n", target_pkt.mdm_internal_batt_volt);
-    printf("target_pkt.car_start_stop [%d]\r\n", target_pkt.car_start_stop);
-    printf("target_pkt.event_code [%d]\r\n", target_pkt.event_code);
-    printf("target_pkt.over_speed_cnt [%d]\r\n", target_pkt.over_speed_cnt);
+    printf("   >> mdm stat pkt :: car_stat [%d]\r\n", target_pkt.car_stat);
+    printf("   >> mdm stat pkt :: mdm_rssi [%d]\r\n", target_pkt.mdm_rssi);
+    printf("   >> mdm stat pkt :: key_on_gps_report_interval [%d]\r\n", target_pkt.key_on_gps_report_interval);
+    printf("   >> mdm stat pkt :: key_off_gps_report_interval [%d]\r\n", target_pkt.key_off_gps_report_interval);
+    printf("   >> mdm stat pkt :: low_batt_voltage [%d]\r\n", target_pkt.low_batt_voltage);
+    printf("   >> mdm stat pkt :: warnning_horn_cnt [%d]\r\n", target_pkt.warnning_horn_cnt);
+    printf("   >> mdm stat pkt :: warnning_light_cnt [%d]\r\n", target_pkt.warnning_light_cnt);
+    printf("   >> mdm stat pkt :: over_speed_limit_km [%d]\r\n", target_pkt.over_speed_limit_km);
+    printf("   >> mdm stat pkt :: over_speed_limit_time [%d]\r\n", target_pkt.over_speed_limit_time);
+    printf("   >> mdm stat pkt :: main_pwr [%d]\r\n", target_pkt.main_pwr);
+    printf("   >> mdm stat pkt :: always_pwr_stat [%d]\r\n", target_pkt.always_pwr_stat);
+    printf("   >> mdm stat pkt :: mdm_reset_interval [%d]\r\n", target_pkt.mdm_reset_interval);
+    printf("   >> mdm stat pkt :: mdm_internal_batt_stat [%d]\r\n", target_pkt.mdm_internal_batt_stat);
+    printf("   >> mdm stat pkt :: mdm_gps_stat [%d]\r\n", target_pkt.mdm_gps_stat);
+    printf("   >> mdm stat pkt :: car_batt_volt [%d]\r\n", target_pkt.car_batt_volt);
+    printf("   >> mdm stat pkt :: mdm_internal_batt_volt [%d]\r\n", target_pkt.mdm_internal_batt_volt);
+    printf("   >> mdm stat pkt :: car_start_stop [%d]\r\n", target_pkt.car_start_stop);
+    printf("   >> mdm stat pkt :: event_code [%d]\r\n", target_pkt.event_code);
+    printf("   >> mdm stat pkt :: over_speed_cnt [%d]\r\n", target_pkt.over_speed_cnt);
 
     // alloc memory .. ---------------------------------------
     *packet_len = pkt_total_len;
@@ -704,37 +696,37 @@ int make_pkt__obd_data(unsigned char **pbuf, unsigned short *packet_len)
     {
         if ( strlen(obd_dev_info.fuel_type) < 3 )
             target_pkt.fuel_type = 0; // (b-1) 연료타입 : 0 : OBD 미지정, 1 : 가솔린, 2 : 디젤, 3 : LPG, 4 : 전기차, 5 : 수소차
-        printf("target_pkt.fuel_type [%d]\r\n",target_pkt.fuel_type );
+        printf("   >> obd data pkt : fuel_type [%d]\r\n",target_pkt.fuel_type );
     }
     {
         target_pkt.fuel_remain = cur_obd_data.obd_data_fuel_remain; // (b-2) 현재연료잔량 : 연료단위에 의존적임 (단위0.1L)
-        printf("target_pkt.fuel_remain [%d]\r\n",target_pkt.fuel_remain );
+        printf("   >> obd data pkt : fuel_remain [%d]\r\n",target_pkt.fuel_remain );
     }
     {
         target_pkt.rpm = cur_obd_data.obd_data_rpm; // (b-2) 현재 rpm
-        printf("target_pkt.rpm [%d]\r\n",target_pkt.rpm );
+        printf("   >> obd data pkt : rpm [%d]\r\n",target_pkt.rpm );
     }
     {
         target_pkt.cooling_temp = cur_obd_data.obd_data_cot; // (b-2) 냉각수온도,
-        printf("target_pkt.cooling_temp [%d]\r\n",target_pkt.cooling_temp );
+        printf("   >> obd data pkt : cooling_temp [%d]\r\n",target_pkt.cooling_temp );
     }
     {
         target_pkt.car_batt_volt = cur_obd_data.obd_data_car_volt; // (b-2) 현재 차량배터리 : 단위 0.1v
-        printf("target_pkt.car_batt_volt [%d]\r\n",target_pkt.car_batt_volt );
+        printf("   >> obd data pkt : car_batt_volt [%d]\r\n",target_pkt.car_batt_volt );
     }
     {
         target_pkt.speed = cur_obd_data.obd_data_car_speed; // (b-2) 현재 속도
-        printf("target_pkt.speed [%d]\r\n",target_pkt.speed );
+        printf("   >> obd data pkt : speed [%d]\r\n",target_pkt.speed );
     }
     target_pkt.fuel_supply = 0; // (b-4) 누적주유, 충전량 : 연료단위에 의존적임 (단위 0.1L)
     target_pkt.total_fuel_usage = 0; // (b-4) 누적사용량 : 연료 단위에 의존적임 (단위 0.1L)
     {
         target_pkt.total_distance = cur_obd_data.obd_data_total_distance; // (b-4) 총 누적거리 : 단위 m
-        printf("target_pkt.total_distance [%d]\r\n",target_pkt.total_distance );
+        printf("   >> obd data pkt : total_distance [%d]\r\n",target_pkt.total_distance );
     }
     {
         target_pkt.brake_stat = cur_obd_data.obd_data_break_signal;  // (b-1) 현재 브레이크상태 : 0 : OFF, 1 : ON, 2 : 미지원
-        printf("target_pkt.brake_stat [%d]\r\n",target_pkt.brake_stat );
+        printf("   >> obd data pkt : brake_stat [%d]\r\n",target_pkt.brake_stat );
     }
     target_pkt.over_accel_cnt = 0; // (b-4) 시동후 급가속 카운트 
     target_pkt.over_deaccel_cnt = 0; // (b-4) 시동후 급감속 카운트 
@@ -743,7 +735,7 @@ int make_pkt__obd_data(unsigned char **pbuf, unsigned short *packet_len)
     target_pkt.section_time = 0; // (b-4) 시동후 누적운행시간 : 단위 초
     {
         target_pkt.section_distance = cur_obd_data.obd_data_total_distance; // (b-4) 시동후 누적거리 : 단위 ?
-        printf("target_pkt.section_distance [%d]\r\n", target_pkt.section_distance );
+        printf("   >> obd data pkt : section_distance [%d]\r\n", target_pkt.section_distance );
     }
     target_pkt.section_engine_idle_time = 0; // (b-4) 시동후 공회전시간 : 단위 초
     target_pkt.section_fuel_usage = 0; // (b-4) 시동후 누적연료소모량 ( 단위 0.1L)

@@ -30,7 +30,6 @@ static daliy_car_info_t 	g_daliy_car_info = {0,};
 
 static ALLOC2_DAILY_OVERSPEED_MGR_T g_over_speed_mgr;
 
-
 // -----------------------------------------
 // daily info.
 // -----------------------------------------
@@ -73,7 +72,6 @@ int alloc2_init_car_daily_info()
 	printf(" --------- car daliy info ---------------\r\n");
 	
 	memset(&g_over_speed_mgr, 0x00, sizeof(g_over_speed_mgr));
-
 		
 	return 0;
 }
@@ -84,8 +82,6 @@ int alloc2_clr_car_daily_info()
 	g_daliy_car_info.total_distance = -1;
 	return 0;
 }
-
-
 
 int save_daily_info__total_distance(int yyyymmdd, int total_distance)
 {
@@ -144,67 +140,64 @@ int get_daily_info__daily_distance(int total_disatance)
 
 
 
-static int _keyon_distance = 0;
+static int _g_keyon_distance = 0;
+static int _g_last_keyon_distance = 0;
+
 int chk_keyon_section_distance(int total_distance)
 {
-    int cur_keyon_distance = 0;
-    static int saved_keyon_distance = 0;
+	int ret_val = 0;
 
-    if ( _keyon_distance > 0 )
-    {
-        cur_keyon_distance =  total_distance - _keyon_distance;
-    }
-    else
-    {
-        _keyon_distance = total_distance;
-        cur_keyon_distance = 0;
-    }
+	// 기준데이터가 없을경우 다시 세팅
+	if ( _g_keyon_distance <= 0 )
+		_g_keyon_distance = total_distance;
 
-	if ( ( cur_keyon_distance >= 0 ) && ( cur_keyon_distance >= saved_keyon_distance) )
-	{
-		saved_keyon_distance = cur_keyon_distance;
-	}
-	else
-	{
-		cur_keyon_distance = saved_keyon_distance;
-	}
+	// 누적거리가 역방향 계산일경우 다시 세팅
+	if ( total_distance < _g_keyon_distance )
+		_g_keyon_distance = total_distance;;
 
-    return cur_keyon_distance;
+	ret_val =  total_distance - _g_keyon_distance;
+	
+	// 마지막에 전송한 값보다 작을경우 마지막에 전송한 값을다시 전송
+	if (ret_val < _g_last_keyon_distance )
+		ret_val = _g_last_keyon_distance;
+
+	_g_last_keyon_distance = ret_val;
+    return ret_val;
 }
 
 int init_keyon_section_distance(int total_distance)
 {
-    _keyon_distance = total_distance;
+	_g_keyon_distance = total_distance;
+	_g_last_keyon_distance = 0;
+	get_diff_distance_prev(total_distance);
     return 0;
 }
 
 
 
-static int _diff_last_distance = 0;
+static int _g_diff_distance = 0;
 int get_diff_distance_prev(int total_distance)
 {
+	int ret_val = 0;
+
+	if ( _g_diff_distance <= 0 )
+		_g_diff_distance = total_distance;
+
+	if ( total_distance < _g_diff_distance )
+		_g_diff_distance = total_distance;
+
+	ret_val = total_distance - _g_diff_distance;
+
+	printf("  >>  get_diff_distance_prev -> _g_diff_distance [%d] / total_distance [%d] / return [%d] \r\n", _g_diff_distance, total_distance, ret_val);
 	
-	if ( _diff_last_distance == 0 )
-	{
-		_diff_last_distance = total_distance;
-		printf(" get_diff_distance_prev -> _diff_last_distance [%d] / total_distance [%d] / return 0 \r\n", _diff_last_distance, total_distance);
-		return 0;
-	}
+	_g_diff_distance = total_distance;
 
-	if ( _diff_last_distance >= total_distance )
-	{
-		_diff_last_distance = total_distance;
-		printf(" get_diff_distance_prev -> _diff_last_distance [%d] / total_distance [%d] / return 0 \r\n", _diff_last_distance, total_distance);
-		return 0;
-	}
-
-	printf(" get_diff_distance_prev -> _diff_last_distance [%d] / total_distance [%d] / return [%d] \r\n", _diff_last_distance, total_distance, total_distance - _diff_last_distance);
-	return total_distance - _diff_last_distance;
+	return ret_val;
 }
 
 int init_diff_distance_prev()
 {
-    _diff_last_distance = 0;
+    _g_diff_distance = 0;
     return 0;
 }
 
@@ -499,8 +492,8 @@ void save_resume_data()
 	int try_cnt = 4;
 	ALLOC_RESUME_DATA resume_data = {0,};
 
-	resume_data.keyon_distance = _keyon_distance;
-	resume_data.diff_last_distance = _diff_last_distance;
+	resume_data.keyon_distance = _g_keyon_distance;
+	resume_data.diff_last_distance = _g_diff_distance;
 
 	while(try_cnt--)
 	{
@@ -517,8 +510,8 @@ void load_resume_data()
 
 	if ( storage_load_file(NO_SEND_TO_PWR_EVT_SAVE_INFO_PATH, &resume_data, sizeof(resume_data)) >= 0 )
 	{
-		_keyon_distance = resume_data.keyon_distance;
-		_diff_last_distance = resume_data.diff_last_distance;
+		init_keyon_section_distance(resume_data.keyon_distance);
+		_g_diff_distance = resume_data.diff_last_distance;
 	}
 
 	remove(NO_SEND_TO_PWR_EVT_SAVE_INFO_PATH);

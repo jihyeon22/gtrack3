@@ -74,8 +74,6 @@ void init_model_callback(void)
 
 	alloc2_obd_mgr__init();
 	
-	load_resume_data();
-
 	thread_network_set_warn_timeout(MAX(conf->model.report_interval_keyon, conf->model.report_interval_keyoff) * 2);
 }
 
@@ -112,12 +110,13 @@ void ignition_on_callback(void)
 	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_IGI_ON) == SEND_TO_PWR_EVT_OK )
 	{
 		init_keyon_section_distance( mileage_get_m() );
+		sleep(1);
 		sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
 		sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
 	}
 	else
 	{
-		load_resume_data();
+		// load_resume_data();
 		LOGE(eSVC_MODEL, "NEED TO IGI_ON EVT : BUT SKIP\r\n");
 	}
 
