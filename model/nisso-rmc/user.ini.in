@@ -1,0 +1,12 @@
+[user]
+model_name=nisso_kt
+date=160129
+report_ip=14.63.168.45
+report_port=10066
+collect_interval_keyon = 60
+report_interval_keyon = 60
+collect_interval_keyoff = 180
+report_interval_keyoff = 180
+button1 = 11
+button2 = 13
+packet_type = 81
