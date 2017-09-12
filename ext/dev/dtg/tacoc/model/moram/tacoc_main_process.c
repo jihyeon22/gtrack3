@@ -65,7 +65,8 @@ void tacoc_ignition_off_process()
 		if(get_modem_time_utc_sec() - g_device_boot_time > (24 * 3600)) {
 			dmmgr_send(eEVENT_LOG, "regular poweroff #1", 0);
 			while(1) {
-				system("poweroff");
+				//system("poweroff");
+				poweroff(NULL,0);
 				DTG_LOGI("%s> wait powerorff...\n", __func__);
 				sleep(1);		
 			}
@@ -77,7 +78,8 @@ void tacoc_ignition_off_process()
 			if(g_key_off_count > 100) {
 				dmmgr_send(eEVENT_LOG, "regular poweroff #2", 0);
 				while(1) {
-					system("poweroff");
+					//system("poweroff");
+					poweroff(NULL,0);
 					DTG_LOGI("%s> wait powerorff...\n", __func__);
 					sleep(1);		
 				}
@@ -89,8 +91,9 @@ void tacoc_ignition_off_process()
 	if(tools_get_available_memory() < 4000) //4MB 
 	{
 		while(1) {
-			system("poweroff");
+			//system("poweroff");
 			DTG_LOGI("%s> wait powerorff...\n", __func__);
+			poweroff(NULL,0);
 			sleep(1);		
 		}
 	}

@@ -436,6 +436,7 @@ static int _process_poweroff(int now_poweroff_flag, char *log)
 //	if(poweroff_count++ > 5 || now_poweroff_flag == 1)
 	{
 		gps_valid_data_write();
+
 		sprintf(smsmsg, "Total Accumulate distance : %um at the end\n", get_gps_mileage() + get_server_mileage());
 		devel_send_sms_noti(smsmsg, strlen(smsmsg), 3);
 						

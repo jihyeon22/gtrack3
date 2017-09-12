@@ -57,7 +57,8 @@ void check_internal_uart_use()
 	
 	while(1) {
 		LOGD(eSVC_MODEL, "uart channel changing and reset\n");
-		system("poweroff &");
+		//system("poweroff &");
+		poweroff(NULL,0);
 		sleep(1);
 	}
 }

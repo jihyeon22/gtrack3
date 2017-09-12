@@ -148,7 +148,8 @@ int sms_set_device_reset(char* sms_msg)
 	{
 		while(1) {
 			DTG_LOGE("wait sms device reset...");
-			system("poweroff");
+			//system("poweroff");
+			poweroff(NULL,0);
 			sleep(3);
 		}
 	}
