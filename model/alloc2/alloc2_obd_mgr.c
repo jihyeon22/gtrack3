@@ -126,8 +126,10 @@ int alloc2_obd_mgr__get_cur_obd_data(SECO_OBD_DATA_T* cur_obd_info)
 
 int alloc2_obd_mgr__chk_fail_proc()
 {
-    devel_webdm_send_log("[OBD MGR] chk fail\r\n");
     ALLOC_PKT_SEND__OBD_STAT_ARG obd_stat_arg;
+
+    int evt_code = e_evt_code_dev_obd_err;
+
     memset(&obd_stat_arg, 0x00, sizeof(ALLOC_PKT_SEND__OBD_STAT_ARG));
 
     obd_stat_arg.obd_stat_flag = 1;
@@ -143,8 +145,10 @@ int alloc2_obd_mgr__chk_fail_proc()
 
     sender_add_data_to_buffer(e_obd_stat, &obd_stat_arg, get_pkt_pipe_type(e_obd_stat,0));
 
-    init_seco_obd_mgr("/dev/ttyHSL1", 115200, alloc2_obd_mgr__obd_broadcast_proc);
-    alloc2_obd_mgr__init();
+    devel_webdm_send_log("[OBD MGR] chk fail\r\n");
+
+    sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+    sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
 
     return 0;
 }
@@ -161,16 +165,18 @@ int alloc2_obd_mgr__obd_broadcast_proc(const int argc, const char* argv[])
         LOGE(eSVC_MODEL, "[OBD MGR] chk fail [%d]/[%d]\r\n", fail_cnt, MAX_FAIL_CNT_CHK);
         fail_cnt++;
     }
-    else
+
+    // 실패 발생시 1회만... 실패 PROC 실행
+    if ( fail_cnt == MAX_FAIL_CNT_CHK )
     {
-        fail_cnt=0;
+        alloc2_obd_mgr__chk_fail_proc();
     }
 
-
-    if ( fail_cnt > MAX_FAIL_CNT_CHK )
+    // 중간에 다시 연결될경우...
+    if ( (fail_cnt > 0 ) && (( fail_cnt % MAX_FAIL_CNT_CHK ) == 0) )
     {
-        fail_cnt = 0;
-        alloc2_obd_mgr__chk_fail_proc();
+        init_seco_obd_mgr("/dev/ttyHSL1", 115200, alloc2_obd_mgr__obd_broadcast_proc);
+        alloc2_obd_mgr__init();
     }
 
 //    int i = 0;
@@ -198,6 +204,15 @@ broadcast value : [6]/[7] => [X]
         return -1;
     }
 
+    
+
+    // 다시 커넥트됨
+    if ( fail_cnt > MAX_FAIL_CNT_CHK )
+    {
+        devel_webdm_send_log("[OBD MGR] obd re-comm success\r\n");
+    }
+
+    fail_cnt=0;
     // 0 : FLI : 연료잔량
     {
         int cur_fuel_remain = atoi(argv[0]);
@@ -236,6 +251,9 @@ broadcast value : [6]/[7] => [X]
     {
         float tmp_val = atof(argv[5]);
         tmp_cur_seco_obd_data.obd_data_total_distance =  (unsigned int)tmp_val;
+
+        // KKSWORKS : TEST CODE..
+        // mileage_set_m(tmp_cur_seco_obd_data.obd_data_total_distance);
         //printf("tmp_cur_seco_obd_data.obd_data_total_distance is [%s] / [%d]\r\n",argv[5], tmp_cur_seco_obd_data.obd_data_total_distance);
     }
     // 6 : FBK : 브레이크상태
@@ -253,7 +271,6 @@ broadcast value : [6]/[7] => [X]
     memcpy(&g_cur_seco_obd_data, &tmp_cur_seco_obd_data, sizeof(SECO_OBD_DATA_T));
     pthread_mutex_unlock(&obd_data_mutex);
     
-
     //printf("alloc2_obd_mgr__obd_broadcast_proc end ======================================\r\n");
     return 0;
 }

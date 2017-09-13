@@ -34,6 +34,7 @@
 static int flag_run_thread_main = 1;
 static void chk_apps_port();
 static void tl500_network_interface_down();
+static void set_uart_chk_flag_for_bootstrap();
 
 void init_model_callback(void)
 {
@@ -90,13 +91,17 @@ void gps_parse_one_context_callback(void)
 
 }
 
-#define NETWORK_DISABLE_INTERVAL_SEC 30
+#define NETWORK_DISABLE_INTERVAL_SEC 	30
+#define ECHO_AT_INTERVAL_SEC 			3600
 
 void main_loop_callback(void)
 {
 	int main_cnt = 0;
+	int echo_at_cnt = 0;
 	
 	tl500_network_interface_down();
+	set_uart_chk_flag_for_bootstrap();
+	at_set_apn_form_cgdcont(1, AT_APN_IP_TYPE_IPV4, "privatelte.ktfwing.com");
 
 	while(flag_run_thread_main)
 	{
@@ -111,8 +116,17 @@ void main_loop_callback(void)
 			tl500_network_interface_down();
 			main_cnt = 0;
 		}
+
+		// ppp 연결되면, at noti 발생하지 않음
+		// 그래서 주기적으로 at 를 때려준다.
+		if ( echo_at_cnt > ECHO_AT_INTERVAL_SEC )
+		{
+			send_at_cmd("at");
+			echo_at_cnt = 0;
+		}
 		
 		main_cnt++;
+		echo_at_cnt++;
 		sleep(1);
 	}
 }
@@ -131,6 +145,13 @@ void exit_main_loop(void)
 
 
 #define AT_CMD_CHK_MAX_RETRY 10
+static void set_uart_chk_flag_for_bootstrap()
+{
+	char touch_cmd[128] = {0,};
+
+	sprintf(touch_cmd, "touch %s &", CHK_UART_FLAG_PATH);
+	system(touch_cmd);
+}
 
 static void chk_apps_port()
 {
@@ -171,10 +192,23 @@ static void chk_apps_port()
 
 static void tl500_network_interface_down()
 {
-	LOGI(LOG_TARGET, "[uppp-model] net disable !!! \n" );
-	if(nettool_get_state() == DEFINES_MDS_OK)
+	static int force_disconn = 0 ;
+	static int disconn_fail_cnt = 0;
+	LOGI(LOG_TARGET, "[uppp-model] net disable !!! disconn fail cnt [%d] \n", disconn_fail_cnt );
+	if ( ( force_disconn++ > 10) || (nettool_get_state() == DEFINES_MDS_OK) )
 	{
 		system(NETIF_DOWN_CMD);
 		send_at_cmd("at$$apcall=0");
+		force_disconn = 0;
+
 	}
+
+	// ifdown 했으나 여전히 네트워크 인터페이스가 있다.
+	if (nettool_get_state() == DEFINES_MDS_OK)
+		disconn_fail_cnt ++;
+	else
+		disconn_fail_cnt = 0;
+
+	if ( disconn_fail_cnt > 20 )
+		poweroff("null", 0);
 }

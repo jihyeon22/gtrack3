@@ -18,6 +18,9 @@
 #define GPIO_VALUE						CONCAT_STR(GPIO_ROOT_DIR, "/gpio%d/value")
 #define GPIO_DIRECTION					CONCAT_STR(GPIO_ROOT_DIR, "/gpio%d/direction")
 
+// using bootstrap
+#define CHK_UART_FLAG_PATH  			"/factory/mds/data/chk_uart.dat"
+
 
 #define GPIO_NO_MIN						9
 #define GPIO_NO_MAX						66

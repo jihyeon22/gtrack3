@@ -153,13 +153,15 @@ int allkey_bcm_cmd__get_stat()
     if ( _allkey_bcm_cmd(USE_MUTEX_LOCK, send_cmd, send_data, recv_buff) == ALLKEY_BCM_RET_FAIL )
         return ALLKEY_BCM_RET_FAIL;
 
-    printf("%s() success\r\n", __func__);
+    // printf("%s() success\r\n", __func__);
 
     // debug..
     {
         int i = 0;
+        printf("bcm recv : ");
         for ( i = 0 ; i < 8 ; i ++ )
-            printf("recv buf [%d] => [0x%x]\r\n", i, recv_buff[i]);
+            printf("[0x%02x]", recv_buff[i]);
+        printf("\r\n");
     }
     return ALLKEY_BCM_RET_SUCCESS;
 }
@@ -183,11 +185,13 @@ int allkey_bcm_ctr__door_lock(int stat)
     printf("%s() success\r\n", __func__);
 
     // debug..
+    if (0)
     {
         int i = 0;
         for ( i = 0 ; i < 8 ; i ++ )
             printf("recv buf [%d] => [0x%x]\r\n", i, recv_buff[i]);
     }
+
     return ALLKEY_BCM_RET_SUCCESS;
 }
 

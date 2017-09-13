@@ -91,7 +91,7 @@ service_mode() {
 }
 
 corp_input() {
-		echo -e "Coporation = (mds, asn, cl, bizincar, cs, etrace, neognp, moram, kt, alloc, cip, netio, gtnb ,uppp ...) "
+		echo -e "Coporation = (mds, asn, cl, bizincar, cs, etrace, neognp, moram, kt, alloc, cip, netio, gtnb ,uppp, nisso ...) "
 		echo -e "             (gtrs ...) "
 		read CORPMODEL
 		case $CORPMODEL in
@@ -155,7 +155,10 @@ corp_input() {
 				CORPMODEL="gtrs"
 				CORPABBR="GTRS"
 			;;
-
+			nisso)
+				CORPMODEL="niso"
+				CORPABBR="NISO"
+			;;
 			*)
 				echo  $CORPMODEL invalid
 				exit
@@ -212,7 +215,7 @@ modem_input() {
 }
 
 server_input() {
-	echo -e "Server Model = (skel, asn, cl-thermal, cl-mdt, cl-rfid, bizincar)"
+	echo -e "Server Model = (skel, asn, cl-thermal, cl-mdt, cl-rfid, bizincar, nisso)"
 	echo -e "               (cs, etr, etrg, etrf, neognp, moram, alloc2, cip-rmc, gtnb-mdt, netio, uppp, gtrs...)"
 	echo -e "               (ktfms0, ktfms1...)"
 	echo -e "               (cl-rfid0, cl-rfid1, ...)"
@@ -268,6 +271,10 @@ server_input() {
 			SRVMODEL="etrf"
 			SERVABBR="ETRF"
 		;;
+		nisso)
+			SRVMODEL="niso"
+			SERVABBR="NISO"
+		;;
 		neognp)
 			SRVMODEL="neognp"
 			SERVABBR="NEO"
@@ -317,7 +324,7 @@ server_input() {
 }
 
 make_package() {
-	echo "$CORPABBR-$SERVICEABBR.$SERVABBR-$MODEMABBR-$VER ?�데?�트 ?�키지 ?��?지 ?�성중입?�다."
+	echo "$CORPABBR-$SERVICEABBR.$SERVABBR-$MODEMABBR-$VER ?�데?�트 ?�키지 ?��?지 ?�성중입?�다."
 
 	echo " - pwd :: ${PWD}"
 	echo " - output dir :: $OUTDIR"
@@ -344,9 +351,9 @@ make_package() {
 
 	if [ "$FWF"	 != "0" ]; then 
 		echo "====================================================================="
-		echo "?�외?�인 ?�키지 ?�성?� work/app/expkg ?�래 ?�일??Copy???�으�??�다."
-		echo "?��? ?�어 sbin??webdm�??�데?�트?�려�?.."
-		echo "work/app/expkg ?�래 sbin ?�더 ?�성 ??webdm??복사???�으�??�다."
+		echo "?�외?�인 ?�키지 ?�성?� work/app/expkg ?�래 ?�일??Copy???�으�??�다."
+		echo "?��? ?�어 sbin??webdm�??�데?�트?�려�?.."
+		echo "work/app/expkg ?�래 sbin ?�더 ?�성 ??webdm??복사???�으�??�다."
 		echo "====================================================================="
 		read 
 		cp -r work/app/expkg/* $DESTDIR/system/
@@ -363,7 +370,7 @@ make_package() {
 	ls | xargs -I {} -t sh -c "md5sum {} > {}.md5"
 	cd ../..
 
-##### tx501 ??경우 system/mds 밑에 ?�어?�한??
+##### tx501 ??경우 system/mds 밑에 ?�어?�한??
 	mv system tmp
 	mkdir -p system/mds/
 	mv tmp system/mds/system/
@@ -375,7 +382,7 @@ make_package() {
 
 
 #	cat $OUTDIR/$VER/PACKAGE
-#	echo "?�키지 ?�일 ?�성???�료?�었?�니??"
+#	echo "?�키지 ?�일 ?�성???�료?�었?�니??"
 }
 
 do_make_package() {

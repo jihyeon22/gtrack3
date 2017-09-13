@@ -16,7 +16,10 @@ void poweroff(const char *log_buff, const int log_buff_len)
 
 	tools_alive_end(); //njw 150924
 	
-#if defined (BOARD_TL500S) || defined (BOARD_TL500K)
+	gps_valid_data_write();
+	mileage_write();
+
+#if defined (BOARD_TL500S) || defined (BOARD_TL500K) || defined (BOARD_TL500L)
 	gpio_set_value(15, 0);
 #endif
 

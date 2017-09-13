@@ -589,8 +589,9 @@ int tx_sms_to_tacoc(char *sender, char* smsdata)
 #endif
 
 			while(1) {
-				system("poweroff");
+				//system("poweroff");
 				DTG_LOGI("%s> kt fota reset wait powerorff...\n", __func__);
+				poweroff(NULL,0);
 				sleep(1);		
 			}
 			return 0;
@@ -606,8 +607,9 @@ int tx_sms_to_tacoc(char *sender, char* smsdata)
 #endif
 
 			while(1) {
-				system("poweroff");
+				//system("poweroff");
 				DTG_LOGI("%s> kt fota reset wait powerorff...\n", __func__);
+				poweroff(NULL,0);
 				sleep(1);		
 			}
 			return 0;

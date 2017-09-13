@@ -69,8 +69,9 @@ void tacoc_ignition_off_process()
 #endif
 
 			while(1) {
-				system("poweroff");
+				//system("poweroff");
 				DTG_LOGI("%s> wait powerorff...\n", __func__);
+				poweroff(NULL,0);
 				sleep(1);		
 			}
 		}
@@ -85,8 +86,9 @@ void tacoc_ignition_off_process()
 #endif
 
 				while(1) {
-					system("poweroff");
+					//system("poweroff");
 					DTG_LOGI("%s> wait powerorff...\n", __func__);
+					poweroff(NULL,0);
 					sleep(1);		
 				}
 			}
@@ -101,8 +103,9 @@ void tacoc_ignition_off_process()
 #endif
 
 		while(1) {
-			system("poweroff");
+			//system("poweroff");
 			DTG_LOGI("%s> wait powerorff...\n", __func__);
+			poweroff(NULL,0);
 			sleep(1);		
 		}
 	}

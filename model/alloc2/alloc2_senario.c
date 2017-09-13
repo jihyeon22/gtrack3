@@ -215,6 +215,8 @@ int get_no_send_pwr_evt_reboot(int flag)
     static int power_evt_cnt = 0;
     static int igi_evt_cnt = 0;
 
+    load_resume_data();
+    
     // flag 없으면 바로 ok 리턴
     if ( mds_api_check_exist_file(NO_SEND_TO_PWR_EVT_FLAG_PATH, 0) != DEFINES_MDS_API_OK)
     {

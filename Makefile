@@ -73,6 +73,10 @@ else ifeq ($(BOARD),TL500K)
 MODEM := TL500K
 USE_GPS_MODEL=y
 USE_BUTTON_THREAD=y
+else ifeq ($(BOARD),TL500L)
+MODEM := TL500L
+USE_GPS_MODEL=y
+USE_BUTTON_THREAD=y
 else
 $(error BOARD is not correct, please define correct BOARD)
 endif
@@ -116,6 +120,8 @@ else ifeq ($(SERVER),cs)
 SERVER_ABBR := CS
 else ifeq ($(SERVER),cip-rmc)
 SERVER_ABBR	:=	CIP
+else ifeq ($(SERVER),nisso-rmc)
+SERVER_ABBR	:=	NISO
 else ifeq ($(SERVER),netio)
 SERVER_ABBR	:=	NETI
 else ifeq ($(SERVER),uppp)
@@ -166,6 +172,8 @@ else ifeq ($(CORP),uppp)
 CORP_ABBR := UPPP
 else ifeq ($(CORP),gtrs)
 CORP_ABBR := GTRS
+else ifeq ($(CORP),nisso)
+CORP_ABBR := NISO
 else
 $(error CORP is not registerd in Makefile, please input registred corporation)
 endif

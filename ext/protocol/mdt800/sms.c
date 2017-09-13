@@ -816,6 +816,7 @@ static int _get_version (char *pn)
 
 static int _get_modem_status (char *pn)
 {
+/*
 	char buff[512] = {0};
 	int ret = 0;
 	
@@ -824,7 +825,7 @@ static int _get_modem_status (char *pn)
 	{
 		at_send_sms(pn, buff, 3);
 	}
-
+*/
 	return 0;
 }
 #endif

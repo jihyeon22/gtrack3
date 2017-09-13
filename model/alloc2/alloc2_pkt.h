@@ -90,6 +90,8 @@ typedef enum {
     e_evt_code_trunk_close = 12, // 12 : trunk close
     e_evt_code_door_lock = 13, //  13 : Door lock
     e_evt_code_door_unlock = 14, // 14 : Door unlock
+    e_evt_code_dev_bcm_err = 20,// 20 : BCM 이상
+    e_evt_code_dev_obd_err = 21 // 21 : OBD 이상
 } e_ALLOC2_MDM_EVT_CODE;
 
 // 4.	단말 상태 정보(이벤트) 
