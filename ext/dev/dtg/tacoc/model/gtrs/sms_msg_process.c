@@ -151,6 +151,10 @@ int sms_set_device_reset(char* sms_msg)
 	if(psms==0) return -1;
 	if(!strcmp(psms, "mdt%reset#tngodgofk!"))
 	{
+#if defined (BOARD_TL500S) || defined (BOARD_TL500K) || defined (BOARD_TL500L)
+		gpio_set_value(15, 0);
+#endif
+
 		while(1) {
 			DTG_LOGE("wait sms device reset...");
 			system("poweroff");

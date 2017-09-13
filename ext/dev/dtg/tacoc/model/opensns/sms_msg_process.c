@@ -141,6 +141,10 @@ int sms_set_device_reset(char* sms_msg)
 	if(psms==0) return -1;
 	if(!strcmp(psms, "mdt%reset#tngodgofk!"))
 	{
+#if defined (BOARD_TL500S) || defined (BOARD_TL500K) || defined (BOARD_TL500L)
+		gpio_set_value(15, 0);
+#endif
+
 		while(1) {
 			DTG_LOGE("wait sms device reset...");
 			system("poweroff");
@@ -169,8 +173,8 @@ int set_dtg_value(unsigned char *buf, int nbytes)
 	newtio.c_cflag = CS8 | CLOCAL | CREAD;
 
 	newtio.c_cflag |= B115200;
-	newtio.c_lflag = 0;		 // non-canonical ?�력 모드
-	newtio.c_cc[VTIME] = 0;	 // 무제???���?	newtio.c_cc[VMIN] = 1;	 
+	newtio.c_lflag = 0;		 // non-canonical ??력 모드
+	newtio.c_cc[VTIME] = 0;	 // 무제???????	newtio.c_cc[VMIN] = 1;	 
 	
 	tcgetattr(fd, &oldtio);
 	tcflush (fd, TCIFLUSH);

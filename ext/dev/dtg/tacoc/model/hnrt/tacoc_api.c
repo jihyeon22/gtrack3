@@ -584,6 +584,10 @@ int tx_sms_to_tacoc(char *sender, char* smsdata)
 			//Device Reset
 			////////////////////////////////////////////////////
 			//void device_reset(); //clear data
+#if defined (BOARD_TL500S) || defined (BOARD_TL500K) || defined (BOARD_TL500L)
+			gpio_set_value(15, 0);
+#endif
+
 			while(1) {
 				system("poweroff");
 				DTG_LOGI("%s> kt fota reset wait powerorff...\n", __func__);
@@ -597,6 +601,10 @@ int tx_sms_to_tacoc(char *sender, char* smsdata)
 			//modem in-direct Reset
 			////////////////////////////////////////////////////
 			//void device_reset(); //clear data
+#if defined (BOARD_TL500S) || defined (BOARD_TL500K) || defined (BOARD_TL500L)
+			gpio_set_value(15, 0);
+#endif
+
 			while(1) {
 				system("poweroff");
 				DTG_LOGI("%s> kt fota reset wait powerorff...\n", __func__);

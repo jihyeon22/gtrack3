@@ -64,6 +64,10 @@ void tacoc_ignition_off_process()
 
 		if(get_modem_time_utc_sec() - g_device_boot_time > (24 * 3600)) {
 			dmmgr_send(eEVENT_LOG, "regular poweroff #1", 0);
+#if defined (BOARD_TL500S) || defined (BOARD_TL500K) || defined (BOARD_TL500L)
+			gpio_set_value(15, 0);
+#endif
+
 			while(1) {
 				system("poweroff");
 				DTG_LOGI("%s> wait powerorff...\n", __func__);
@@ -76,6 +80,10 @@ void tacoc_ignition_off_process()
 			key_off_time = 0;
 			if(g_key_off_count > 100) {
 				dmmgr_send(eEVENT_LOG, "regular poweroff #2", 0);
+#if defined (BOARD_TL500S) || defined (BOARD_TL500K) || defined (BOARD_TL500L)
+				gpio_set_value(15, 0);
+#endif
+
 				while(1) {
 					system("poweroff");
 					DTG_LOGI("%s> wait powerorff...\n", __func__);
@@ -88,6 +96,10 @@ void tacoc_ignition_off_process()
 
 	if(tools_get_available_memory() < 4000) //4MB 
 	{
+#if defined (BOARD_TL500S) || defined (BOARD_TL500K) || defined (BOARD_TL500L)
+		gpio_set_value(15, 0);
+#endif
+
 		while(1) {
 			system("poweroff");
 			DTG_LOGI("%s> wait powerorff...\n", __func__);
