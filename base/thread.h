@@ -30,6 +30,9 @@ void exit_thread_gps(void);
 void exit_thread_all(void);
 void thread_network_set_warn_timeout(int time);
 
+#define MAX_NETWORK_FAIL_RESET_CNT	60*10	// 10MIN...
+void set_max_network_fail_reset_cnt(int cnt);
+
 extern pthread_t tid[MAX_THREAD_COUNT];
 extern threadData_t threads[MAX_THREAD_COUNT];
 

@@ -21,6 +21,8 @@
 #include <logd_rpc.h>
 #include <callback.h>
 
+#include <base/thread.h>
+
 #if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
 #include <kt_fota.h>
 #include <kt_fota_config.h>
@@ -48,12 +50,12 @@ static int flag_run_thread_network = 1;
 static int flag_run_thread_network2 = 1;
 static int warn_timeout_sec_thread_network = WARN_PIPE_ERROR_TIME;
 static time_t warn_timeout_prev_send_time = 0;
-
+static int max_network_fail_reset_cnt = MAX_NETWORK_FAIL_RESET_CNT;
 
 void *thread_network(void *args)
 {
 	int ready = 0;
-
+	int network_fail_cnt = 0;
 	LOGI(LOG_TARGET, "PID %s : %d\n", __FUNCTION__, getpid());
 
 	if(!flag_run_thread_network)
@@ -99,6 +101,16 @@ void *thread_network(void *args)
 #endif
 			network_on_callback();
 			break;
+		}
+		else
+		{
+			network_fail_cnt++;
+			LOGE(LOG_TARGET, "NETWORK CHK FAIL [%d][%d]\n",network_fail_cnt, max_network_fail_reset_cnt);
+			if ( (max_network_fail_reset_cnt > 0) && (network_fail_cnt > max_network_fail_reset_cnt) )
+			{
+				// TODO: something to do...
+				poweroff(NULL,0);
+			}
 		}
 		LOGT(LOG_TARGET, "Waiting for available network.\n");
 		sleep(1);
@@ -272,5 +284,11 @@ void thread_network_set_warn_timeout(int time)
 	{
 		warn_timeout_sec_thread_network = time;
 	}
+}
+
+
+void set_max_network_fail_reset_cnt(int cnt)
+{
+	max_network_fail_reset_cnt = cnt;
 }
 
