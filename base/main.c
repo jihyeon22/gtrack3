@@ -272,6 +272,8 @@ void gtrack_at_noti_proc(const char* buffer, int len)
 {
 	int remove_cr_str_len = 0;
 	char temp_str[1024] = {0,};
+	char* filtered_sms = NULL;
+	
 	remove_cr_str_len = mds_api_remove_cr(buffer, temp_str, 512);
 
 	if ( remove_cr_str_len <= 0 )
@@ -280,18 +282,35 @@ void gtrack_at_noti_proc(const char* buffer, int len)
 		return;
 	}
 
-	LOGI(LOG_TARGET, "model at noti proc msg (remove cr) ==> [%s] [%d]\n", temp_str, remove_cr_str_len);
+	filtered_sms = temp_str;
+	// remove "[web....]"
+	//printf(" strncasecmp => [%c] [%d]\r\n", target[0], strncasecmp(target+1,"web", strlen("web") ) );
+	if (( temp_str[0] == '[' ) && ( strncasecmp(temp_str+1,"web", strlen("web") )  == 0 ) )
+	{
+		char* tmp_char = strstr(temp_str+4,"]");
+
+		if ( tmp_char != NULL )
+		{
+			tmp_char++;
+			filtered_sms = tmp_char;
+		}
+	}
+
+	LOGI(LOG_TARGET, "model at noti proc msg (remove cr) ==> [%s] [%d]\n", filtered_sms, strlen(filtered_sms));
 
 #if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
 	KT_FOTA_NOTI_RECEIVE(temp_str);
 #endif
-	parse_model_at_noti(temp_str, remove_cr_str_len);
+	parse_model_at_noti(filtered_sms, strlen(filtered_sms));
 }
 
 void gtrack_at_sms_proc(const char* phone_num, const char* recv_time, const char* msg)
 {
 	int remove_cr_str_len = 0;
 	char temp_str[128] = {0,};
+
+	char* filtered_sms = NULL;
+
 	remove_cr_str_len = mds_api_remove_cr(msg, temp_str, 128);
 
 	if ( remove_cr_str_len <= 0 )
@@ -300,9 +319,23 @@ void gtrack_at_sms_proc(const char* phone_num, const char* recv_time, const char
 		return;
 	}
 
-	LOGI(LOG_TARGET, "model sms proc msg (remove cr) ==> [%s] [%d]\n", temp_str, remove_cr_str_len);
+	filtered_sms = temp_str;
+	// remove "[web....]"
+	//printf(" strncasecmp => [%c] [%d]\r\n", target[0], strncasecmp(target+1,"web", strlen("web") ) );
+	if (( temp_str[0] == '[' ) && ( strncasecmp(temp_str+1,"web", strlen("web") )  == 0 ) )
+	{
+		char* tmp_char = strstr(temp_str+4,"]");
+
+		if ( tmp_char != NULL )
+		{
+			tmp_char++;
+			filtered_sms = tmp_char;
+		}
+	}
+
+	LOGI(LOG_TARGET, "model sms proc msg (remove cr) ==> [%s] [%d]\n", filtered_sms, strlen(filtered_sms));
 	//int parse_model_sms(char *time, char *phonenum, char *sms);
-	parse_model_sms(recv_time, phone_num, temp_str);
+	parse_model_sms(recv_time, phone_num, filtered_sms);
 
 #ifdef DTG_ENABLE
 	tx_sms_to_tacoc(phone_num, temp_str);
