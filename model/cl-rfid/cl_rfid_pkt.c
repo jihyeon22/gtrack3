@@ -260,7 +260,8 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
        // printf("----------------------------------------\r\n");
     }
 
-    if ( ( passenger_list_add < 1000 ) && (passenger_list_del > 10000) )
+    //if ( ( passenger_list_add < 1000 ) && (passenger_list_del > 10000) )
+    if ( (passenger_list_del > 10000) )
     {
         printf( "DOWNLOAD USER INFO SUCCESS : CNT [%d] - ADD [%d] DEL [%d] reset case 1\r\n", rfid_tool__user_info_total_cnt(), passenger_list_add, passenger_list_del);
         LOGI(LOG_TARGET, "DOWNLOAD USER INFO SUCCESS : CNT [%d] - ADD [%d] DEL [%d] reset case 1\r\n", rfid_tool__user_info_total_cnt(), passenger_list_add, passenger_list_del);

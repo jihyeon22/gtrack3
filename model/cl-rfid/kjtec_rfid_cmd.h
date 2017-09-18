@@ -124,7 +124,7 @@ typedef struct rfid_firmware_down_pkt
 #define GET_PASSENGER_DATA_ARGUMENT_SPLIT_CHAR   ','
 #define GET_PASSENGER_DATA_ARGUMENT_CNT   4
 #define RFID_CMD_ID_REQ__GET_PASSENGER_DATA_SUCCESS     0x42 // ACK
-#define RIFD_MAX_READ_USER_INFO_TRY_FAIL_CNT 10
+#define RIFD_MAX_READ_USER_INFO_TRY_FAIL_CNT 4
 
 // -------------------------------------------------------
 

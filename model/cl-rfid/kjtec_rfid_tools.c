@@ -429,6 +429,8 @@ int kjtec_rfid_mgr__chk_need_to_fw_download()
             strcpy(req_fwver_str, "1.3.0NBUS-t13");
         else if ( strcmp(req_fwver, "t13h") == 0 )
             strcpy(req_fwver_str, "1.3.0HBUS-t13");
+        else if ( strcmp(req_fwver, "131n") == 0 )
+            strcpy(req_fwver_str, "1.3.1NBUS");
         else
             sprintf(req_fwver_str,"1.3.0.BusSR-%s", req_fwver);
         
