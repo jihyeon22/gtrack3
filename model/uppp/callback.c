@@ -42,7 +42,7 @@ void init_model_callback(void)
 
 	printf("gtrack calback ::: init_model_callback !!!\r\n");
 	//thread_network_set_warn_timeout(MAX(conf->model.report_interval_keyon, conf->model.report_interval_keyoff) * 2);
-
+	set_max_network_fail_reset_cnt(0);
 	chk_apps_port();
 	tl500_network_interface_down();
 }
@@ -117,8 +117,8 @@ void main_loop_callback(void)
 			main_cnt = 0;
 		}
 
-		// ppp ¿¬°áµÇ¸é, at noti ¹ß»ýÇÏÁö ¾ÊÀ½
-		// ±×·¡¼­ ÁÖ±âÀûÀ¸·Î at ¸¦ ¶§·ÁÁØ´Ù.
+		// ppp ï¿½ï¿½ï¿½ï¿½Ç¸ï¿½, at noti ï¿½ß»ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+		// ï¿½×·ï¿½ï¿½ï¿½ ï¿½Ö±ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ at ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø´ï¿½.
 		if ( echo_at_cnt > ECHO_AT_INTERVAL_SEC )
 		{
 			send_at_cmd("at");
@@ -203,7 +203,7 @@ static void tl500_network_interface_down()
 
 	}
 
-	// ifdown ÇßÀ¸³ª ¿©ÀüÈ÷ ³×Æ®¿öÅ© ÀÎÅÍÆäÀÌ½º°¡ ÀÖ´Ù.
+	// ifdown ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ®ï¿½ï¿½Å© ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ì½ï¿½ï¿½ï¿½ ï¿½Ö´ï¿½.
 	if (nettool_get_state() == DEFINES_MDS_OK)
 		disconn_fail_cnt ++;
 	else
