@@ -267,3 +267,73 @@ int chk_read_sms()
 //    AT+CMGR=24
     at_chk_read_sms();
 }
+
+static int _g_car_batt_level = 0;
+int get_car_batt_level()
+{
+    return _g_car_batt_level;
+}
+
+// 1초당 한번씩 불린다.
+int chk_car_batt_level(int low_batt, int chk_flag)
+{
+    static int batt_chk_interval = 0;
+    static int evt_send_flag = 0;
+
+    int car_voltage = 0;
+
+    batt_chk_interval ++;
+
+    printf(" ----------> batt level is [%d] / [%d]\r\n", _g_car_batt_level, batt_chk_interval);
+
+    // batt 값을 강제로 업데이트 할 경우다.
+    if ( chk_flag == 1 )
+        batt_chk_interval = BATT_CHK_INTERVAL_SEC;
+
+    // 최초 실행시 유효값 얻는다.
+    if ( ( _g_car_batt_level <= 0 ) || ( _g_car_batt_level > 420 ) )
+    {
+        at_get_adc_main_pwr(&car_voltage);
+        // check batt valid range..
+        if ( ( car_voltage <= 0 ) || ( car_voltage > 420 ) )
+            return 0;
+        else
+             _g_car_batt_level = car_voltage;
+    }
+
+    if ( batt_chk_interval++ >= BATT_CHK_INTERVAL_SEC )
+    {
+        at_get_adc_main_pwr(&car_voltage);
+        car_voltage = car_voltage * 10;
+        batt_chk_interval = 0;
+    }
+
+    
+    // check batt valid range..
+    if ( ( car_voltage <= 0 ) || ( car_voltage > 420 ) )
+        return 0;
+    else
+         _g_car_batt_level = car_voltage;
+
+    if ( (low_batt > 0 ) && ( low_batt > _g_car_batt_level ) )
+    {
+        int evt_code = e_evt_code_car_low_batt;
+
+        if ( evt_send_flag == 0 )
+        {
+            LOGT(eSVC_MODEL, "[GPS THREAD] send low batt!!!!!! voltage [%d] send evt\r\n", car_voltage);
+
+            sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
+            sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+            evt_send_flag = 1;
+        }
+        else
+            LOGT(eSVC_MODEL, "[GPS THREAD] send low batt!!!!!! voltage [%d] send evt skip...\r\n", car_voltage);
+    }
+    else
+    {
+        evt_send_flag = 0;
+    }
+
+    return 0;
+}

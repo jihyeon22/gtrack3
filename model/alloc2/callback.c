@@ -105,6 +105,8 @@ void ignition_on_callback(void)
 	
 	printf("gtrack calback ::: ignition_on_callback !!!\r\n");
 
+	chk_car_batt_level(0,1);
+
 	int evt_code = e_evt_code_igi_on;
 	
 	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_IGI_ON) == SEND_TO_PWR_EVT_OK )
@@ -128,6 +130,8 @@ void ignition_off_callback(void)
 	model_ignition_stat = 0;
 	printf("gtrack calback ::: ignition_off_callback !!!\r\n");
 
+	chk_car_batt_level(0,1);
+
 	int evt_code = e_evt_code_igi_off;
 
 	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_IGI_OFF) == SEND_TO_PWR_EVT_OK )
@@ -143,6 +147,8 @@ void ignition_off_callback(void)
 void power_on_callback(void)
 {	
 	int evt_code = e_evt_code_poweron;
+
+	chk_car_batt_level(0,1);
 
 	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_POWER_ON) == SEND_TO_PWR_EVT_OK )
 	{
@@ -160,6 +166,8 @@ void power_off_callback(void)
 {
 	int evt_code = e_evt_code_poweroff;
 
+	chk_car_batt_level(0,1);
+	
 	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_POWER_OFF) == SEND_TO_PWR_EVT_OK )
 	{
 		//if ( get_cur_status() > e_SEND_TO_SETTING_INFO_ING )
@@ -175,7 +183,6 @@ void power_off_callback(void)
 }
 
 #define RESET_TARGET_TIME_DIFF_SEC		20
-#define BATT_CHK_INTERVAL_SEC 			60
 #define DEBUG_LOG_PRINT_INTERVAL		5
 
 void gps_parse_one_context_callback(void)
@@ -183,7 +190,6 @@ void gps_parse_one_context_callback(void)
 	ALLOC_PKT_RECV__MDM_SETTING_VAL* p_mdm_setting_val;
 
 	static int gps_run_cnt = 0;
-	static int batt_chk_cnt = 0;
 
 	int keyon_send_interval = 0;
 	int keyoff_send_interval = 0;
@@ -270,7 +276,6 @@ void gps_parse_one_context_callback(void)
 	}
 	
 	gps_run_cnt++;
-	batt_chk_cnt++;
 
 
 	// ---------------------------------------------------------------------
@@ -296,26 +301,11 @@ void gps_parse_one_context_callback(void)
 		gps_run_cnt = 0;
 	}
 
+
+
 	// ---------------------------------------------------------------------
-	// batt chk 
+	// chk daily info
 	// ---------------------------------------------------------------------
-	if ( ( chk_car_low_batt > 0 ) && ( batt_chk_cnt > BATT_CHK_INTERVAL_SEC ) )
-	{
-		int car_voltage = 0;
-        at_get_adc_main_pwr(&car_voltage);
-		car_voltage = car_voltage * 10;
-
-		if ( chk_car_low_batt > car_voltage)
-		{
-			int evt_code = e_evt_code_car_low_batt;
-			LOGT(eSVC_MODEL, "[GPS THREAD] send low batt!!!!!! [%d]/[%d]\r\n", gps_run_cnt, report_interval);
-
-			sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
-			sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
-		}
-		batt_chk_cnt = 0;
-	}
-
 	{
 		int cur_daily_date_num = (gpsdata.year % 100)*10000 + gpsdata.mon*100 + gpsdata.day;
 		save_daily_info__total_distance(cur_daily_date_num, mileage_get_m());
@@ -347,7 +337,14 @@ void main_loop_callback(void)
 	while(1)
 	{
 		ALLOC_PKT_RECV__OBD_DEV_INFO* p_obd_dev_info = NULL;
- 		
+		ALLOC_PKT_RECV__MDM_SETTING_VAL* p_mdm_setting_val;
+
+		int chk_car_low_batt = 0;
+		p_mdm_setting_val = get_mdm_setting_val();
+
+		if ( p_mdm_setting_val != NULL ) // always send to server..
+			chk_car_low_batt = p_mdm_setting_val->low_batt_voltage;
+
 		main_loop_cnt ++;
 		no_send_pwr_evt_flag_clr ++;
 		sms_chk_interval++;
@@ -355,6 +352,11 @@ void main_loop_callback(void)
 		// hw check
 		// -----------------------------------------------------------
 		chk_allkey_bcm();
+		
+		// ---------------------------------------------------------------------
+		// batt chk 
+		// ---------------------------------------------------------------------
+		chk_car_batt_level(chk_car_low_batt, 0);
 		
 		// ----------------------------------------------------------
 		// senario setting

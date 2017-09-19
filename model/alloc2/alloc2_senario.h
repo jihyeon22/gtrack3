@@ -62,5 +62,10 @@ int get_no_send_pwr_evt_reboot(int flag);
 #define CHK_SMS_INTERVAL_SEC   15
 int chk_read_sms();
 
+#define BATT_CHK_INTERVAL_SEC 			60
+int get_car_batt_level();
+int chk_car_batt_level(int low_batt, int chk_flag);
+
+
 #endif // __ALLOC2_SENARIO_H__
 

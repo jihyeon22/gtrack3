@@ -296,9 +296,7 @@ int make_pkt__mdm_stat_evt(unsigned char **pbuf, unsigned short *packet_len, int
     }
     // ------------------------------------------------
     {
-        int car_voltage = 0;
-        at_get_adc_main_pwr(&car_voltage);
-        target_pkt.car_batt_volt = car_voltage*10; // (b-2) 차량배터리전압 : 0.1 volt 단위
+        target_pkt.car_batt_volt = get_car_batt_level(); // (b-2) 차량배터리전압 : 0.1 volt 단위
     }
     // ------------------------------------------------
     {
