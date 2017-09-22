@@ -68,15 +68,15 @@ unsigned char convert_angle(float azimuth)
 		return 7;
 	}
 
-	return 0xff;
+	return 0;
 }
 
 int create_report2_data(int ev_code, nisso_packet2_t *packet, gpsData_t gpsdata, char *record, int rec_len)
 {
 	char *ver = PRG_VER;
-	char phonenum[MAX_DEV_ID_LED];
-	memset(packet, 0x00, sizeof(nisso_packet2_t));
+	char phonenum[MAX_DEV_ID_LED] = {0,};
 
+	memset(packet, 0x00, sizeof(nisso_packet2_t));
 
 	if ( ( ev_code == eGEO_FENCE_NUM0_EXIT_EVT ) ||
 		 ( ev_code == eGEO_FENCE_NUM1_EXIT_EVT ) ||
@@ -89,17 +89,14 @@ int create_report2_data(int ev_code, nisso_packet2_t *packet, gpsData_t gpsdata,
 	}
 
 	if ( ( ev_code == eGEO_FENCE_NUM0_ENTRY_EVT ) ||
-		 ( ev_code == eGEO_FENCE_NUM0_ENTRY_EVT ) ||
-		 ( ev_code == eGEO_FENCE_NUM0_ENTRY_EVT ) ||
-		 ( ev_code == eGEO_FENCE_NUM0_ENTRY_EVT ) ||
-		 ( ev_code == eGEO_FENCE_NUM0_ENTRY_EVT ) )
+		 ( ev_code == eGEO_FENCE_NUM1_ENTRY_EVT ) ||
+		 ( ev_code == eGEO_FENCE_NUM2_ENTRY_EVT ) ||
+		 ( ev_code == eGEO_FENCE_NUM3_ENTRY_EVT ) ||
+		 ( ev_code == eGEO_FENCE_NUM4_ENTRY_EVT ) )
 	{
 		devel_webdm_send_log("geofence evt entry : [%d]\n", ev_code);
 		set_geo_event_flag(0);
 	}
-
-		 
-
 
 	packet->msg_id = MDT800_PROTOCOL_ID;
 	packet->msg_type = MDT800_MESSAGE_TYPE2;
@@ -123,13 +120,28 @@ int create_report2_data(int ev_code, nisso_packet2_t *packet, gpsData_t gpsdata,
 	else
 		packet->gps_status = eWCDMA_GSP;
 
-	//packet->gps_pos.latitude = gpsdata.lat * 10000000.0;
-	//packet->gps_pos.longitude = gpsdata.lon * 10000000.0;
-	packet->gps_pos.latitude = 37400305;
-	packet->gps_pos.longitude = 127102385;
+	packet->gps_pos.latitude = gpsdata.lat * 10000000.0;
+	packet->gps_pos.longitude = gpsdata.lon * 10000000.0;
+	//packet->gps_pos.latitude = 37400305;
+	//packet->gps_pos.longitude = 127102385;
 
 	packet->gps_dir = convert_angle(gpsdata.angle);
-	packet->speed = gpsdata.speed;
+
+	{
+		static short saved_speed = 0;
+
+		if ( ( gpsdata.speed >= 0 ) && ( gpsdata.speed < 180 ) )
+		{
+			saved_speed = gpsdata.speed;
+			printf(" >> current gps speed vaild [%d]\r\n", saved_speed);
+		}
+		else
+		{
+			printf(" >> current gps speed invaild [%d]\r\n", saved_speed);
+		}
+
+		packet->speed = saved_speed;
+	}
 
 	if(get_server_mileage() == MILEAGE_NOT_INIT)
 		packet->vehicle_odo = 0;
@@ -140,6 +152,7 @@ int create_report2_data(int ev_code, nisso_packet2_t *packet, gpsData_t gpsdata,
 
 	{
 		char power_stat = get_nisso_pkt__external_pwr();
+
 		if ( ev_code == eBUTTON_NUM0_EVT )
 			packet->gpio_status |= ( 1 << 0 );
 		else if ( ev_code == eBUTTON_NUM1_EVT )
@@ -159,13 +172,11 @@ int create_report2_data(int ev_code, nisso_packet2_t *packet, gpsData_t gpsdata,
 		static int saved_car_voltage = 0;
 		if ( at_get_adc_main_pwr(&car_voltage) == AT_RET_SUCCESS )
 		{
-			saved_car_voltage = car_voltage;
-			packet->dev_power_level = car_voltage*10; // (b-2) 차량배터리전압 : 0.1 volt 단위
+			if ( ( car_voltage > 0 ) &&  ( car_voltage < 52 ) )
+				saved_car_voltage = car_voltage;
 		}
-		else
-		{
-			packet->dev_power_level = saved_car_voltage*10; // (b-2) 차량배터리전압 : 0.1 volt 단위
-		}
+		
+		packet->dev_power_level = saved_car_voltage*10; // (b-2) 차량배터리전압 : 0.1 volt 단위
 
 		LOGI(LOG_TARGET, " --> make pkt :: power level [%d]\r\n", packet->dev_power_level);
 	}
@@ -173,7 +184,7 @@ int create_report2_data(int ev_code, nisso_packet2_t *packet, gpsData_t gpsdata,
 	packet->create_cycle_time = get_collection_interval(); // unit : sec
 
 	//snprintf(packet->version, sizeof(packet->version) - 1 , "%c%c%c", ver[1], ver[2], ver[3]);
-	strcpy(packet->version, "001");
+	strcpy(packet->version, "002");
 
 	packet->reseved = get_nisso_pkt__invoice_info();
 

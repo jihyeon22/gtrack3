@@ -35,7 +35,7 @@
 #include <nisso_mdt800/hdlc_async.h>
 #include <nisso_mdt800/file_mileage.h>
 
-void server_resp_proc(char* resp_buff)
+int server_resp_proc(char* resp_buff)
 {
     int buff_len = strlen(resp_buff);
     char resp_str[SERVER_RESP_MAX_LEN] = {0,};
@@ -46,7 +46,7 @@ void server_resp_proc(char* resp_buff)
     if ( ( resp_buff[0] != '[') || ( resp_buff[buff_len-1] != ']') )
     {
         LOGE(LOG_TARGET, "%s> resp proc :: error invalid data [%s]\r\n", __func__, resp_buff);
-        return;
+        return -1;
     }
 
     strncpy(resp_str, resp_buff+1, buff_len-2);
@@ -56,9 +56,10 @@ void server_resp_proc(char* resp_buff)
     if ( strcmp(resp_str, "0") == 0 )
     {
         LOGI(LOG_TARGET, "%s> resp proc :: normal resp return.\n", __func__);
-        return;
+        return 1;
     }
 
     parse_model_sms("0000", SERVER_RESP_PROC_PHONENUM, resp_str);
+    return 1;
 
 }

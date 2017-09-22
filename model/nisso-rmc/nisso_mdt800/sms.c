@@ -14,6 +14,10 @@
 #include <util/poweroff.h>
 #include "logd/logd_rpc.h"
 
+#include <time.h>
+#include <assert.h>
+#include <sys/time.h>
+
 #include "config.h"
 #include "debug.h"
 
@@ -65,6 +69,28 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 
 	char sms_buf[80];
 	char sms_buf2[SERVER_RESP_MAX_LEN];
+
+	FILE *fp = NULL;
+	FILE *log_fd = NULL;
+	char log_file_name[64] ={0,};
+
+	struct timeval tv;
+	struct tm *ptm;
+
+	gettimeofday(&tv, NULL);
+	ptm = localtime(&tv.tv_sec);
+
+	sprintf(log_file_name, "/var/log/ctlsms.%02d%02d%02d.log", ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
+	fp = fopen(log_file_name, "w");
+
+	if(fp == NULL)
+		log_fd = stderr;
+	else
+		log_fd = fp;
+
+	fprintf(log_fd, "[%s]\r\n", sms);
+
+	devel_webdm_send_log("CTR SMS [%s]", sms);
 
 	//remove space ++
 	len = strlen(sms);
@@ -178,6 +204,10 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 	}
 
 	LOGD(LOG_TARGET, "parse_model_sms = %d\n", ret);
+
+	if(fp != NULL)
+		fclose(fp);
+
 	return ret;
 }
 
@@ -571,7 +601,7 @@ static int _fence_set (int argc, char **argv)
 	// real argument cnt ^^;;;
 	argc++;
 
-	printf( "<%s> geo fence sms proc [%d]\n", __FUNCTION__, argc);
+	LOGI(LOG_TARGET, " >> SMS GEOF ::  geo fence sms proc [%d]\n", argc);
 	//for( i = 0 ; i <= argc ; i ++ )
 	//	printf(" >>>> [%d] => [%s]\r\n", i, argv[i]);
 
@@ -589,7 +619,7 @@ static int _fence_set (int argc, char **argv)
 	}
 	
 	arg_geofence_cnt = (argc_remain_cnt / GEO_FENCE_CMD__GEOFENCE_CMD_CNT);
-	printf("arg_geofence_cnt is [%d]/[%d]\r\n", argc_remain_cnt, arg_geofence_cnt);
+	LOGI(LOG_TARGET, " >> SMS GEOF :: arg_geofence_cnt is [%d]/[%d]\r\n", argc_remain_cnt, arg_geofence_cnt);
 
 	if ( arg_geofence_cnt <= 0 )
 		return 0;
@@ -657,6 +687,7 @@ static int _fence_set (int argc, char **argv)
 		printf("parse_fence[%d].range => [%d]\r\n", j, parse_fence[j].fence_data.range);
 		printf("parse_fence[%d].cur_fence_status => [%d]\r\n", j, parse_fence[j].fence_data.cur_fence_status);
 		printf("parse_fence[%d].setup_fence_status => [%d]\r\n", j, parse_fence[j].fence_data.setup_fence_status);
+
 /*
 		LOGD(LOG_TARGET, "save addres = %d \n",fence_address);
 		LOGD(LOG_TARGET, "event cond = %d \n",fence_cond);
@@ -720,6 +751,8 @@ static int _fence_set (int argc, char **argv)
 		}
 
 		//clear_geo_fence(parse_fence[j].idx, 0);
+		if ( parse_fence[j].fence_data.enable == 1)
+			devel_webdm_send_log("gf[%d]=[%f][%f]", parse_fence[j].idx, parse_fence[j].fence_data.latitude, parse_fence[j].fence_data.longitude);
 
 		switch(parse_fence[j].idx)
 		{
@@ -776,12 +809,13 @@ static int _invoice_set (int argc, char **argv)
 	LOGD(LOG_TARGET, "%s> invoice msg pw = %s \n", __func__, p_str_invoice_info);
 	LOGD(LOG_TARGET, "%s> response = %s \n"    , __func__, p_str_response);
 
+	set_nisso_pkt__invoice_info(atoi(p_str_invoice_info));
+
 	if(atoi(p_str_response) == SMS_CMD_RESPONSE_NEED)
 	{
 		sender_add_data_to_buffer(eINVOCE_RECV_EVT, NULL, ePIPE_2);
 	}
-
-	set_nisso_pkt__invoice_info(atoi(p_str_invoice_info));
+	
 	return 0;
 }
 

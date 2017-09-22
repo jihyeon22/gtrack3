@@ -188,6 +188,7 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
 	int res;
 	int wait_count;
 	char svr_resp[SERVER_RESP_MAX_LEN] = {0,};
+	int ret_val = -1;
 	printf("\n\nsend_packet : op[%d]============>\n", op);
 	hdlc_async_print_data(packet_buf, packet_len);
 	
@@ -199,7 +200,7 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
 		if(res == 0) //send and recv success
 		{
 			LOGI(LOG_TARGET, "%s> send success : get data >> \"%s\"\n", __func__, svr_resp);
-			server_resp_proc(svr_resp);
+			ret_val = server_resp_proc(svr_resp);
 			break;
 		}
 
@@ -233,16 +234,26 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
 	}
 #endif
 
-	return 0;
+	return ret_val;
 }
 
+#define MAX_SEND_RETRY_CNT_NISSO	10
 int send_packet(char op, unsigned char *packet_buf, int packet_len)
 {
 	int ret;
+	int max_send_try_cnt = MAX_SEND_RETRY_CNT_NISSO;
+
 	setting_network_param(); //real-time ip/port change
 
 	LOGI(LOG_TARGET, "ip %s : %d send packet!!\n", gSetting_report.ip, gSetting_report.port);
-	ret = __send_packet(op, packet_buf, packet_len);
+
+	while(max_send_try_cnt --)
+	{
+		ret = __send_packet(op, packet_buf, packet_len);
+		if ( ret >= 0 )
+			break;
+	}
+
 	if(ret < 0) {
 		LOGE(LOG_TARGET, "op[%d] __send_packet error return\n", op);
 		return -1;

@@ -240,6 +240,9 @@ void gps_parse_one_context_callback(void)
 	////////////////////////////////////////////////////////////////////////
 	gps_get_curr_data(&cur_gpsdata);
 
+	if ( gps_chk_valid_time(&cur_gpsdata) <= 0 )
+		return;
+
 	static int show_mileage = 0;
 	if(show_mileage++ >= 5)
 	{
