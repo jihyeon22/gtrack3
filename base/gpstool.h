@@ -48,6 +48,8 @@ void gps_parse(char* buff, int size);
 void gps_get_curr_data(gpsData_t* out);
 void gps_get_prev_data(gpsData_t* out);
 void gps_set_prev_data_utc(const time_t* in);
+int gps_chk_valid_time(gpsData_t* gpsdata);
+
 void gps_set_time_gpsData(int year, int mon, int day, int hour, int min, int sec, gpsData_t *gd);
 int gps_start_utc_adjust(void);
 void gps_valid_data_get(gpsData_t *last);

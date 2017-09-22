@@ -1029,6 +1029,28 @@ void gps_set_prev_data_utc(const time_t* in)
 	pthread_mutex_unlock(&gps_prev_mutex);
 }
 
+
+int gps_chk_valid_time(gpsData_t* gpsdata)
+{
+	static int last_sec = 0;
+	int cur_sec = gpsdata->sec + (gpsdata->min*60) + (gpsdata->hour*60*60);
+	int ret_val = -1;
+
+	if ( cur_sec > last_sec )
+	{
+		ret_val = 1;
+	}
+	else
+	{
+		//LOGE(LOG_TARGET, "GPS INVALID TIME SEC : cur [%d] / last [%d]\n", cur_sec, last_sec);
+		ret_val = -1;
+	}
+	
+	last_sec = cur_sec;
+	//last_daily_date_num = cur_daily_date_num = (gpsdata.year % 100)*10000 + gpsdata.mon*100 + gpsdata.day;
+	return ret_val;
+}
+
 void gps_set_time_gpsData(int year, int mon, int day, int hour, int min, int sec, gpsData_t *gd)
 {
 	gd->year = year;
