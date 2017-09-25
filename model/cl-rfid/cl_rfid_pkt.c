@@ -38,7 +38,9 @@ static int __make_http_header__req_passenger(char* buff, char* version)
 
     // 170807 202552 
     if ( strlen(version) == 12 )
-    {
+{
+        strcpy(target_ver, version);
+        #if 0
         strncpy(ver_str_date, version, 6);
         strncpy(ver_str_time, version + 6, 6);
         ver_int_date = atoi(ver_str_date);
@@ -63,15 +65,19 @@ static int __make_http_header__req_passenger(char* buff, char* version)
         ver_int_time += (( ver_int_sec / 3600 ) ) * 10000;
         //printf("ver_int_time [%d] => [%d]\r\n", ver_int_time,   (( ver_int_sec / 3600 ) ) * 10000);
         
-        sprintf(target_ver, "%d%d", ver_int_date, ver_int_time);
+        sprintf(target_ver, "%06d%06d", ver_int_date, ver_int_time);
+
         printf("ver_str_date [%s] / ver_str_time [%s] / ver_int_date [%d] / ver_int_time [%d]\r\n", ver_str_date, ver_str_time, ver_int_date, ver_int_time);
-        devel_webdm_send_log("RIFD TARGET VER [%s]\r\n", target_ver);
+        #endif
     }
     else
     {
         strcpy(target_ver,"0");
+        kjtec_rfid_mgr__clr_all_user_data();
     }
-    
+
+    devel_webdm_send_log("RIFD TARGET VER [%s]\r\n", target_ver);
+
 	at_get_phonenum(phonenum, sizeof(phonenum));
 
     //strcpy(phonenum, "01220003257"); // http://test.2bt.kr:8887 테스트용 
