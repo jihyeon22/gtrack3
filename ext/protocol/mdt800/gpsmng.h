@@ -9,19 +9,21 @@
 //#define FEATURE_FAKE_TIME_INACTIVE_GPS	
 //======================================================
 
+#if defined (CORP_ABBR_BIC) || defined (CORP_ABBR_CS)
 //======================================================
 //      FEATURE_INVALD_GPS_COPY_LAST_FIX_GPS
 // inactive gps replace latest credible gps position
 // time field have to create with current system time.
-//#define FEATURE_INVALD_GPS_COPY_LAST_FIX_GPS
+#define FEATURE_INVALD_GPS_COPY_LAST_FIX_GPS
 //======================================================
-
+#else
 //======================================================
 //      FEATURE_INVALD_GPS_COPY_LAST_FIX_GPS
 // inactive gps replace latest credible gps position
 // time field have to create with current system time.
 #define FEATURE_INVALID_GPS_COPY_ZERO
 //======================================================
+#endif
 
 //======================================================
 //      FEATURE_GEO_FENCE_SIMULATION

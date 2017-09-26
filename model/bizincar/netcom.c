@@ -121,6 +121,14 @@ int make_event_packet(unsigned char **pbuf, unsigned short *packet_len, int even
 
 	gps_get_curr_data(&gpsdata);
 
+	if ( gpsdata.active != eACTIVE ) 
+	{
+		gpsData_t last_gpsdata;
+		gps_valid_data_get(&last_gpsdata);
+		gpsdata.lat = last_gpsdata.lat;
+		gpsdata.lon = last_gpsdata.lon;
+	}
+	
 	if(create_report_divert_buffer(&p_encbuf, 1) < 0)
 	{
 		LOGE(LOG_TARGET, "%s> create report divert buffer fail\n", __func__);
