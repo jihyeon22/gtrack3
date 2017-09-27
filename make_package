@@ -91,7 +91,7 @@ service_mode() {
 }
 
 corp_input() {
-		echo -e "Coporation = (mds, asn, cl, bizincar, cs, etrace, neognp, moram, kt, alloc, cip, netio, gtnb ,uppp, nisso ...) "
+		echo -e "Coporation = (mds, asn, cl, bizincar, cs, etrace, neognp, moram, kt, alloc, cip, netio, gtnb ,uppp, nisso, ds ...) "
 		echo -e "             (gtrs ...) "
 		read CORPMODEL
 		case $CORPMODEL in
@@ -159,6 +159,10 @@ corp_input() {
 				CORPMODEL="niso"
 				CORPABBR="NISO"
 			;;
+			ds)
+				CORPMODEL="ds"
+				CORPABBR="DS"
+			;;
 			*)
 				echo  $CORPMODEL invalid
 				exit
@@ -216,7 +220,7 @@ modem_input() {
 
 server_input() {
 	echo -e "Server Model = (skel, asn, cl-thermal, cl-mdt, cl-rfid, bizincar, nisso)"
-	echo -e "               (cs, etr, etrg, etrf, neognp, moram, alloc2, cip-rmc, gtnb-mdt, netio, uppp, gtrs...)"
+	echo -e "               (cs, etr, etrg, etrf, neognp, moram, alloc2, cip-rmc, gtnb-mdt, netio, uppp, gtrs, ds-thermal ...)"
 	echo -e "               (ktfms0, ktfms1...)"
 	echo -e "               (cl-rfid0, cl-rfid1, ...)"
 	echo -e "               (dtg-skel)"
@@ -314,6 +318,10 @@ server_input() {
 		uppp)
 			SRVMODEL="uppp"
 			SERVABBR="UPPP"
+		;;
+		ds-thermal)
+			SRVMODEL="dsth"
+			SERVABBR="DSTH"
 		;;
 		*)
 			echo SERVER_MODEL $SRVMODEL invalid
