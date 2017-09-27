@@ -124,6 +124,8 @@ else ifeq ($(SERVER),nisso-rmc)
 SERVER_ABBR	:=	NISO
 else ifeq ($(SERVER),netio)
 SERVER_ABBR	:=	NETI
+else ifeq ($(SERVER),ds-thermal)
+SERVER_ABBR	:=	DSTH
 else ifeq ($(SERVER),uppp)
 #gps disable
 USE_GPS_MODEL=n 
@@ -174,6 +176,8 @@ else ifeq ($(CORP),gtrs)
 CORP_ABBR := GTRS
 else ifeq ($(CORP),nisso)
 CORP_ABBR := NISO
+else ifeq ($(CORP),ds)
+CORP_ABBR := DS
 else
 $(error CORP is not registerd in Makefile, please input registred corporation)
 endif
