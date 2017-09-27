@@ -236,6 +236,9 @@ void gps_parse_one_context_callback(void)
 
 	gps_get_curr_data(&gpsdata);
 
+	if ( gps_chk_valid_time(&gpsdata) <= 0 )
+		return;
+
 	// debug info
 	cur_gps_utc_sec = gpsdata.utc_sec;
 
