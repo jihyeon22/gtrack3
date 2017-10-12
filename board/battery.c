@@ -43,7 +43,7 @@ int battery_get_battlevel_car(void)
 
 int battery_get_battlevel_internal(void)
 {
-#if defined (BOARD_TX501S) || defined (BOARD_TX500S) || defined (BOARD_TL500L)
+#if defined (BOARD_TX501S) || defined (BOARD_TX500S) || defined (BOARD_TX500L)
 	return 3000;
 #endif
 
