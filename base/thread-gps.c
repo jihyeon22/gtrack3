@@ -79,7 +79,7 @@ int _splite_gps_context(void)
 	int gps_data_size;
 	int res = 0;
 	plastbyte = pbufferin + read_size;
-	pDelimeter = strstr(buffer, "$GPGSA");
+	pDelimeter = strstr(buffer, "$GPGGA");
 
 	wd_dbg[eWdGps] = 31;
 
