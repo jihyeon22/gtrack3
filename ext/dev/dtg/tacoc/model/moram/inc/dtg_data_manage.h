@@ -145,6 +145,10 @@ typedef enum eGtrace_Product_Type eGtrace_Product_Type_t;
 
 #pragma pack(push, 1)
 struct gtrace_packet_body {
+
+#if defined(SERVER_MODEL_MORAM)
+	unsigned char SOH; //0x7B fixed
+#endif
 	unsigned char prot_id; //0x11(fix)
 	unsigned char msg_id;  //0x64(fix)
 	char device_id[15]; //phone number

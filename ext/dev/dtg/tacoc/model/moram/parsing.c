@@ -112,6 +112,10 @@ int bulk_dtg_parsing(unsigned char *std_buff, int std_buff_len, unsigned char *d
 	//p_gtrs_payload = (gtrace_dtg_user_data_payload_t *)&dest[dest_idx];
 
 
+#if defined(SERVER_MODEL_MORAM)
+	p_gtrs_packet_body->SOH = 0x7B;
+#endif
+
 	p_gtrs_packet_body->prot_id = 0x11;
 	p_gtrs_packet_body->msg_id = 0x64;
 
@@ -325,6 +329,10 @@ int current_dtg_parsing(unsigned char *std_buff, int std_buff_len, unsigned char
 	dest_idx += sizeof(gtrace_dtg_user_data_summary_t);
 	p_gtrs_payload = (gtrace_dtg_user_data_payload_t *)&dest[dest_idx];
 
+
+#if defined(SERVER_MODEL_MORAM)
+	p_gtrs_packet_body->SOH = 0x7B;
+#endif
 
 	p_gtrs_packet_body->prot_id = 0x11;
 	p_gtrs_packet_body->msg_id = 0x64;
