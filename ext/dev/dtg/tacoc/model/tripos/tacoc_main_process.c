@@ -153,8 +153,8 @@ int main_process()
 
 	alarm(1);
 
-	pthread_join(p_thread_action, (void **) status);
-	DTG_LOGT("TACOC TRIPOS MODEL Exit");
+	//pthread_join(p_thread_action, (void **) status);
+	//DTG_LOGT("TACOC TRIPOS MODEL Exit");
 	return 0;
 }
 

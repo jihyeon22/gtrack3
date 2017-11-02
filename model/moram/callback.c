@@ -88,9 +88,15 @@ void init_model_callback(void)
 	printf("%s ++\n", __func__);
 	stackdump_abort_callback = abort_callback; 
 
+
 #ifndef USE_DTG_MODEL
 	thread_model = thread_keypad;
 	exit_thread_model = exit_thread_keypad;
+#else
+	if(conf->model.tempature_enable == 0) {
+		thread_model = thread_keypad;
+		exit_thread_model = exit_thread_keypad;
+	}
 #endif
 
 	LOGI(LOG_TARGET, "init_model_callback\n");
@@ -337,6 +343,7 @@ void main_loop_callback(void)
 	int ign_status;
 	configurationModel_t *conf = get_config_model();
 
+
 	init_gps_manager(); //jwrho
 	init_geo_fence();
 	
@@ -366,6 +373,7 @@ void main_loop_callback(void)
 	{
 		int condition_send = 0;
 		
+
 		if(at_recov_cnt-- < 0) {
 			//at_channel_recovery();
 			at_recov_cnt = 1024;

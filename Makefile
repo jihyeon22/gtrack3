@@ -134,6 +134,10 @@ else ifeq ($(SERVER),alloc2)
 SERVER_ABBR := ALC2
 USE_ALLKEY_BCM_1=y
 USE_SECO_OBD_1=y
+else ifeq ($(SERVER),dsme)
+USE_GPS_MODEL=n
+USE_BUTTON_THREAD=y
+SERVER_ABBR := DSME
 else
 $(error SERVER is not registerd in Makefile, please input registred server)
 endif
@@ -178,6 +182,8 @@ else ifeq ($(CORP),nisso)
 CORP_ABBR := NISO
 else ifeq ($(CORP),ds)
 CORP_ABBR := DS
+else ifeq ($(CORP),dsme)
+CORP_ABBR := DSME
 else
 $(error CORP is not registerd in Makefile, please input registred corporation)
 endif
@@ -205,6 +211,12 @@ else ifeq ($(SUB),clr0)
 SERVER_ABBR   :=      CLR0
 else ifeq ($(SUB),clr1)
 SERVER_ABBR   :=      CLR1
+else ifeq ($(SUB),moram0)
+#MDT + DTG + Kepady Service
+SERVER_ABBR   :=      MRM0
+else ifeq ($(SUB),moram1)
+#MDT + DTG + Temperature Service
+SERVER_ABBR   :=      MRM1
 else
 $(error SUB is not registerd in Makefile, please input registred sub-model)
 endif

@@ -254,9 +254,12 @@ int main_process()
 	}
 	
 	init_configuration_data();
-	// dmmgr_init("/system/mds/system/bin/dm.ini", "/system/mds/system/bin/PACKAGE");
 
-	// dmmgr_send(eEVENT_PWR_ON, NULL, 0);
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+	// dmmgr_init("/system/mds/system/bin/dm.ini", "/system/mds/system/bin/PACKAGE");
+	 dmmgr_send(eEVENT_PWR_ON, NULL, 0);
+#endif
+
 	if(power_get_ignition_status() == POWER_IGNITION_ON)
 	{
 		send_device_registration();
@@ -282,36 +285,44 @@ int main_process()
 	#endif
 #endif
 		
+
+#ifdef SERVER_ABBR_DSKL //this feature >> MDT Packet create with DTG data.
+	if (pthread_create(&p_thread_mdt, NULL, do_mdt_report_thread, NULL) < 0) {
+		fprintf(stderr, "cannot create p_thread_action thread\n");
+		exit(1);
+	}
+#endif
+
 	if (pthread_create(&p_thread_dtg, NULL, do_dtg_report_thread, NULL) < 0) {
 		fprintf(stderr, "cannot create p_thread_action thread\n");
 		exit(1);
 	}
 	
-	if (pthread_create(&p_thread_mdt, NULL, do_mdt_report_thread, NULL) < 0) {
-		fprintf(stderr, "cannot create p_thread_action thread\n");
-		exit(1);
-	}
 
-#if defined(BOARD_TL500S) || defined(BOARD_TL500K)
-	int	key_status, old_key_status;
-    old_key_status = key_status = power_get_ignition_status();
-	while(1)
-	{
-		key_status = power_get_ignition_status();
-		if(key_status == POWER_IGNITION_OFF)
+
+#if defined(BOARD_TL500S) || defined(BOARD_TL500K) || defined(BOARD_TL500L)
+
+	#ifdef SERVER_ABBR_DSKL
+		int	key_status, old_key_status;
+		old_key_status = key_status = power_get_ignition_status();
+		while(1)
 		{
-			if(old_key_status == POWER_IGNITION_ON)
+			key_status = power_get_ignition_status();
+			if(key_status == POWER_IGNITION_OFF)
 			{
-				if (power_get_power_source() == POWER_SRC_DC)
-					tacoc_ignition_off();
+				if(old_key_status == POWER_IGNITION_ON)
+				{
+					if (power_get_power_source() == POWER_SRC_DC)
+						tacoc_ignition_off();
+				}
 			}
-		}
-		old_key_status = key_status;
-	
+			old_key_status = key_status;
+		
 
-		DTG_LOGD("%s> main power status check...\n", __func__);
-		sleep(5);
-	}
+			DTG_LOGD("%s> main power status check...\n", __func__);
+			sleep(5);
+		}
+	#endif
 #else
 	pthread_join(p_thread_dtg, (void **) status);
 	DTG_LOGT("TACOC ETRACE MODEL Exit");

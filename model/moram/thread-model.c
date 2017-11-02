@@ -105,7 +105,11 @@ static int _init_keypad(void)
 
 	while(n_try-- > 0)
 	{
+#ifdef USE_DTG_MODEL
+		fd = init_uart("/dev/ttyHSL2", 19200);
+#else
 		fd = init_uart("/dev/ttyHSL1", 19200);
+#endif
 		if(fd >= 0)
 		{
 			break;

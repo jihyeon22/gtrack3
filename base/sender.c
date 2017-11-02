@@ -94,6 +94,13 @@ int sender_add_data_to_buffer(const char no_event, const void *param, pipeSelect
 		return -1;
 	}
 
+	//pdata buffer null check by jwrho++
+	if(pdata == NULL) {
+		LOGE(LOG_TARGET, "make_packet buffer is NULL, length[%d]\n", size);
+		return -1;
+	}
+	//pdata buffer null check by jwrho--
+
 	if(type == ePIPE_1)
 	{
 		res = pipe_add_data(&pipe_1, no_event, pdata, size);

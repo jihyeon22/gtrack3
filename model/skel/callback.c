@@ -15,13 +15,19 @@
 #include <util/list.h>
 #include <util/transfer.h>
 #include <util/poweroff.h>
+#include <util/stackdump.h>
 #include <logd_rpc.h>
-
+#include <board/board_system.h>
 #include <netcom.h>
 #include <callback.h>
 #include <config.h>
 
 static int flag_run_thread_main = 1;
+
+void abort_callback(void)
+{
+	
+}
 
 void init_model_callback(void)
 {
@@ -29,6 +35,8 @@ void init_model_callback(void)
 
 	printf("gtrack calback ::: init_model_callback !!!\r\n");
 	thread_network_set_warn_timeout(MAX(conf->model.report_interval_keyon, conf->model.report_interval_keyoff) * 2);
+	
+	stackdump_abort_callback = abort_callback;	
 }
 
 void network_on_callback(void)

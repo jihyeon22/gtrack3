@@ -141,7 +141,7 @@ DTG_SERVER_OBJ += ext/dev/dtg/tacoc/model/moram/dtg_data_manage.o            \
 		DTG_SERVER_OBJ += ext/dev/dtg/tacoc/model/moram/mdt_data_manage.o
 	endif
 	
-DTG_SERVER_CFLAGS += -I./ext/dev/dtg/tacoc/model/gtrs/inc/
+DTG_SERVER_CFLAGS += -I./ext/dev/dtg/tacoc/model/moram/inc/
 DTG_SERVER_CFLAGS += -DSERVER_MODEL_MORAM
 # ----------------------------------------------------
 else

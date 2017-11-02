@@ -52,6 +52,9 @@ void tacoc_run(void)
 {
 	DTG_LOGI("RUN");
 
+
+	
+#ifdef SERVER_ABBR_DSKL
 	while(1)
 	{
 		//?ㅽ뙣?대룄 ?ъ젒?띿쓣 ?꾪빐 臾댄븳 諛섎났?댁빞??
@@ -63,6 +66,12 @@ void tacoc_run(void)
 		}
 		sleep(1);
 	}
+#else
+	DTG_LOGI("==================> tacoc_run +++++++++++++++++++++++++\n");
+	main_process();
+	DTG_LOGI("==================> tacoc_run -------------------------\n");
+#endif
+	
 }
 
 

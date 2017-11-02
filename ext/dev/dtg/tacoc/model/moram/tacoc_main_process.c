@@ -356,26 +356,28 @@ int main_process()
 		exit(1);
 	}
 
-#if defined(BOARD_TL500S) || defined(BOARD_TL500K)
-	int	key_status, old_key_status;
-    old_key_status = key_status = power_get_ignition_status();
-	while(1)
-	{
-		key_status = power_get_ignition_status();
-		if(key_status == POWER_IGNITION_OFF)
+#if defined(BOARD_TL500S) || defined(BOARD_TL500K) || defined(BOARD_TL500L)
+	#ifdef SERVER_ABBR_DSKL
+		int	key_status, old_key_status;
+		old_key_status = key_status = power_get_ignition_status();
+		while(1)
 		{
-			if(old_key_status == POWER_IGNITION_ON)
+			key_status = power_get_ignition_status();
+			if(key_status == POWER_IGNITION_OFF)
 			{
-				if (power_get_power_source() == POWER_SRC_DC)
-					tacoc_ignition_off();
+				if(old_key_status == POWER_IGNITION_ON)
+				{
+					if (power_get_power_source() == POWER_SRC_DC)
+						tacoc_ignition_off();
+				}
 			}
-		}
-		old_key_status = key_status;
-	
+			old_key_status = key_status;
+		
 
-		DTG_LOGD("%s> main power status check...\n", __func__);
-		sleep(5);
-	}
+			DTG_LOGD("%s> main power status check...\n", __func__);
+			sleep(5);
+		}
+	#endif
 #else
 	pthread_join(p_thread_dtg, (void **) status);
 	DTG_LOGT("TACOC ETRACE MODEL Exit");

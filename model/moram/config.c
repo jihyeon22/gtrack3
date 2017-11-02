@@ -262,6 +262,13 @@ configurationModel_t* load_config_user(void)
 		break; //if success, break loop.
 	}
 
+	LOGT(LOG_TARGET, "MDT report_ip %s\n", config.model.report_ip);
+	LOGT(LOG_TARGET, "MDT port %d\n", config.model.report_port);
+	LOGT(LOG_TARGET, "MDT key on collect %d\n", config.model.collect_interval_keyon);
+	LOGT(LOG_TARGET, "MDT key on report %d\n", config.model.report_interval_keyon);
+	LOGT(LOG_TARGET, "MDT key off collect %d\n", config.model.collect_interval_keyoff);
+	LOGT(LOG_TARGET, "MDT key off report %d\n", config.model.report_interval_keyoff);
+
 	if(inf != NULL)
 	{
 		iniparser_freedict(inf);
@@ -307,10 +314,23 @@ void load_config_base_default(void)
 
 void load_config_model_default(void)
 {
+#ifdef SERVER_ABBR_MRM
 	config.model.tempature_enable = 1;
 	strcpy(config.model.tempature_device, "/dev/ttyHSL2");
 	config.model.tempature_cycle = 180;
-
+#elif  defined(SERVER_ABBR_MRM0)
+	config.model.tempature_enable = 0;
+	strcpy(config.model.tempature_device, "/dev/ttyHSL2");
+	config.model.tempature_cycle = 180;
+#elif  defined(SERVER_ABBR_MRM1)
+	config.model.tempature_enable = 1;
+	strcpy(config.model.tempature_device, "/dev/ttyHSL2");
+	config.model.tempature_cycle = 180;
+#else
+	config.model.tempature_enable = 1;
+	strcpy(config.model.tempature_device, "/dev/ttyHSL2");
+	config.model.tempature_cycle = 180;
+#endif
 	config.model.dist_filter_enable = 1;
 	config.model.dist_filter_value = 50;
 	config.model.sat_filter_enable = 0;
@@ -323,6 +343,8 @@ void load_config_model_default(void)
 
 void load_config_user_default(void)
 {
+
+#ifdef SERVER_ABBR_MRM
 	strcpy(config.model.report_ip, "218.232.104.190");
 	config.model.report_port = 14100;
 
@@ -332,5 +354,38 @@ void load_config_user_default(void)
 	config.model.report_interval_keyoff = 60;
 
 	strcpy(config.model.model_name, "moram");
+#elif  defined(SERVER_ABBR_MRM0)
+	strcpy(config.model.report_ip, "218.232.104.186");
+	config.model.report_port = 14100;
+
+	config.model.collect_interval_keyon = 60;
+	config.model.collect_interval_keyoff = 60;
+	config.model.report_interval_keyon = 60;
+	config.model.report_interval_keyoff = 60;
+
+	strcpy(config.model.model_name, "moram0");
+
+#elif  defined(SERVER_ABBR_MRM1)
+	strcpy(config.model.report_ip, "218.232.104.186");
+	config.model.report_port = 14100;
+
+	config.model.collect_interval_keyon = 60;
+	config.model.collect_interval_keyoff = 60;
+	config.model.report_interval_keyon = 60;
+	config.model.report_interval_keyoff = 60;
+
+	strcpy(config.model.model_name, "moram1");
+#else
+	strcpy(config.model.report_ip, "218.232.104.190");
+	config.model.report_port = 14100;
+
+	config.model.collect_interval_keyon = 60;
+	config.model.collect_interval_keyoff = 60;
+	config.model.report_interval_keyon = 60;
+	config.model.report_interval_keyoff = 60;
+
+	strcpy(config.model.model_name, "moram");
+#endif
+	
 }
 
