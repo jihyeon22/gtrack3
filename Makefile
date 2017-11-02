@@ -138,6 +138,8 @@ else ifeq ($(SERVER),dsme)
 USE_GPS_MODEL=n
 USE_BUTTON_THREAD=y
 SERVER_ABBR := DSME
+else ifeq ($(SERVER),dsme-mdt)
+SERVER_ABBR	:=	DSMT
 else
 $(error SERVER is not registerd in Makefile, please input registred server)
 endif

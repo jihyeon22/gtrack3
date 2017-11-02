@@ -225,9 +225,9 @@ modem_input() {
 server_input() {
 	echo -e "Server Model = (skel, asn, cl-thermal, cl-mdt, cl-rfid, bizincar, nisso)"
 	echo -e "               (cs, etr, etrg, etrf, neognp, moram, moram0, moram1, alloc2, cip-rmc, gtnb-mdt, netio, uppp, gtrs, ds-thermal ...)"
-	echo -e "               (ktfms0, ktfms1...)"
+	echo -e "               (ktfms0, ktfms1, ...)"
 	echo -e "               (cl-rfid0, cl-rfid1, ...)"
-	echo -e "               (dsme, ...)"
+	echo -e "               (dsme, dsme-mdt, ...)"
 	echo -e "               (dtg-skel)"
 	echo -e "               ** (if sub model, sub model name have to input) **"
 	read SRVMODEL
@@ -339,6 +339,10 @@ server_input() {
 		dsme)
 			SRVMODEL="dsme"
 			SERVABBR="DSME"
+		;;
+		dsme-mdt)
+			SRVMODEL="dsmt"
+			SERVABBR="DSMT"
 		;;
 		*)
 			echo SERVER_MODEL $SRVMODEL invalid
