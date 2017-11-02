@@ -1,0 +1,10 @@
+[user]
+model_name=dsme
+date=171020
+report_ip=152.149.8.161
+report_port=58731
+control_ip=152.149.8.161
+control_port=58731
+report_interval=60
+board_rate=38400
+InV_T_collection_interval=60
