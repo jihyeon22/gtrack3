@@ -61,7 +61,7 @@ int req_obd_data_fake(obdData_t* p_obdData)
 	// speed  => size 4
 	// -------------------------------------------
 	{
-		p_obdData->car_speed = gpsdata.speed;
+		p_obdData->car_speed = gpsdata.speed * 1000;
 	}
 	
 	// -------------------------------------------
