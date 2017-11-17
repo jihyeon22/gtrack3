@@ -126,6 +126,8 @@ else ifeq ($(SERVER),netio)
 SERVER_ABBR	:=	NETI
 else ifeq ($(SERVER),ds-thermal)
 SERVER_ABBR	:=	DSTH
+else ifeq ($(SERVER),kt-thermal)
+SERVER_ABBR	:=	KTTH
 else ifeq ($(SERVER),uppp)
 #gps disable
 USE_GPS_MODEL=n 

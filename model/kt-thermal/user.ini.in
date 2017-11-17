@@ -1,0 +1,12 @@
+[user]
+model_name=kt-thermal
+date=170201
+report_ip=112.175.232.19
+report_port=5005
+collect_interval_keyon = 60
+report_interval_keyon = 60
+collect_interval_keyoff = 60
+report_interval_keyoff = 60
+button1 = 11
+button2 = 13
+packet_type = 81
