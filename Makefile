@@ -282,7 +282,7 @@ CFLAGS	+= -DPACKAGE_FILE=\"$(PACKAGE_FILE)\"
 CFLAGS	+= -DBOARD_$(BOARD)
 CFLAGS	+= -DCORP_ABBR_$(CORP_ABBR) -DSERVER_ABBR_$(SERVER_ABBR)
 CFLAGS  += -DUSE_NET_THREAD2
-LIBS	= -lpthread -liniparser -ljansson -lm -lrt -ldm -lcurl -lz -lat3  -llogd -g -rdynamic -lmdsapi
+LIBS	= -lpthread -liniparser -ljansson -lm -lrt -ldm -lcurl -lz -lat3  -llogd -g -rdynamic -lmdsapi -lssl -lcrypto
 
 
 CFLAGS  += -DMDS_FEATURE_USE_NMEA_UDP_IPC 
