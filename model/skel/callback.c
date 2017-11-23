@@ -105,3 +105,8 @@ void exit_main_loop(void)
 
 	flag_run_thread_main = 0;
 }
+
+void network_fail_emergency_reset_callback(void)
+{
+
+}

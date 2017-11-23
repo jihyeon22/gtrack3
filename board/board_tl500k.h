@@ -64,6 +64,8 @@
 	#define INSMODE_CMD					"/sbin/insmod"
 #endif
 
+#define NET_CONN_FAIL_CNT_PATH			CONCAT_STR(USER_DATA_DIR, "/gtrack_netfailcnt.dat")
+
 
 #define AT_LIB_TARGET_DEV   e_DEV_TL500_BASE
 

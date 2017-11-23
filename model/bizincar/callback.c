@@ -458,3 +458,7 @@ static int _process_poweroff(int now_poweroff_flag, char *log)
 	return 0;
 }
 
+void network_fail_emergency_reset_callback(void)
+{
+    _process_poweroff(1, "network_fail_reset");
+}

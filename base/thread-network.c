@@ -22,6 +22,11 @@
 #include <callback.h>
 
 #include <base/thread.h>
+#include <at/at_util.h>
+#include <mdsapi/mds_api.h>
+#include <board/modem-time.h>
+#include <util/poweroff.h>
+#include <callback.h>
 
 #if defined (BOARD_TL500K) && defined (KT_FOTA_ENABLE)
 #include <kt_fota.h>
@@ -50,7 +55,17 @@ static int flag_run_thread_network = 1;
 static int flag_run_thread_network2 = 1;
 static int warn_timeout_sec_thread_network = WARN_PIPE_ERROR_TIME;
 static time_t warn_timeout_prev_send_time = 0;
-static int max_network_fail_reset_cnt = MAX_NETWORK_FAIL_RESET_CNT;
+static int max_network_fail_reset_cnt = DEFAULT_NETWORK_FAIL_RESET_CNT_1;
+static int saved_network_fail_cnt = 0;
+static int first_network_conn_flag = 0;
+
+// network chk api..
+#define CHK_REGI_RET_OK     1
+#define CHK_REGI_RET_NOK    -1
+static int chk_network_regi(int chk_interval);
+static int get_net_conn_fail_cnt();
+static int set_net_conn_fail_cnt(int cnt);
+static int chk_runtime_network_chk();
 
 void *thread_network(void *args)
 {
@@ -68,9 +83,11 @@ void *thread_network(void *args)
 	load_ini_kt_fota_svc_info();
 #endif
 
+    saved_network_fail_cnt = get_net_conn_fail_cnt();
+
 	while(flag_run_thread_network)
 	{
-		if(nettool_get_state() == DEFINES_MDS_OK)
+		if ( ( nettool_get_state() == DEFINES_MDS_OK ) && ( chk_network_regi(1) == CHK_REGI_RET_OK ) )
 		{
 			// 바로 시도하니까 네트워크가 안된다.
 			sleep(2);
@@ -99,26 +116,48 @@ void *thread_network(void *args)
 #if defined (BOARD_TL500S) && defined (USE_TL500S_FOTA)
 			tl500s_fota_proc();
 #endif
+            if ( saved_network_fail_cnt > 0 )
+            {
+                 devel_webdm_send_log("network fail reboot cnt : %d ", saved_network_fail_cnt);
+                 set_net_conn_fail_cnt(0);
+                 saved_network_fail_cnt = 0;
+            }
+            
 			network_on_callback();
 			break;
 		}
 		else
 		{
-			network_fail_cnt++;
-			LOGE(LOG_TARGET, "NETWORK CHK FAIL [%d][%d]\n",network_fail_cnt, max_network_fail_reset_cnt);
-			if ( (max_network_fail_reset_cnt > 0) && (network_fail_cnt > max_network_fail_reset_cnt) )
-			{
-				// TODO: something to do...
-				poweroff(NULL,0);
-			}
+            network_fail_cnt++;
+
+            if ( max_network_fail_reset_cnt > 0 ) 
+            {
+                LOGE(LOG_TARGET, "NETWORK CHK FAIL [%d][%d] -> SAVED FAIL CNT [%d]\n",network_fail_cnt, max_network_fail_reset_cnt, saved_network_fail_cnt);
+                // 8번까지는 네트워크 안되면 빠르게 재부팅한다.
+                if ( saved_network_fail_cnt < 8 )
+                {
+                    LOGE(LOG_TARGET, "   =>  network fail case 1 : SAVED FAIL CNT [%d]\n",saved_network_fail_cnt);
+                    max_network_fail_reset_cnt = DEFAULT_NETWORK_FAIL_RESET_CNT_2;
+                }
+
+                if ( network_fail_cnt > max_network_fail_reset_cnt )
+                {
+                    saved_network_fail_cnt += 1;
+                    set_net_conn_fail_cnt(saved_network_fail_cnt);
+                    network_fail_emergency_reset_callback();
+                    poweroff(NULL,0);
+                }
+            }
+
 		}
 		LOGT(LOG_TARGET, "Waiting for available network.\n");
 		sleep(1);
 	}
 
-	warn_timeout_prev_send_time = tools_get_kerneltime();
-
-	// btn thread 와 sync 로 인해 못보냈다면 다시 보내도록.
+    warn_timeout_prev_send_time = tools_get_kerneltime();
+    
+    // first network connect
+    first_network_conn_flag = 1;
 
 	while(flag_run_thread_network) {
 		int nfds = 0;
@@ -132,7 +171,9 @@ void *thread_network(void *args)
 #endif
 
 		watchdog_set_cur_ktime(eWdNet1);
-		watchdog_process();
+        watchdog_process();
+        
+        chk_runtime_network_chk();
 
 		wd_dbg[eWdNet1] = 1;
 		dmmgr_alive_send();
@@ -292,3 +333,135 @@ void set_max_network_fail_reset_cnt(int cnt)
 	max_network_fail_reset_cnt = cnt;
 }
 
+
+int get_net_conn_fail_cnt()
+{
+    char read_buff[128] = {0,};
+    int read_cnt = 0;
+
+    int ret_val = 0;
+
+    read_cnt = mds_api_read_data(NET_CONN_FAIL_CNT_PATH, (void*)read_buff, sizeof(read_buff));
+    if ( read_cnt > 0 )
+        ret_val = atoi(read_buff);
+
+    LOGT(eSVC_COMMON,"get regi fail cnt [%d]\r\n", ret_val);
+
+    return ret_val;
+}
+
+int set_net_conn_fail_cnt(int cnt)
+{
+    char write_buff[128] = {0,};
+    int write_cnt = 0;
+
+    write_cnt = sprintf(write_buff,"%d", cnt);
+
+    mds_api_write_data(NET_CONN_FAIL_CNT_PATH, (void*)write_buff, write_cnt, 0);
+
+    LOGT(eSVC_COMMON,"set regi fail cnt [%d]\r\n", cnt);
+
+    return cnt;
+}
+
+int chk_network_regi(int chk_interval)
+{
+    AT_RET_NET_STAT netstat = 0;
+    int ret_val = CHK_REGI_RET_NOK;
+    static int run_cnt = 0;
+
+    // 너무 자주하면, 문제생길까 싶다.
+    if (( run_cnt++ % chk_interval ) != 0)
+    {
+        LOGT(eSVC_COMMON,"wait_regi_init() : skip [%d][%d]\r\n", run_cnt, chk_interval);
+        return CHK_REGI_RET_OK;
+    }
+
+    if ( at_get_netstat(&netstat) != AT_RET_SUCCESS )
+    {
+        LOGE(eSVC_COMMON, "wait_regi_init() : at_get_netstat err \n");
+        ret_val = CHK_REGI_RET_NOK;
+    }
+
+    if ( netstat == AT_RET_NET_REGI_SUCCESS)
+    {
+        LOGT(eSVC_COMMON,"wait_regi_init() : netstat is OK\r\n");
+        ret_val = CHK_REGI_RET_OK;
+    }
+    else
+    {
+        LOGE(eSVC_COMMON,"wait_regi_init() : netstat is not OK\r\n");
+        ret_val = CHK_REGI_RET_NOK;
+    }
+
+    return ret_val;
+
+}
+
+int chk_runtime_network_chk()
+{
+    static int network_fail_cnt = 0;
+
+    static time_t last_cycle = 0;
+    time_t cur_time = 0;
+
+    int fail_reset_count = DEFAULT_NETWORK_FAIL_RESET_CNT_3;
+
+    // 런타임 체크루틴이기 때문에... 네트워크 접속할때까지 ...기다림
+    if ( first_network_conn_flag == 0 )
+    {
+        network_fail_cnt = 0;
+        LOGE(LOG_TARGET, "RUNTIME NETCHK : WAIT FOR FIRST NETWORK CONN \n");
+        return 0;
+    }
+
+    // 30 sec interval network chk
+    // 네트워크 쓰레드의 경우 불리는 주기가 불규칙, 때문에 시간계산하여 30초마다 한번씩 불리도록
+    {
+        cur_time = get_modem_time_utc_sec();
+        if(cur_time == 0)
+        {
+            return 0;
+        }
+
+        if(last_cycle == 0)
+        {
+            last_cycle = cur_time;
+            return 0;
+        }
+
+        // 네트워크 timeout 값이 30 이기 때문에 25로 넉넉히 설정
+        if(cur_time - last_cycle < 25)
+        {
+            last_cycle = cur_time;
+            return 0;
+        }
+    }
+
+    // network chk...
+    if ( ( nettool_get_state() == DEFINES_MDS_OK ) && ( chk_network_regi(1) == 1 ) )
+    {
+        network_fail_cnt = 0;
+        LOGI(LOG_TARGET, "RUNTIME NETCHK : NETWORK CONN OK\n");
+        return 0;
+    }
+
+    // network stat invalid
+    network_fail_cnt++;
+    LOGE(LOG_TARGET, "RUNTIME NETCHK : NETWORK CONN NOK\n");
+
+    if ( max_network_fail_reset_cnt > 0 ) 
+    {
+        LOGE(LOG_TARGET, "RUNTIME NETCHK : [%d][%d] -> SAVED FAIL CNT [%d]\n",network_fail_cnt, fail_reset_count, saved_network_fail_cnt);
+
+        if ( network_fail_cnt >= fail_reset_count )
+        {
+            saved_network_fail_cnt += 1;
+            set_net_conn_fail_cnt(saved_network_fail_cnt);
+            network_fail_emergency_reset_callback();
+            poweroff(NULL,0);
+        }
+    }
+
+    return 0;
+}

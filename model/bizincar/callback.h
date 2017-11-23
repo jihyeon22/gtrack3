@@ -15,6 +15,7 @@ void gps_parse_one_context_callback(void);
 void main_loop_callback(void);
 void terminate_app_callback(void);
 void exit_main_loop();
+void network_fail_emergency_reset_callback(void);
 
 extern transferSetting_t gSetting_report;
 extern transferSetting_t gSetting_request;
