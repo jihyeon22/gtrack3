@@ -446,7 +446,13 @@ int main(int argc, char** argv)
 		error_critical(eERROR_EXIT, "battery_init_adc Error");
 	}
 
-	init_model_callback();
+    init_model_callback();
+    // kksworks : force setting for iot KT cert.
+#ifdef KT_FOTA_TEST_SVR
+	thread_network_set_warn_timeout(0); // waring msg disable..
+    set_auto_ota_tl500(0); // auto ota disable.
+    set_max_network_fail_reset_cnt(0); // network invalid chk disable..
+#endif
 
 	stackdump_abort_base_callback = _deinit_essential_functions;
 
