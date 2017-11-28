@@ -34,7 +34,9 @@ static SMS_CMD_FUNC_T sms_cmd_func[] =
 {
 	{eSMS_CMD_GET__DEVICE_INFO, "&0G", _sms_cmd_proc_get_dev_info},
 	{eSMS_CMD_SET__DEVICE_CLR_REDOWN, "&CLR0", _sms_cmd_proc_clear_redown_rfid},
+    {eSMS_CMD_SET__DEVICE_CLR_REDOWN_1, "&C0", _sms_cmd_proc_clear_redown_rfid},
 	{eSMS_CMD_SET__DEVICE_CLR, "&CLR1", _sms_cmd_proc_clear},
+    {eSMS_CMD_SET__DEVICE_CLR_1, "&C1", _sms_cmd_proc_clear},
 	{eSMS_CMD_SET__DEVICE_RESET, "&RST", _sms_cmd_proc_device_reset},
 	{eSMS_CMD_GET__RFID_FW_VER, "&RFVER", _sms_cmd_proc_rfid_fw_ver},
 	{eSMS_CMD_SET__RFID_FW_DOWNLOAD, "&RFDN", _sms_cmd_proc_rfid_fw_down},
