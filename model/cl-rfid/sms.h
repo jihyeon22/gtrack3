@@ -3,12 +3,6 @@
 
 int parse_model_sms(char *time, char *phonenum, char *sms);
 
-#define SMS_CMD_GET__DEVICE_INFO		    "&0G"
-#define SMS_CMD_SET__DEVICE_CLR_REDOWN		"&CLR"
-#define SMS_CMD_SET__DEVICE_RESET		    "&RST"
-#define SMS_CMD_GET__RFID_FW_VER	        "&RFVER"
-#define SMS_CMD_SET__RFID_FW_DOWNLOAD       "&RFDN"
-
 
 #define SMS_CMD_PWD				"cl2k"
 
@@ -16,7 +10,9 @@ typedef enum
 {
 	eSMS_CMD_GET__DEVICE_INFO,
     eSMS_CMD_SET__DEVICE_CLR_REDOWN,
+    eSMS_CMD_SET__DEVICE_CLR_REDOWN_1,
     eSMS_CMD_SET__DEVICE_CLR,
+    eSMS_CMD_SET__DEVICE_CLR_1,
     eSMS_CMD_SET__DEVICE_RESET,
     eSMS_CMD_GET__RFID_FW_VER,
     eSMS_CMD_SET__RFID_FW_DOWNLOAD,

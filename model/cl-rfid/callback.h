@@ -21,5 +21,7 @@ void avg_speed_add_data(int speed);
 void avg_speed_clear(void);
 int avg_speed_get(void);
 
+void network_fail_emergency_reset_callback(void);
+
 #endif
 

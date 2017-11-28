@@ -799,3 +799,8 @@ static int _process_poweroff(char * log)
 
 	return 0;
 }
+
+void network_fail_emergency_reset_callback(void)
+{
+    _process_poweroff("network chk fail");
+}

@@ -99,6 +99,9 @@ int mds_api_remove_etc_char(const char *s, char* target, int target_len)
 {
 	int cnt = 0;
 
+    if ( s == NULL ) 
+        return -1;
+
 	while (*s)
 	{
 		//printf("strlen [%c]\r\n" ,*s);
@@ -213,14 +216,17 @@ static void _kjtec_rfid_cmd_proc(char* buff, int buff_len)
             // 대체 스펙서대로 되어있는게 한개도 없다. 어휴
             char* tmp_str_p_2 = strstr(tmp_str2,"[");
             static int fail_cnt = 0;
+            int get_data_len = 0;
             //printf("rfid read fail cnt [%d]\r\n", fail_cnt);
             //printf("rfid read fail cnt [%d]\r\n", fail_cnt);
             //printf("rfid read fail cnt [%d]\r\n", fail_cnt);
 
-            mds_api_remove_etc_char(tmp_str_p_2, tmp_str3, RIFD_READ_BUFF_SIZE);
+            if ( tmp_str_p_2 != NULL )
+                get_data_len = mds_api_remove_etc_char(tmp_str_p_2, tmp_str3, RIFD_READ_BUFF_SIZE);
 
             //sleep(1);
-            if ( _parse_cmd__get_passenger_data(tmp_str3) == KJTEC_RFID_RET_SUCCESS )
+            
+            if ( ( get_data_len > 0 ) && ( _parse_cmd__get_passenger_data(tmp_str3) == KJTEC_RFID_RET_SUCCESS ) )
             {
                 //usleep(10000);
                 kjtec_rfid__dev_rfid_req_clr();
@@ -234,6 +240,7 @@ static void _kjtec_rfid_cmd_proc(char* buff, int buff_len)
                 devel_webdm_send_log("parse fail [%s]", tmp_str2);                
                 kjtec_rfid__dev_rfid_req_clr();
             }
+            
 
             break;
         }
