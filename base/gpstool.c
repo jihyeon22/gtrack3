@@ -292,6 +292,22 @@ float _gps_parse_dop(char* buf, float *dop)
 	return GPS_PARSE_TRUE;
 }
 
+float _gps_parse_altitude(char* buf, float *altitude)
+{
+	*altitude = 0;
+	if(buf == NULL) {
+		return GPS_PARSE_FALSE;
+	}
+
+	if(strlen(buf) < 1) {
+		return GPS_PARSE_FALSE;
+	}
+
+	*altitude = atof(buf);
+	return GPS_PARSE_TRUE;
+}
+
+
 int _gps_parse_latitude(char * buf, float * pf)
 {
 	*pf = 0;
@@ -446,6 +462,7 @@ void gps_parse(char* buff, int size)
 	int cur_speed = 0;
 	float cur_angle = 0;
 	float cur_hdop = 0;
+	float cur_altitude = 0;
 
 	char tempbuf[32] = {};
 	gpsData_t tmp_gps_data;
@@ -610,7 +627,14 @@ void gps_parse(char* buff, int size)
 						break;
 					}
 					case  9 : // MSL Altitude, meters
+					{
+						float altitude;
+						if(_gps_parse_altitude(tempbuf, &altitude) == GPS_PARSE_TRUE)
+						{
+							cur_altitude = altitude;
+						}
 						break;
+					}
 					case 10 : // Units, 'M', meters
 						break;
 					case 11 : // Geoidal Separation, meters
@@ -877,6 +901,7 @@ void gps_parse(char* buff, int size)
 		tmp_gps_data.angle = cur_angle;
 		
 		tmp_gps_data.hdop = cur_hdop;
+		tmp_gps_data.altitude = cur_altitude;
 
 		count_utc_refresh = 0;
 	}

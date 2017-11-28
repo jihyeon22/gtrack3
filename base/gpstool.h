@@ -37,6 +37,7 @@ struct gpsData {
 	float angle;
 	time_t utc_sec;
 	float hdop;
+	float altitude;  // meter.. new filed (170913)
 };
 
 void gps_on(int type);
