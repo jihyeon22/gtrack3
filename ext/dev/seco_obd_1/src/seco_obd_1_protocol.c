@@ -14,12 +14,15 @@
 
 #include <logd_rpc.h>
 #include <mdsapi/mds_api.h>
+#include <base/devel.h>
 
 #include "seco_obd_1.h"
 #include "seco_obd_1_mgr.h"
 #include "seco_obd_1_protocol.h"
 #include "seco_obd_1_util.h"
 
+//#define DEBUG_MSG_OBD_CMD_TA1
+//#define DEBUG_MSG_OBD_CMD_TA2
 
 int _seco_obd_uart_chk()
 {
@@ -40,7 +43,7 @@ int _seco_obd_uart_chk()
     return OBD_RET_SUCCESS;
 }
 
-int _seco_obd_1_device_argument(char* buff, int buff_len, char* argv[])
+int _seco_obd_1_devide_argument(char* buff, int buff_len, char* argv[])
 {
     unsigned char ret_buff[MAX_RET_BUFF_SIZE] = {0,};
     
@@ -171,7 +174,10 @@ static int _convert_obd_data_num(const char* data, const char offset_type, const
     }
     else if ( offset_type == '/' )
     {
-        tmp_float_data = tmp_float_data / tmp_float_offset;
+        if ( tmp_float_offset > 0 )
+            tmp_float_data = tmp_float_data / tmp_float_offset;
+        else
+            devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
     }
 
     tmp_float_data = tmp_float_data + offset_0_5;
@@ -214,7 +220,7 @@ int get_seco_obd_1_ver(char* buff)
         LOGE(eSVC_MODEL,"[OBD API] %s()-[%d] send cmd fail [%d]\r\n",__func__,__LINE__,read_cnt);
         return OBD_RET_FAIL;
     }    
-    argc = _seco_obd_1_device_argument(ret_buff, read_cnt, argv);
+    argc = _seco_obd_1_devide_argument(ret_buff, read_cnt, argv);
     
     if ( argc <= 0 )
     {
@@ -263,7 +269,7 @@ int get_seco_obd_1_fueltype(char* buff)
         LOGE(eSVC_MODEL,"[OBD API] %s()-[%d] send cmd fail [%d]\r\n",__func__,__LINE__,read_cnt);
         return OBD_RET_FAIL;
     }    
-    argc = _seco_obd_1_device_argument(ret_buff, read_cnt, argv);
+    argc = _seco_obd_1_devide_argument(ret_buff, read_cnt, argv);
     
     if ( argc <= 0 )
     {
@@ -323,7 +329,7 @@ int get_seco_obd_1_serial(char* buff)
         return OBD_RET_FAIL;
     }
 
-    argc = _seco_obd_1_device_argument(ret_buff, read_cnt, argv);
+    argc = _seco_obd_1_devide_argument(ret_buff, read_cnt, argv);
     
     if ( argc <= 0 )
     {
@@ -372,7 +378,7 @@ int set_seco_obd_1_total_distance(int total_distance)
         return OBD_RET_FAIL;
     }
 
-    argc = _seco_obd_1_device_argument(ret_buff, read_cnt, argv);
+    argc = _seco_obd_1_devide_argument(ret_buff, read_cnt, argv);
     
     if ( argc <= 0 )
     {
@@ -423,7 +429,7 @@ int start_seco_obd_1_broadcast_msg(int interval_sec, char* factor_list)
         return OBD_RET_FAIL;
     }
 
-    argc = _seco_obd_1_device_argument(ret_buff, read_cnt, argv);
+    argc = _seco_obd_1_devide_argument(ret_buff, read_cnt, argv);
     
     if ( argc <= 0 )
     {
@@ -454,7 +460,7 @@ int start_seco_obd_1_broadcast_msg(int interval_sec, char* factor_list)
         return OBD_RET_FAIL;
     }
     
-    argc = _seco_obd_1_device_argument(ret_buff, read_cnt, argv);
+    argc = _seco_obd_1_devide_argument(ret_buff, read_cnt, argv);
     
     if ( argc <= 0 )
     {
@@ -508,13 +514,13 @@ int stop_seco_obd_1_broadcast_msg()
     sprintf(cmd_data, "0");
     read_cnt = seco_obd_1_write_cmd_resp("OBD+SBR+", "BRP", eCMD_TYPE_INPUT_VALUE, cmd_data, ret_buff, &error_code);
 
-    if ( read_cnt < 0 )
+    if ( read_cnt <= 0 )
     {
         LOGE(eSVC_MODEL,"[OBD API] %s()-[%d] send cmd fail [%d]\r\n",__func__,__LINE__,read_cnt);
         return OBD_RET_FAIL;
     }
     
-    argc = _seco_obd_1_device_argument(ret_buff, read_cnt, argv);
+    argc = _seco_obd_1_devide_argument(ret_buff, read_cnt, argv);
     
     if ( argc <= 0 )
     {
@@ -543,20 +549,11 @@ int stop_seco_obd_1_broadcast_msg()
 
 
 
-
-
-
-
-
-
-
-
-#if 0
 static unsigned int _convert_DTC_result(char* dtc_str, int str_len)
 {
     // 1-F_P0001
     char tmp_char[4] = {0,};
-    char buff[4] = {0,};
+//    char buff[4] = {0,};
     
     unsigned int result_number = 0; // 4byte
     unsigned int shift_bit_size = 0;
@@ -654,16 +651,293 @@ static unsigned int _convert_DTC_result(char* dtc_str, int str_len)
 
     return result_number;
 }
-#endif
 
 
+typedef struct seco_cmd_ta1_debug_msg_str
+{
+    int idx;
+    char* str;
+}__attribute__((packed))SECO_CMD_TA1_DEBUG_MSG_STR_T;
+
+SECO_CMD_TA1_DEBUG_MSG_STR_T ta1_debug_str[] =
+{
+    {eOBD_CMD_SRR_TA1_CLV , "Calculated LOAD Value"},
+    {eOBD_CMD_SRR_TA1_MAP , "Intake Manifold absolute pressure"},
+    {eOBD_CMD_SRR_TA1_RPM , "Engine RPM"},
+    {eOBD_CMD_SRR_TA1_SPD , "Vehicle Speed Sensor"},
+	{eOBD_CMD_SRR_TA1_MAF , "Air Flow Rate from Mass Air Flow Sensor"},
+	{eOBD_CMD_SRR_TA1_TPA , "Absoulte Throttle Position"},
+	{eOBD_CMD_SRR_TA1_BS1 , "Lambda"},
+    {eOBD_CMD_SRR_TA1_BAV , "Control module voltage"},
+    {eOBD_CMD_SRR_TA1_APD , "Accelerator Pedal Position"},
+    {eOBD_CMD_SRR_TA1_EFR , "Engine Fuel Rate"},
+    {eOBD_CMD_SRR_TA1_EAT , "Actual Engine"},
+    {eOBD_CMD_SRR_TA1_CED , "Commanded EGR"},
+    {eOBD_CMD_SRR_TA1_AED , "Actual EGR Duty"},
+    {eOBD_CMD_SRR_TA1_EFT , "Engine Friction"},
+    {eOBD_CMD_SRR_TA1_COT , "Engine Coolant Temperature"},
+    {eOBD_CMD_SRR_TA1_ATS , "Intake Air Temperature"},
+    {eOBD_CMD_SRR_TA1_TB1 , "Catalyst Temperature  bank 1"},
+    {eOBD_CMD_SRR_TA1_EGR , "Commanded EGR"},
+    {eOBD_CMD_SRR_TA1_EGE , "Commanded EGR error"},
+    {eOBD_CMD_SRR_TA1_EST , "Time Since Engine Start"},
+    {eOBD_CMD_SRR_TA1_BRO , "Barometic Pressure"},
+    {eOBD_CMD_SRR_TA1_ABT , "Ambient air Temperature"}
+};
 
 
-#if 0
-int get_obd_total_distance()
+int get_seco_obd_cmd_ta1(SECO_CMD_DATA_SRR_TA1_T* p_ta1_buff)
+{   
+    char ret_buff[MAX_RET_BUFF_SIZE] = {0,};
+	int error_code = 0;
+    int read_cnt = 0;
+    
+    int i =0;
+    char* argv[30] = {0,};
+    int argc = 0;
+    // common obd check ...
+    {
+        int obdchk_ret = 0;
+        obdchk_ret = _seco_obd_uart_chk();
+        if (obdchk_ret != OBD_RET_SUCCESS)
+            return obdchk_ret;
+    }
+    
+    if ( p_ta1_buff == NULL )
+        return OBD_RET_FAIL;
+
+    read_cnt = seco_obd_1_write_cmd_resp("OBD+SRR+", "TA1", eCMD_TYPE_GET_VALUE, NULL, ret_buff, &error_code);
+    printf("obd cmd return : [%s] / [%d]\r\n", ret_buff, read_cnt);
+    
+    if ( read_cnt <= 0 )
+    {
+        //devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+        return 0;
+    }
+
+    argc = _seco_obd_1_devide_argument(ret_buff, read_cnt, argv);
+    
+    if (( argc != eOBD_CMD_SRR_TA1_MAX_CNT ) || ( argc != OBD_CMD_SRR_TA1_MAX_CNT ))
+    {
+        printf("get cmd ta1 is invalid  : [%d]/[%d] \r\n", argc, eOBD_CMD_SRR_TA1_MAX_CNT );
+        return OBD_CMD_RET_CMD_CNT_ERR;
+    }
+
+    for( i = 0 ; i < argc ; i++)
+    {
+        int convert_num_data = 0 ;
+        
+        #ifdef DEBUG_MSG_OBD_CMD_TA1
+        printf("-----------------------------------------------------------------\r\n");
+        printf("cmd ta1 [%s]  => [%s] \r\n", ta1_debug_str[i].str, argv[i] );
+        #endif
+
+        if ( i == eOBD_CMD_SRR_TA1_CLV ) {
+            convert_num_data = _convert_obd_data_num(argv[i], '*', "2.55");
+        }
+        //else if ( i == eOBD_CMD_SRR_TA1_MAP) {
+        //}
+        else if ( i == eOBD_CMD_SRR_TA1_RPM) {
+            convert_num_data = _convert_obd_data_num(argv[i], '*', "4");
+        }
+        //else if ( i == eOBD_CMD_SRR_TA1_SPD) {
+        //}
+        else if ( i == eOBD_CMD_SRR_TA1_MAF) {
+            convert_num_data = _convert_obd_data_num(argv[i], '*', "0.01");
+        }
+        else if ( i == eOBD_CMD_SRR_TA1_TPA) {
+            convert_num_data = _convert_obd_data_num(argv[i], '*', "2.55");
+        }
+        else if ( i == eOBD_CMD_SRR_TA1_BS1) {
+            convert_num_data = _convert_obd_data_num(argv[i], '*', "32767.5");
+        }
+        else if ( i == eOBD_CMD_SRR_TA1_BAV) {
+            convert_num_data = _convert_obd_data_num(argv[i], '*', "1000");
+        }
+        else if ( i == eOBD_CMD_SRR_TA1_APD) {
+            convert_num_data = _convert_obd_data_num(argv[i], '*', "2.55");
+        }
+        else if ( i == eOBD_CMD_SRR_TA1_EFR) {
+            convert_num_data = _convert_obd_data_num(argv[i], '*', "20");
+        }
+        else if ( i == eOBD_CMD_SRR_TA1_EAT) {
+            convert_num_data = _convert_obd_data_num(argv[i], '+', "125");
+        }
+        else if ( i == eOBD_CMD_SRR_TA1_CED) {
+            convert_num_data = _convert_obd_data_num(argv[i], '*', "2.55");
+        }
+        else if ( i == eOBD_CMD_SRR_TA1_AED) {
+            convert_num_data = _convert_obd_data_num(argv[i], '*', "2.55");
+        }
+        else if ( i == eOBD_CMD_SRR_TA1_EFT) {
+            convert_num_data = _convert_obd_data_num(argv[i], '+', "125");
+        }
+        else if ( i == eOBD_CMD_SRR_TA1_COT) {
+            convert_num_data = _convert_obd_data_num(argv[i], '/', "100");
+            convert_num_data += 40;
+        }
+        else if ( i == eOBD_CMD_SRR_TA1_ATS) {
+            convert_num_data = _convert_obd_data_num(argv[i], '/', "100");
+            convert_num_data += 40;
+        }
+        else if ( i == eOBD_CMD_SRR_TA1_TB1) {
+            convert_num_data = _convert_obd_data_num(argv[i], '+', "40");
+            convert_num_data *= 10;
+        }
+        //else if ( i == eOBD_CMD_SRR_TA1_EST) {
+        //}
+        else if ( i == eOBD_CMD_SRR_TA1_BRO) {
+            convert_num_data = _convert_obd_data_num(argv[i], '/', "100");
+        }
+        else if ( i == eOBD_CMD_SRR_TA1_ABT) {
+            convert_num_data = _convert_obd_data_num(argv[i], '/', "100");
+            convert_num_data += 40;
+        }
+        else if ( i == eOBD_CMD_SRR_TA1_EGR) {
+            convert_num_data = _convert_obd_data_num(argv[i], '*', "2.55");
+        }
+        else if ( i == eOBD_CMD_SRR_TA1_EGE) {
+            convert_num_data = _convert_obd_data_num(argv[i], '*', "2.55");
+        }
+        else {
+            convert_num_data = _convert_obd_data_num(argv[i], ' ', NULL);
+        }
+
+        
+
+        p_ta1_buff->obd_data[i].idx = i;
+
+        if ( convert_num_data >= 0)
+        {
+            //printf(" >> return data case1 :: [%d] \r\n", convert_num_data);
+            p_ta1_buff->obd_data[i].data = convert_num_data;
+        }
+        else
+        {
+            //printf(" >> return data case2 :: [%d] \r\n", convert_num_data);
+            p_ta1_buff->obd_data[i].data = 0xffffffff;
+        }
+    }
+
+    return OBD_RET_SUCCESS;
+}
+
+// #define DEBUG_MSG_OBD_CMD_TA2
+int get_seco_obd_cmd_ta2(SECO_CMD_DATA_SRR_TA2_T* p_ta2_buff)
+{   
+    char ret_buff[MAX_RET_BUFF_SIZE] = {0,};
+	int error_code = 0;
+    int read_cnt = 0;
+    
+    int i =0;
+    char* argv[30] = {0,};
+    int argc = 0;
+    // common obd check ...
+    {
+        int obdchk_ret = 0;
+        obdchk_ret = _seco_obd_uart_chk();
+        if (obdchk_ret != OBD_RET_SUCCESS)
+            return OBD_RET_FAIL;
+    }
+    
+    if ( p_ta2_buff == NULL )
+        return OBD_RET_FAIL;
+
+    read_cnt = seco_obd_1_write_cmd_resp("OBD+SRR+", "TA2", eCMD_TYPE_GET_VALUE, NULL, ret_buff, &error_code);
+    //printf("obd serial return : [%s] / [%d]\r\n", ret_buff, read_cnt);
+    if ( read_cnt <= 0 )
+    {
+        //devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+        return 0;
+    }
+
+    argc = _seco_obd_1_devide_argument(ret_buff, read_cnt, argv);
+    
+    
+    if  ( ( argc != eOBD_CMD_SRR_TA2_MAX_CNT ) || ( argc != OBD_CMD_SRR_TA2_MAX_CNT ))
+    {
+        printf("get cmd ta2 is invalid  : [%d]/[%d] \r\n", argc, eOBD_CMD_SRR_TA2_MAX_CNT );
+        return OBD_CMD_RET_CMD_CNT_ERR;
+    }
+
+    for( i = 0 ; i < argc ; i++)
+    {
+        int convert_num_data = 0 ;
+        // test code ...
+        // p_ta2_buff->obd_data[i].data = _convert_DTC_result("1-F_B011F", strlen("1-F_P0001"));
+        // printf("dtc result signed int val [0x%08x]\r\n", p_ta2_buff->obd_data[i].data );
+        
+        convert_num_data = _convert_obd_data_num(argv[i], ' ' , NULL);
+        
+        
+        p_ta2_buff->obd_data[i].idx = i;
+        p_ta2_buff->obd_data[i].data = 0xffffffff;
+
+        if ( convert_num_data >= 0)
+        {
+            //printf(" >> return data case1 :: [%d] \r\n", convert_num_data);
+            // 
+            if ( i == eOBD_CMD_SRR_TA2_DTC )
+            {
+                p_ta2_buff->obd_data[i].data = 0; 
+                p_ta2_buff->obd_data[i].data = _convert_DTC_result(argv[i], strlen(argv[i]));
+            }
+            else
+                p_ta2_buff->obd_data[i].data = convert_num_data;
+        }
+
+    }
+
+    return OBD_RET_SUCCESS;
+}
+
+
+int set_obd_auto_poweroff_sec(int sec)
 {
 // OBD+SRR+TDD=38419278
-    unsigned char ret_buff[MAX_RET_BUFF_SIZE] = {0,};
+    char ret_buff[MAX_RET_BUFF_SIZE] = {0,};
+    char cmd_buff[MAX_RET_BUFF_SIZE] = {0,};
+
+	int error_code = 0;
+    int read_cnt = 0;
+    
+//    int total_fuel_usage = 0;
+
+    int i =0;
+    char* argv[20] = {0,};
+    int argc = 0;
+    // common obd check ...
+    {
+        int obdchk_ret = 0;
+        obdchk_ret = _seco_obd_uart_chk();
+        if (obdchk_ret != OBD_RET_SUCCESS)
+            return obdchk_ret;
+    }
+    
+    sprintf(cmd_buff,"ENB,25000,%d", sec);
+    read_cnt = seco_obd_1_write_cmd_resp("OBD+INF+", "PWR", eCMD_TYPE_INPUT_VALUE, cmd_buff, ret_buff, &error_code);
+
+    if ( read_cnt <= 0 )
+        return 0;
+
+    argc = _seco_obd_1_devide_argument(ret_buff, read_cnt, argv);
+    
+    for( i = 0 ; i < argc ; i++)
+    {
+        printf("devide value : [%d]/[%d] => [%s]\r\n", i, argc, argv[i]);
+    }
+
+    return 0;
+
+    // printf("obd total distance :: [%d]\r\n"
+}
+
+
+
+static int _get_obd_total_distance()
+{
+// OBD+SRR+TDD=38419278
+    char ret_buff[MAX_RET_BUFF_SIZE] = {0,};
 	int error_code = 0;
     int read_cnt = 0;
     
@@ -681,7 +955,14 @@ int get_obd_total_distance()
     }
     
     read_cnt = seco_obd_1_write_cmd_resp("OBD+SRR+", "TDD", eCMD_TYPE_GET_VALUE, NULL, ret_buff, &error_code);
-    argc = _seco_obd_1_device_argument(ret_buff, read_cnt, argv);
+
+    if ( read_cnt <= 0 )
+    {
+        devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+        return 0;
+    }
+
+    argc = _seco_obd_1_devide_argument(ret_buff, read_cnt, argv);
     
     for( i = 0 ; i < argc ; i++)
     {
@@ -696,13 +977,30 @@ int get_obd_total_distance()
 
     // printf("obd total distance :: [%d]\r\n"
 }
-#endif
 
-#if 0
-int get_obd_total_fuel_usage()
+
+int get_obd_total_distance()
+{
+    int ret_val = 0;
+    int max_retry = MAX_RETRY_GET_TRIP_DATA_FACTOR;
+   
+    while(max_retry--)
+    {
+         ret_val = _get_obd_total_distance();
+         if ( ret_val > 0 )
+            break;
+        usleep(500);
+    }
+
+    return ret_val;
+}
+
+
+
+static int _get_obd_total_fuel_usage()
 {
 // OBD+SRR+TDD=38419278
-    unsigned char ret_buff[MAX_RET_BUFF_SIZE] = {0,};
+    char ret_buff[MAX_RET_BUFF_SIZE] = {0,};
 	int error_code = 0;
     int read_cnt = 0;
     
@@ -720,7 +1018,14 @@ int get_obd_total_fuel_usage()
     }
     
     read_cnt = seco_obd_1_write_cmd_resp("OBD+SRR+", "FCT", eCMD_TYPE_GET_VALUE, NULL, ret_buff, &error_code);
-    argc = _seco_obd_1_device_argument(ret_buff, read_cnt, argv);
+
+    if ( read_cnt <= 0 )
+    {
+        devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+        return 0;
+    }
+
+    argc = _seco_obd_1_devide_argument(ret_buff, read_cnt, argv);
     
     for( i = 0 ; i < argc ; i++)
     {
@@ -735,43 +1040,27 @@ int get_obd_total_fuel_usage()
 
     // printf("obd total distance :: [%d]\r\n"
 }
-#endif
 
-#if 0
-int set_obd_auto_off_set(int sec)
+int get_obd_total_fuel_usage()
 {
-// OBD+SRR+TDD=38419278
-    unsigned char ret_buff[MAX_RET_BUFF_SIZE] = {0,};
-    unsigned char cmd_buff[MAX_RET_BUFF_SIZE] = {0,};
-
-	int error_code = 0;
-    int read_cnt = 0;
-    
-    int total_fuel_usage = 0;
-
-    int i =0;
-    char* argv[20] = {0,};
-    int argc = 0;
-    // common obd check ...
+    int ret_val = 0;
+    int max_retry = MAX_RETRY_GET_TRIP_DATA_FACTOR;
+   
+    while(max_retry--)
     {
-        int obdchk_ret = 0;
-        obdchk_ret = _seco_obd_uart_chk();
-        if (obdchk_ret != OBD_RET_SUCCESS)
-            return obdchk_ret;
-    }
-    
-    sprintf(cmd_buff,"ENB,25000,%d", sec);
-    read_cnt = seco_obd_1_write_cmd_resp("OBD+INF+", "PWR", eCMD_TYPE_INPUT_VALUE, cmd_buff, ret_buff, &error_code);
-
-    argc = _seco_obd_1_device_argument(ret_buff, read_cnt, argv);
-    
-    for( i = 0 ; i < argc ; i++)
-    {
-        printf("devide value : [%d]/[%d] => [%s]\r\n", i, argc, argv[i]);
+         ret_val = _get_obd_total_fuel_usage();
+         if ( ret_val > 0 )
+            break;
+        usleep(500);
     }
 
-    return 0;
-
-    // printf("obd total distance :: [%d]\r\n"
+    return ret_val;
 }
-#endif
+
+
+
+int get_obd_vehicle_info(SECO_CMD_DATA_VEHICLE_INFO_T* info)
+{
+    return -1;
+}
+

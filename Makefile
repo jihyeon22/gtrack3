@@ -142,6 +142,9 @@ USE_BUTTON_THREAD=y
 SERVER_ABBR := DSME
 else ifeq ($(SERVER),dsme-mdt)
 SERVER_ABBR	:=	DSMT
+else ifeq ($(SERVER),katech-obd)
+SERVER_ABBR := KATO
+USE_SECO_OBD_1=y
 else
 $(error SERVER is not registerd in Makefile, please input registred server)
 endif
@@ -188,6 +191,8 @@ else ifeq ($(CORP),ds)
 CORP_ABBR := DS
 else ifeq ($(CORP),dsme)
 CORP_ABBR := DSME
+else ifeq ($(CORP), katech)
+CORP_ABBR     :=      KAT
 else
 $(error CORP is not registerd in Makefile, please input registred corporation)
 endif

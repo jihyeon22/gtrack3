@@ -1,0 +1,11 @@
+[user]
+model_name=katech-obd
+date=150914
+report_ip=api.vias.co.kr
+report_port=10006
+request_ip=api.vias.co.kr
+request_port=10006
+collect_interval_keyon = 10
+report_interval_keyon = 60
+collect_interval_keyoff = 10
+report_interval_keyoff = 60

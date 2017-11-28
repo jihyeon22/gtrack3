@@ -92,7 +92,7 @@ service_mode() {
 
 corp_input() {
 		echo -e "Coporation = (mds, asn, cl, bizincar, cs, etrace, neognp, moram, kt, alloc, cip, netio, gtnb ,uppp, nisso, ds ...) "
-		echo -e "             (gtrs, dsme...) "
+		echo -e "             (gtrs, dsme, katech ...) "
 		read CORPMODEL
 		case $CORPMODEL in
 			mds)
@@ -167,6 +167,10 @@ corp_input() {
 				CORPMODEL="dsme"
 				CORPABBR="DSME"
 			;;
+			katech)
+				CORPMODEL="kat"
+				CORPABBR="KAT"
+			;;
 			*)
 				echo  $CORPMODEL invalid
 				exit
@@ -225,6 +229,7 @@ modem_input() {
 server_input() {
 	echo -e "Server Model = (skel, asn, cl-thermal, cl-mdt, cl-rfid, bizincar, nisso)"
 	echo -e "               (cs, etr, etrg, etrf, neognp, moram, moram0, moram1, alloc2, cip-rmc, gtnb-mdt, netio, uppp, gtrs, ds-thermal, kt-thermal ...)"
+	echo -e "               (katech-obd, ...)"
 	echo -e "               (ktfms0, ktfms1, ...)"
 	echo -e "               (cl-rfid0, cl-rfid1, ...)"
 	echo -e "               (dsme, dsme-mdt, ...)"
@@ -347,6 +352,10 @@ server_input() {
 		kt-thermal)
 			SRVMODEL="ktth"
 			SERVABBR="KTTH"
+		;;
+		katech-obd)
+			SRVMODEL="kato"
+			SERVABBR="KATO"
 		;;
 		*)
 			echo SERVER_MODEL $SRVMODEL invalid

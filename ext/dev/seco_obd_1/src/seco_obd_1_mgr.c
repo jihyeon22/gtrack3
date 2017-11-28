@@ -111,14 +111,17 @@ void seco_obd_1_read_thread(void)
             tmp_recv_data_len = sprintf(tmp_recv_data,"%s",seco_obd_1_recv_data + broad_cast_chk_msg_len);
             //printf("tmp_recv_data is [%s] / [%d] \r\n", tmp_recv_data, broad_cast_chk_msg_len);
 
-            tmp_argc = _seco_obd_1_device_argument(tmp_recv_data, tmp_recv_data_len, tmp_argv);
+
+            tmp_argc = _seco_obd_1_devide_argument(tmp_recv_data, tmp_recv_data_len, tmp_argv);
             if ( g_bmsg_proc != NULL )
                 g_bmsg_proc(tmp_argc, tmp_argv);
         }
         else
         {
             if ( g_bmsg_proc != NULL )
+            {  
                 g_bmsg_proc(0, NULL);
+            }
             
             printf("[obd read thread] read fail case 3 do anything...\r\n");
 
@@ -154,7 +157,8 @@ int init_seco_obd_mgr(char* dev_name, int baud_rate, int (*p_bmsg_proc)(int argc
 
     strcpy(g_obd_dev_path_str, dev_name);
     g_obd_dev_baudrate = baud_rate;
-    g_bmsg_proc = p_bmsg_proc;
+	if ( p_bmsg_proc != NULL)
+	    g_bmsg_proc = p_bmsg_proc;
 
     // 제일먼저 브로드캐스트메시지를 중지시킨다.
     // 만약, 비정상적으로 리셋이 되던가하면, obd 는 이미 계속 메시지를 뿌리고있기 때문.

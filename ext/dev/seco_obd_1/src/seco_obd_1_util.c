@@ -19,8 +19,7 @@
 // ------------------------------------------
 // settinngs..
 // ------------------------------------------
-
-
+//#define DEBUG_MSG_OBD_UART
 
 int g_obd_fd = SECO_OBD_INVAILD_FD;
 
@@ -38,6 +37,7 @@ int _init_seco_obd_1_uart(char* dev, int baud , int *fd);
 // OBD+FWU+NON?
 // OBD+FWU+ERR=xxxx
 #define DEBUG_MSG_OBD_UART
+char debug_tmp_str[1024] = {0,};
 
 int seco_obd_1_write_cmd_resp(const char* sec_obd_cmd1, const char* sec_obd_cmd2, const int cmd_type, const char* sec_obd_data, char* ret_buff, int* error_code)
 {
@@ -117,15 +117,19 @@ int seco_obd_1_write_cmd_resp(const char* sec_obd_cmd1, const char* sec_obd_cmd2
 	write_buff[write_buff_len++] = 0x0D;
 	write_buff[write_buff_len++] = 0x0A;
 	
+
 	#ifdef DEBUG_MSG_OBD_UART
 	printf("write command buffer is [%s]\r\n", write_buff);
     printf("write command tok is [%s]\r\n", write_cmd_tok);
     #endif
 
 	// 3. cmd �� ������ �޴´�.
-	read_cnt = seco_obd_1_cmd_singleline_resp(g_obd_fd, write_buff, write_buff_len, tmp_ret_buff, 3);
+	read_cnt = seco_obd_1_cmd_singleline_resp(g_obd_fd, write_buff, write_buff_len, tmp_ret_buff, 1);
 	
-	#ifdef DEBUG_MSG_OBD_UART
+    #ifdef DEBUG_MSG_OBD_UART
+    memset(debug_tmp_str, 0x00, sizeof(debug_tmp_str));
+    strcpy(debug_tmp_str, tmp_ret_buff);
+
     printf(" >> write response  is [%s] / [%d] \r\n", tmp_ret_buff, read_cnt);
     #endif
 	
@@ -155,14 +159,41 @@ int seco_obd_1_write_cmd_resp(const char* sec_obd_cmd1, const char* sec_obd_cmd2
         }
     }
 	
+	
+    if ( ( strstr(write_buff, "OBD+SBR") == NULL ) && ( strstr(write_buff, "OBD+SRR") == NULL ) )
+    {
+        // 5. TODO : �ش� Ŀ�ǵ忡 ���� �������� Ȯ��
+        if ( strncmp ( tmp_ret_buff , write_cmd_tok, strlen(write_cmd_tok)) != 0)
+        {
+            *error_code = OBD_ERROR_CODE__NOT_VAILD_CMD_RET;
+            printf("%s() - %d line : invalid return string.. [%s] / [%s] \r\n",__func__, __LINE__, tmp_ret_buff, write_cmd_tok);
+            return OBD_CMD_RET_ERROR;
+        }
+    }
+    else
+    {
+        int found_flag = 0;
+        // 5. TODO : �ش� Ŀ�ǵ忡 ���� �������� Ȯ��
+        if ( strncmp ( tmp_ret_buff , "OBD+SRR", strlen("OBD+SRR")) != 0)
+        {
+            *error_code = OBD_ERROR_CODE__NOT_VAILD_CMD_RET;
+            //printf("%s() - %d line : invalid return string.. sbr 1 [%s] / [%s] \r\n",__func__, __LINE__, tmp_ret_buff, write_cmd_tok);
+            found_flag = 1;
+        }
 
-	// 5. TODO : �ش� Ŀ�ǵ忡 ���� �������� Ȯ��
-	if ( strncmp ( tmp_ret_buff , write_cmd_tok, strlen(write_cmd_tok)) != 0)
-	{
-		*error_code = OBD_ERROR_CODE__NOT_VAILD_CMD_RET;
-        printf("%s() - %d line : invalid return string.. [%s] / [%s] \r\n",__func__, __LINE__, tmp_ret_buff, write_cmd_tok);
-		return OBD_CMD_RET_ERROR;
-	}
+        if ( strncmp ( tmp_ret_buff , "OBD+SBR", strlen("OBD+SBR")) != 0)
+        {
+            *error_code = OBD_ERROR_CODE__NOT_VAILD_CMD_RET;
+            //printf("%s() - %d line : invalid return string.. sbr 1 [%s] / [%s] \r\n",__func__, __LINE__, tmp_ret_buff, write_cmd_tok);
+            found_flag = 1;
+        }
+
+        if ( found_flag == 0 )
+        {
+            printf("%s() - %d line : invalid return string.. sbr 1 [%s] / [%s] \r\n",__func__, __LINE__, tmp_ret_buff, write_cmd_tok);
+            return OBD_CMD_RET_ERROR;
+        }
+    }
 	
 	// ��������������, ���������� �����͸� ���� �޾ƿ°��̴�.
 	// ȣ���ο��� ������ data �� �߶��� �Ѱ��ش�.
@@ -379,7 +410,7 @@ int seco_obd_1_cmd_singleline_resp(int fd, const char* write_buf, const int cmd_
 		if ( write_cmd )
 		{
 			
-			//printf("<atd> dbg : > [%s] (%d)\r\n", write_buf, write_cnt1);
+			//printf("<obd> dbg : > [%s] (%d)\r\n", write_buf, write_cnt1);
 			
 			write_cnt2 = write(fd, write_buf, write_cnt1);
 		}
@@ -387,7 +418,7 @@ int seco_obd_1_cmd_singleline_resp(int fd, const char* write_buf, const int cmd_
 		if ( write_cnt2 != write_cnt1 )
 		{
 			
-			printf("<atd> dbg : write fail.. retry (%d),(%d)\r\n",write_cnt2,write_cnt1);
+			printf("<obd> dbg : write fail.. retry (%d),(%d)\r\n",write_cnt2,write_cnt1);
 			ret = OBD_CMD_RET_TIMEOUT;
 			continue;
 		}
@@ -400,7 +431,7 @@ int seco_obd_1_cmd_singleline_resp(int fd, const char* write_buf, const int cmd_
 		
 		if(cur_read_cnt < 0)
 		{
-			printf("<atd> dbg : read timeout fail.. retry\r\n");
+			printf("<obd> dbg : read timeout fail.. retry\r\n");
 			ret = OBD_CMD_RET_TIMEOUT;
 			continue;
 		}
