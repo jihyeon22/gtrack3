@@ -138,10 +138,18 @@ int make_event2_packet(unsigned char **pbuf, unsigned short *packet_len, int eve
 	int enclen = 0;
 	unsigned char *p_encbuf;
 	gpsData_t gpsdata;
+	gpsData_t last_gpsdata;
 	nisso_packet2_t packet;
 	int org_size = 0;
 
 	gps_get_curr_data(&gpsdata);
+
+	if ( gpsdata.active != eACTIVE ) 
+	{
+		gps_valid_data_get(&last_gpsdata);
+		gpsdata.lat = last_gpsdata.lat;
+		gpsdata.lon = last_gpsdata.lon;
+	}
 
 	if(create_report2_divert_buffer(&p_encbuf, 1) < 0)
 	{

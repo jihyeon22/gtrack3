@@ -19,5 +19,6 @@ void exit_main_loop();
 extern transferSetting_t gSetting_report;
 extern transferSetting_t gSetting_request;
 
+void network_fail_emergency_reset_callback(void);
 #endif
 

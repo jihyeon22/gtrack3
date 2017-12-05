@@ -208,6 +208,7 @@ void power_off_callback(void)
 
 	LOGI(LOG_TARGET, "power_off_callback ++\n");
 	sender_add_data_to_buffer(ePOWER_SOURCE_CHANGE_EVT, NULL, ePIPE_2);
+    sender_add_data_to_buffer(eMDM_DEV_RESET, NULL, ePIPE_2);
 	
 	batt = battery_get_battlevel_internal();
 	if(batt > 0 && batt < 3600)
@@ -498,7 +499,7 @@ static int _process_poweroff(int now_poweroff_flag, char *log)
 			devel_webdm_send_log("regular poweroff");
 		}
 
-		sender_wait_empty_network(WAIT_PIPE_CLEAN_SECS);
+		sender_wait_empty_network(20);
 		poweroff(log, strlen(log));
 	}
 //	else
@@ -576,3 +577,7 @@ static void _check_battery(int ignition)
 }
 */
 
+void network_fail_emergency_reset_callback(void)
+{
+    _process_poweroff(1, "network chk fail");
+}
