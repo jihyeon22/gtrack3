@@ -65,7 +65,6 @@ static int first_network_conn_flag = 0;
 static int chk_network_regi(int chk_interval);
 static int get_net_conn_fail_cnt();
 static int set_net_conn_fail_cnt(int cnt);
-static int chk_runtime_network_chk();
 
 void *thread_network(void *args)
 {
