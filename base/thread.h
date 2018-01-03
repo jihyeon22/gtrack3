@@ -35,6 +35,7 @@ void thread_network_set_warn_timeout(int time);
 #define DEFAULT_NETWORK_FAIL_RESET_CNT_3			4	// runtime network chk : 4 * 30sec = 2MIN... : default value : do not setting value
 
 void set_max_network_fail_reset_cnt(int cnt);
+int chk_runtime_network_chk();
 
 extern pthread_t tid[MAX_THREAD_COUNT];
 extern threadData_t threads[MAX_THREAD_COUNT];

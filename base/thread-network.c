@@ -394,6 +394,10 @@ int chk_network_regi(int chk_interval)
         ret_val = CHK_REGI_RET_NOK;
     }
 
+    // at cmd 설정이 잘못되었을 가능성
+    if ( ret_val == CHK_REGI_RET_NOK ) 
+        send_at_cmd("at+cgreg=0");
+
     return ret_val;
 
 }
@@ -431,11 +435,12 @@ int chk_runtime_network_chk()
         }
 
         // 네트워크 timeout 값이 30 이기 때문에 25로 넉넉히 설정
-        if(cur_time - last_cycle < 25)
+        if(cur_time - last_cycle < 30)
         {
-            last_cycle = cur_time;
             return 0;
         }
+
+        last_cycle = cur_time;
     }
 
     // network chk...
