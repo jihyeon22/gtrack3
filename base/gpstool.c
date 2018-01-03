@@ -125,6 +125,31 @@ void gps_reset(int type)
 	// sleep(10);
 }
 
+void gps_reset_immediately(int type)
+{
+	static int gps_reset_cnt = 0;
+
+	gps_reset_cnt ++ ;
+
+	if ( type == GPS_BOOT_WARM)
+	{
+		devel_webdm_send_log("GPSD UDP SEND CMD : WARM RESET 2 [%d]",gps_reset_cnt);
+		mds_api_gpsd_reset(MDS_API_GPS_TOOLS__TYPE_WARM);
+	}
+	else if ( type == GPS_BOOT_COLD)
+	{
+		devel_webdm_send_log("GPSD UDP SEND CMD : COLD RESET 2 [%d]",gps_reset_cnt);
+		mds_api_gpsd_reset(MDS_API_GPS_TOOLS__TYPE_COLD);
+	}
+	else
+	{
+		devel_webdm_send_log("GPSD UDP SEND CMD : WRONG RESET 2 TYPE [%d]",gps_reset_cnt);
+	}
+	gps_reset_cnt = 0;
+	// shutdown 되는데 오래걸리니 이정도는 쉬어주도록하자.
+	// sleep(10);
+}
+
 void gps_off() {
 	devel_webdm_send_log("GPSD UDP SEND CMD : DOWN");
 	mds_api_gpsd_stop();
@@ -841,6 +866,20 @@ void gps_parse(char* buff, int size)
 	memset((void *)&tmp_gps_data, 0, sizeof(gpsData_t));
 
 	configurationBase_t *conf = get_config_base();
+
+    // timve value init to systemtime
+    {
+        struct tm loc_time;
+        tmp_gps_data.utc_sec = get_system_time_utc_sec(conf->gps.gps_time_zone);
+        _gps_utc_sec_localtime(tmp_gps_data.utc_sec, &loc_time, conf->gps.gps_time_zone);
+        tmp_gps_data.year = loc_time.tm_year + 1900;
+        tmp_gps_data.mon = loc_time.tm_mon + 1;
+        tmp_gps_data.day = loc_time.tm_mday;
+        tmp_gps_data.hour = loc_time.tm_hour;
+        tmp_gps_data.min = loc_time.tm_min;
+        tmp_gps_data.sec = loc_time.tm_sec;
+    }
+
 	if(cur_active)
 	{
 		struct tm utc_time, loc_time;
