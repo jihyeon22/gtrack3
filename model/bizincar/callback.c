@@ -351,6 +351,7 @@ void main_loop_callback(void)
 	{
 		int condition_send = 0;
 		
+        chk_runtime_network_chk();
 		watchdog_set_cur_ktime(eWdMain);
 		
 		if(at_recov_cnt-- < 0) {
