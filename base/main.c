@@ -526,9 +526,6 @@ int main(int argc, char** argv)
 	tacoc_run();
 #endif
 
-    // for cgreg cmd check..
-    send_at_cmd("at+cgreg=0");
-
 	main_loop_callback();
 
 	_deinit_resource();

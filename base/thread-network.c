@@ -4,6 +4,9 @@
 #include <string.h>
 #include <errno.h>
 
+#include <fcntl.h>
+#include <time.h>
+
 #include <base/config.h>
 #include <at/at_util.h>
 #include <base/sender.h>
@@ -393,10 +396,6 @@ int chk_network_regi(int chk_interval)
         ret_val = CHK_REGI_RET_NOK;
     }
 
-    // at cmd 설정이 잘못되었을 가능성
-    if ( ret_val == CHK_REGI_RET_NOK ) 
-        send_at_cmd("at+cgreg=0");
-
     return ret_val;
 
 }
@@ -407,6 +406,13 @@ int chk_runtime_network_chk()
 
     static time_t last_cycle = 0;
     time_t cur_time = 0;
+
+	struct timeval tv;
+	struct tm ttm;
+
+	gettimeofday(&tv, NULL);
+	localtime_r(&tv.tv_sec, &ttm);
+    cur_time = mktime(&ttm);
 
     int fail_reset_count = DEFAULT_NETWORK_FAIL_RESET_CNT_3;
 
@@ -421,7 +427,6 @@ int chk_runtime_network_chk()
     // 30 sec interval network chk
     // 네트워크 쓰레드의 경우 불리는 주기가 불규칙, 때문에 시간계산하여 30초마다 한번씩 불리도록
     {
-        cur_time = get_modem_time_utc_sec();
         if(cur_time == 0)
         {
             return 0;
@@ -433,8 +438,14 @@ int chk_runtime_network_chk()
             return 0;
         }
 
+        if ( cur_time < last_cycle )
+        {
+            last_cycle = cur_time;
+            return 0;
+        }
+
         // 네트워크 timeout 값이 30 이기 때문에 25로 넉넉히 설정
-        if(cur_time - last_cycle < 30)
+        if( (cur_time - last_cycle) < 30 )
         {
             return 0;
         }
