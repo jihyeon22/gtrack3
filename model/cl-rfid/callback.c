@@ -587,6 +587,7 @@ void _wait_time_sync()
 		gps_get_curr_data(&cur_gpsdata);
 		if(cur_gpsdata.year > 2013)
 			break;
+        sleep(1);
 	}
 
     if ( max_time_sync_sec <= 0 )
