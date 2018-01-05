@@ -95,42 +95,56 @@ static int _kjtec_rfid_dev_init()
 }
 
 
-int mds_api_remove_etc_char(const char *s, char* target, int target_len)
-{
-	int cnt = 0;
-
-    if ( s == NULL ) 
-        return -1;
-
-	while (*s)
-	{
-		//printf("strlen [%c]\r\n" ,*s);
-		if ( ( *s >= 33 ) && ( *s <= 125 ) )
-		{
-            target[cnt] = *s;
-            //printf("target[%d] => [0x%x][%c]\r\n", cnt, target[cnt], target[cnt]);
-			cnt++;
-			
-			if (cnt > target_len)
-				return -1;
-		}
-		s++;
-	}
-	//printf("strlen count [%d]\r\n" ,cnt);
-	return cnt;
-}
-
 
 // =========================================================================
 // kjtec cmd 처리부분
 // =========================================================================
-static void _kjtec_rfid_cmd_proc(char* buff, int buff_len)
+static void _kjtec_rfid_cmd_proc(char* data_buff, int buff_len)
 {
     int code = 0;
     int read_idx = 0;
 
-    char tmp_str1[RIFD_READ_BUFF_SIZE] = {0,};
-    char tmp_str2[RIFD_READ_BUFF_SIZE] = {0,};
+    int cmd_cnt = 0;
+
+    char buff[RIFD_READ_BUFF_SIZE + 1] = {0,};
+    char tmp_buff[RIFD_READ_BUFF_SIZE + 1] = {0,};
+
+    char tmp_str1[RIFD_READ_BUFF_SIZE + 1] = {0,};
+    char tmp_str2[RIFD_READ_BUFF_SIZE + 1] = {0,};
+
+    //printf("_kjtec_rfid_cmd_proc is start!! [%s][%d] -> [%d]\r\n", data_buff, buff_len, __LINE__);
+    if ( data_buff == NULL )
+    {
+        printf("%s() - err : line [%d]\r\n", __func__, __LINE__);
+        return;
+    }
+
+    if (( buff_len > RIFD_READ_BUFF_SIZE ) ||  ( buff_len <= 0 ))
+    {
+        printf("%s() - err : line [%d]\r\n", __func__, __LINE__);
+        return;
+    }
+
+    //-------------------------------------------------------------------------------
+    // 스페이스제거
+    //-------------------------------------------------------------------------------
+    memset(&buff, 0x00, sizeof(tmp_buff));
+
+    cmd_cnt = mds_api_remove_char(data_buff, buff, RIFD_READ_BUFF_SIZE, ' ');
+    if ( cmd_cnt <= 0 )
+    {
+        printf("%s() - err : line [%d]\r\n", __func__, __LINE__);
+        return;
+    }
+
+    buff_len = cmd_cnt;
+    // -------------------------------------------------------------------------------
+    //printf("_kjtec_rfid_cmd_proc is start!! [%s][%d] -> [%d]\r\n", data_buff, buff_len, __LINE__);
+    if ( buff_len < 4 )
+    {
+        printf("%s() - err : line [%d]\r\n", __func__, __LINE__);
+        return;
+    }
 
     //if ( buff_len == 4 )
     {
@@ -139,105 +153,117 @@ static void _kjtec_rfid_cmd_proc(char* buff, int buff_len)
              ( buff[2] == 0x06 ) &&
              ( buff[3] == 0x00 ))
         {
-           // printf(" >> [KJTEC RFID] recv ack success \r\n");
            read_idx = 4;
         }
         else
         {
-           // printf(" >> [KJTEC RFID] recv ack fail\r\n");
            read_idx = 0;
         }
     }
 
-    // printf("_kjtec_rfid_cmd_proc >> [%s] / [%d] \r\n", buff, buff_len);
-    if (buff_len <= 5)
+    if ( buff_len < (5+read_idx+1+1) )
+    {
+        // printf("kjtec error [%s](%s)\r\n",buff,buff_len);
+        printf("%s() - err : line [%d]\r\n", __func__, __LINE__);
         return;
+    }
 
     // chk header..
     if ( ( buff[0+read_idx] != 0x10 ) &&
          ( buff[1+read_idx] != 0x10 ) &&
          ( buff[2+read_idx] != 0xff ))
     {
+        //printf("_kjtec_rfid_cmd_proc is start!! [%s][%d] -> [%d]\r\n", data_buff, buff_len, __LINE__);
+        printf("%s() - err : line [%d]\r\n", __func__, __LINE__);
         return;
     }
 
     // get data
+
     code = buff[4 +read_idx];
     memcpy(&tmp_str1, buff + 5 + read_idx, buff_len -5 -1 - read_idx);
 
-    mds_api_remove_char(tmp_str1, tmp_str2, RIFD_READ_BUFF_SIZE, ' ');
+    //-------------------------------------------------------------------------------
+    // 쓰레기값 제거
+    //-------------------------------------------------------------------------------
+    memset(&tmp_buff, 0x00, sizeof(tmp_buff));
+    cmd_cnt = mds_api_remove_etc_char(tmp_str1, tmp_buff, cmd_cnt);
+    if ( cmd_cnt <= 0 )
+    {
+        printf("%s() - err : line [%d]\r\n", __func__, __LINE__);
+        return;
+    }
 
     //if ( code != 0x51)
+#if 0
     { 
         printf("  >> [KJTEC RFID] parse cmd resp ++ \r\n");
         printf("  >> seqno [%d]\r\n", buff[3 +read_idx]);
         printf("  >> code [0x%x]\r\n", buff[4 +read_idx]);
         printf("  >> data len [%d]\r\n", buff[5 +read_idx]);
 
-        printf("  >> data  [%s]\r\n", tmp_str2);
+        printf("  >> data  [%s]\r\n", tmp_buff);
         printf("  >> [KJTEC RFID] parse cmd resp -- \r\n");
     }
+#endif
+
+    // -------------------------------------------------------------------------------
 
     switch ( code )
     {
         case RFID_CMD_ID_RESP___INIT_WAKEUP:
         {
-            _parse_cmd__wakeup(tmp_str2);
+            _parse_cmd__wakeup(tmp_buff);
             break;
         }
         case RFID_CMD_ID_RESP__PASSENGER_DATA_INFO:
         {
-            _parse_cmd__passenger_data(tmp_str2);
+            _parse_cmd__passenger_data(tmp_buff);
             break;
         }
         case RFID_CMD_ID_RESP__CHK_READY:
         {
-            _parse_cmd__chk_ready(tmp_str2);
+            _parse_cmd__chk_ready(tmp_buff);
             break;
         }
         case RFID_CMD_ID_RESP__DATA_ALL_CLR:
         {
-            _parse_cmd__data_all_clr(tmp_str2);
+            _parse_cmd__data_all_clr(tmp_buff);
             break;
         }
         case RFID_CMD_ID_RESP__SAVE_PASSENGER_DATA:
         case 0x33:
         {
-            _parse_cmd__save_passenger_data(tmp_str2);
+            _parse_cmd__save_passenger_data(tmp_buff);
+
             break;
         }
         case RFID_CMD_ID_RESP__GET_PASSENGER_DATA:
         {
             char tmp_str3[RIFD_READ_BUFF_SIZE] = {0,};
+            static int passenger_parse_fail_cnt = 0;
             //char* test_str = "+[32:[223A05,1,20170901130801,1],33:[FB5305,1,20170901130802,1],34:[55C807,1,20170901130804,1],35:[023F81,1,20170901130805,1],]";
             //memset(&tmp_str2, 0x00, sizeof(tmp_str2));
             //strcpy(tmp_str2, test_str);
             // 씨발놈들 앞에 쓰레기문자가 올때가 있다. 
             // 대체 스펙서대로 되어있는게 한개도 없다. 어휴
-            char* tmp_str_p_2 = strstr(tmp_str2,"[");
-            static int fail_cnt = 0;
-            int get_data_len = 0;
-            //printf("rfid read fail cnt [%d]\r\n", fail_cnt);
-            //printf("rfid read fail cnt [%d]\r\n", fail_cnt);
-            //printf("rfid read fail cnt [%d]\r\n", fail_cnt);
-
-            if ( tmp_str_p_2 != NULL )
-                get_data_len = mds_api_remove_etc_char(tmp_str_p_2, tmp_str3, RIFD_READ_BUFF_SIZE);
-
-            //sleep(1);
+            char* tmp_str_p_2 = strstr(tmp_buff,"[");
             
-            if ( ( get_data_len > 0 ) && ( _parse_cmd__get_passenger_data(tmp_str3) == KJTEC_RFID_RET_SUCCESS ) )
+            if ( ( tmp_str_p_2 != NULL ) && ( _parse_cmd__get_passenger_data(tmp_str_p_2) == KJTEC_RFID_RET_SUCCESS ) )
             {
                 //usleep(10000);
                 kjtec_rfid__dev_rfid_req_clr();
-                fail_cnt = 0;
+                passenger_parse_fail_cnt = 0;
             }
             else
-                fail_cnt++;
-
-            if ( fail_cnt > RIFD_MAX_READ_USER_INFO_TRY_FAIL_CNT )   
             {
-                devel_webdm_send_log("parse fail [%s]", tmp_str2);                
+                passenger_parse_fail_cnt++;
+                devel_webdm_send_log("passenger data parse fail");
+            }
+
+            if ( passenger_parse_fail_cnt > RIFD_MAX_READ_USER_INFO_TRY_FAIL_CNT )   
+            {
+                devel_webdm_send_log("passenger data parse fail");                
                 kjtec_rfid__dev_rfid_req_clr();
             }
             
@@ -246,17 +272,17 @@ static void _kjtec_rfid_cmd_proc(char* buff, int buff_len)
         }
         case RFID_CMD_ID_RESP__FIRMWARE_VER_INFO:
         {
-            _parse_cmd__firmware_ver_info(tmp_str2);
+            _parse_cmd__firmware_ver_info(tmp_buff);
             break;
         }
         case RFID_CMD_ID_RESP__RFID_DB_INFO:
         {
-            _parse_cmd__rfid_db_info(tmp_str2);
+             _parse_cmd__rfid_db_info(tmp_buff);
             break;
         }
         case RFID_CMD_ID_REQ__FIRMWARE_DOWNLOAD_WRITE_RET:
         {
-            _parse_cmd__firmware_write_one_pkt(tmp_str2);
+            _parse_cmd__firmware_write_one_pkt(tmp_buff);
             break;
         }
         default:
@@ -264,7 +290,8 @@ static void _kjtec_rfid_cmd_proc(char* buff, int buff_len)
             break;
         }
     }
-
+    // flush data..
+    kjtec_rfid__flush_data(0);
 }
 
 // =============================================================
@@ -277,6 +304,8 @@ static int _kjtec_rfid_cmd(int auto_lock, unsigned char cmd_code, char* cmd_data
 
     char kjtec_rfid_send_cmd[RIFD_READ_BUFF_SIZE] = {0,};
     char kjtec_rfid_recv_data[RIFD_READ_BUFF_SIZE] = {0,};
+
+    char* tmp_recv_buff_p = NULL;
     
     int read_len = 0;
 //    int to_read = sizeof(kjtec_rfid_recv_data);
@@ -289,7 +318,6 @@ static int _kjtec_rfid_cmd(int auto_lock, unsigned char cmd_code, char* cmd_data
 
     if ( auto_lock )
     {
-        //printf(" >> kjtec rfid cmd mutex lock\r\n");
         pthread_mutex_lock(&kjtec_rfid_mutex);
     }
 
@@ -322,73 +350,47 @@ static int _kjtec_rfid_cmd(int auto_lock, unsigned char cmd_code, char* cmd_data
     kjtec_rfid_send_cmd[5] = cmd_write_cmd_len; // data len idx ==> 5 // hard coding
 
     // chk sum
-
     kjtec_rfid_send_cmd[cmd_write_total_len++] = _check_xor_sum(cmd_data, cmd_write_cmd_len);
-    // printf("[KJTEC RFID >> WRITE CMD - 1]  :: CMD LEN [%d] \r\n",cmd_write_total_len);
 
     // do not ret chk
     mds_api_uart_write(_rfid_fd, kjtec_rfid_send_cmd, cmd_write_total_len);
-/*
-    printf("================================ rfid data write [%d]\r\n", cmd_write_total_len);
-    mds_api_debug_hexdump_buff(kjtec_rfid_send_cmd, cmd_write_total_len);
-*/
+
+    // mds_api_debug_hexdump_buff(kjtec_rfid_send_cmd, cmd_write_total_len);
+
     // 승객데이터는 무조건 쓰래드에서 읽는걸로
     if ( cmd_code != RFID_CMD_ID_REQ__GET_PASSENGER_DATA)
     {
         while(read_retry_cnt--)
         {
-            uart_ret =  mds_api_uart_read(_rfid_fd, kjtec_rfid_recv_data + read_len,  sizeof(kjtec_rfid_recv_data) - read_len, KJTEC_RFID_UART_READ_TIMEOUT);
-           // printf("========>>>> uart_ret case 1 :: [%s] [%d]\r\n", kjtec_rfid_recv_data, uart_ret);
-            //if ( uart_ret <= 0 )
-            //    continue;
+            tmp_recv_buff_p = kjtec_rfid_recv_data;
+
+            uart_ret =  mds_api_uart_read(_rfid_fd, tmp_recv_buff_p + read_len,  (RIFD_READ_BUFF_SIZE - read_len - 1), KJTEC_RFID_UART_READ_TIMEOUT);
+
+            if ( uart_ret > 0 )
+            {
+                read_len += uart_ret;
+            }
             
-            read_len += uart_ret;
             if ( read_len > 9 )
+                break;
+
+            if ( (RIFD_READ_BUFF_SIZE - read_len - 1) <= 0 )
                 break;
             
         }
     }
 
-    // printf(">>rfid data read cmd data +++++++++++++++++++++++++ [%d]\r\n", read_len);
-
-    //mds_api_debug_hexdump_buff(kjtec_rfid_recv_data, read_len);
-    
-    // chk ack
-    if ( read_len >= 4 )
-    {
-        if ( ( kjtec_rfid_recv_data[0] == 0x10 ) &&
-             ( kjtec_rfid_recv_data[1] == 0x10 ) &&
-             ( kjtec_rfid_recv_data[2] == 0x06 ) &&
-             ( kjtec_rfid_recv_data[3] == 0x00 ))
-        {
-            //printf("[KJTEC RFID] recv ack success \r\n");
-        }
-        else
-        {
-            //printf("[KJTEC RFID] recv ack fail\r\n");
-        }
-    }
-    
-
-    // printf(">> rfid data read cmd data ------------------------- [%d]\r\n", read_len);
-//    kjtec_rfid_recv_data[5]; // data len
-//    kjtec_rfid_recv_data[6]; // error list
-//    kjtec_rfid_recv_data[7]; // endof frame
-
 FINISH:
     if ( auto_lock )
     {
-        //printf(" >> kjtec rfid cmd mutex unlock\r\n");
         pthread_mutex_unlock(&kjtec_rfid_mutex);
     }
 
     if ( read_len > 9 )
     {
-    //    printf("[KJTEC RFID] read cmd ret [%d] ++++++++++++++++++++ \r\n", read_len);
-        _kjtec_rfid_cmd_proc(kjtec_rfid_recv_data+4, read_len-4 );
-    //    printf("[KJTEC RFID] read cmd ret [%d] ++++++++++++++++++++ \r\n", read_len);
+        tmp_recv_buff_p = kjtec_rfid_recv_data;
+        _kjtec_rfid_cmd_proc(tmp_recv_buff_p+4, read_len-4 );
     }
-    //printf("[KJTEC RFID >> WRITE CMD] sleep timing [%d]\r\n", sleep_timing);
 
     // userdata 쓸때는 sleep 없다.
     if ( cmd_code == RFID_CMD_ID_REQ__SAVE_PASSENGER_DATA )
@@ -407,9 +409,11 @@ static int _kjtec_rfid_cmd2(int auto_lock, unsigned char cmd_code, char* cmd_dat
     int uart_ret = 0;
     int ret_val = 0;
 
-    char kjtec_rfid_send_cmd[1024] = {0,};
-    char kjtec_rfid_recv_data[1024] = {0,};
+    char kjtec_rfid_send_cmd[RIFD_READ_BUFF_SIZE + 1] = {0,};
+    char kjtec_rfid_recv_data[RIFD_READ_BUFF_SIZE + 1] = {0,};
     
+    char* tmp_recv_buff_p = NULL;
+
     int read_len = 0;
 //    int to_read = sizeof(kjtec_rfid_recv_data);
     int read_retry_cnt = KJTEC_RFID_UART_READ_RETRY_CNT;
@@ -421,7 +425,6 @@ static int _kjtec_rfid_cmd2(int auto_lock, unsigned char cmd_code, char* cmd_dat
 
     if ( auto_lock )
     {
-        //printf(" >> kjtec rfid cmd mutex lock\r\n");
         pthread_mutex_lock(&kjtec_rfid_mutex);
     }
 
@@ -438,72 +441,76 @@ static int _kjtec_rfid_cmd2(int auto_lock, unsigned char cmd_code, char* cmd_dat
 
     cmd_write_total_len += cmd_write_cmd_len;
 
-    //printf("[KJTEC RFID >> WRITE CMD - 2] BINARY CMD \r\n");
-
-    // chk sum
-
     kjtec_rfid_send_cmd[cmd_write_total_len++] = _check_xor_sum(cmd_data + chksum_offset, cmd_write_cmd_len - chksum_offset);
-    //printf("[KJTEC RFID >> WRITE CMD - 2]  :: CMD LEN [%d] \r\n",cmd_write_total_len);
 
     mds_api_uart_write(_rfid_fd, kjtec_rfid_send_cmd, cmd_write_total_len);
 
-    // do not ret chk
-
-
-    //printf("================================ rfid data write [%d]\r\n", cmd_write_total_len);
     //mds_api_debug_hexdump_buff(kjtec_rfid_send_cmd, cmd_write_total_len);
 
     while(read_retry_cnt--)
     {
-	    uart_ret =  mds_api_uart_read(_rfid_fd, kjtec_rfid_recv_data + read_len,  sizeof(kjtec_rfid_recv_data) - read_len, KJTEC_RFID_UART_READ_TIMEOUT);
-        //printf("========>>>> uart_ret case 2 :: [%s] [%d]\r\n", kjtec_rfid_recv_data, uart_ret);
-        // printf("========>>>> uart_ret [%d]\r\n", uart_ret);
-        //if ( uart_ret <= 0 )
-        //    continue;
+        tmp_recv_buff_p = kjtec_rfid_recv_data;
 
-        read_len += uart_ret;
+	    uart_ret =  mds_api_uart_read(_rfid_fd, tmp_recv_buff_p + read_len,  (RIFD_READ_BUFF_SIZE - read_len - 1), KJTEC_RFID_UART_READ_TIMEOUT);
+
+        if ( uart_ret > 0 )
+        {
+            read_len += uart_ret;
+        }
+        
         if (strstr(kjtec_rfid_recv_data, "Download Result,0," ) != NULL)
             break;
         
         if (strstr(kjtec_rfid_recv_data, "Download Result,1," ) != NULL)
             break;
+
+        if ( ( RIFD_READ_BUFF_SIZE - read_len - 1) <= 0 )
+            break;
     }
 
-    //printf("[KJTEC RFID >> WRITE CMD - 2]  :: rfid data read cmd data [%d]\r\n", read_len);
-
-    //mds_api_debug_hexdump_buff(kjtec_rfid_recv_data, read_len);
-    
-   
 
 FINISH:
     if ( auto_lock )
     {
-        //printf(" >> kjtec rfid cmd mutex unlock\r\n");
         pthread_mutex_unlock(&kjtec_rfid_mutex);
     }
 
     if ( read_len > 9 )
     {
-    //    printf("[KJTEC RFID] read cmd ret [%d] ++++++++++++++++++++ \r\n", read_len);
-        _kjtec_rfid_cmd_proc(kjtec_rfid_recv_data, read_len );
-    //    printf("[KJTEC RFID] read cmd ret [%d] ++++++++++++++++++++ \r\n", read_len);
+        tmp_recv_buff_p = kjtec_rfid_recv_data;
+        _kjtec_rfid_cmd_proc(tmp_recv_buff_p, read_len );
     }
-    //printf("[KJTEC RFID >> WRITE CMD - 2] sleep timing [%d]\r\n", sleep_timing);
-   // usleep(500000);
 
     return ret_val;
 }
 
-
+void kjtec_rfid__flush_data(int timeout)
+{
+    unsigned char rfid_recv_data[RIFD_READ_BUFF_SIZE + 1] = {0,};
+    int uart_ret = 0;
+    // pthread_mutex_lock(&kjtec_rfid_mutex);
+    while(1)
+    {
+        if ( _kjtec_rfid_dev_init() == KJTEC_RFID_RET_FAIL )
+            break;
+        
+        uart_ret = mds_api_uart_read(_rfid_fd, rfid_recv_data,  RIFD_READ_BUFF_SIZE - 1, timeout);
+        if ( uart_ret <= 0 )
+            break;
+    
+    }
+    //pthread_mutex_unlock(&kjtec_rfid_mutex);
+}
 // ==============================================================
 // read thread
 // ==============================================================
 void kjtec_rfid__read_thread(void)
 {
-    unsigned char rfid_recv_data[RIFD_READ_BUFF_SIZE] = {0,};
-//    unsigned char cmd_recv_buff[16] = {0,};
+    char rfid_recv_data[RIFD_READ_BUFF_SIZE + 1] = {0,};
+    char* tmp_recv_buff_p = NULL;
 
-
+    // flush data..
+    kjtec_rfid__flush_data(1);
 
     while(_g_run_kjtec_rfid_thread_run)
     {
@@ -516,15 +523,15 @@ void kjtec_rfid__read_thread(void)
             continue;
         }
 
-        //printf(" >> kjtec rfid thread mutex lock\r\n");
         pthread_mutex_lock(&kjtec_rfid_mutex);
 
         memset(rfid_recv_data, 0x00, RIFD_READ_BUFF_SIZE);
 
         while(1)
         {
-            uart_ret =  mds_api_uart_read2(_rfid_fd, rfid_recv_data + read_size,  sizeof(rfid_recv_data) - read_size, KJTEC_RFID_UART_READ_TIMEOUT2_USEC);
-            //printf("========>>>> uart_ret case 3 :: [%s] [%d]\r\n", rfid_recv_data, uart_ret);
+            tmp_recv_buff_p = rfid_recv_data;
+
+            uart_ret =  mds_api_uart_read2(_rfid_fd, tmp_recv_buff_p + read_size,  ( RIFD_READ_BUFF_SIZE - read_size - 1 ), KJTEC_RFID_UART_READ_TIMEOUT2_USEC);
 
             if ( uart_ret > 0 )
             {
@@ -532,21 +539,21 @@ void kjtec_rfid__read_thread(void)
             }
             else
                 break;
+
+            if ( ( RIFD_READ_BUFF_SIZE - read_size - 1 ) <= 0 )
+                break;
         }
 
-        //printf(" >> kjtec rfid thread  mutex unlock\r\n");
         pthread_mutex_unlock(&kjtec_rfid_mutex);
 
         if ( read_size > 0 )
         {
-            //printf("[KJTEC RFID] read thread [%d] ++++++++++++++++++++ \r\n", uart_ret);
             // mds_api_debug_hexdump_buff(rfid_recv_data, uart_ret);
-            _kjtec_rfid_cmd_proc(rfid_recv_data, read_size );
-            //printf("[KJTEC RFID] read thread [%d] -------------------- \r\n", uart_ret);
+            tmp_recv_buff_p = rfid_recv_data;
+            _kjtec_rfid_cmd_proc(tmp_recv_buff_p, read_size );
         }
         else
         {
-            //printf("[KJTEC RFID] bcm cannot read anything...\r\n");
             sleep(1);
         }
 
@@ -572,14 +579,6 @@ void init_kjtec_rfid()
 } 
 
 
-//.....
-//.....
-//.....
-
-
-
-
-
 // ----------------------------------------------------------------------
 // parser : 승객데이터
 // ----------------------------------------------------------------------
@@ -587,51 +586,95 @@ static int _parse_cmd__passenger_data(const char* buf)
 {
     char *tr;
     char token_0[ ] = ",";
-//    char token_1[ ] = "\r\n";
     char *temp_bp = NULL;
     
     char *p_cmd = NULL;
+    int char_cnt = 0;
 
     char buffer[RIFD_READ_BUFF_SIZE] = {0,};
     char tmp_str[RIFD_READ_BUFF_SIZE] = {0,};
-//    char tmp_str2[512] = {0,};
+
+    g_rfid_passenger_data_info.cmd_result = KJTEC_RFID_RET_FAIL;
+    g_rfid_passenger_data_info.data_result = KJTEC_RFID_RET_FAIL;
+
+    if ( buf == NULL )
+    {
+        g_rfid_passenger_data_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_passenger_data_info.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_FAIL;
+    }
 
     strcpy(buffer, buf);
 
     memset(&tmp_str,0x00, sizeof(tmp_str));
-    mds_api_remove_char(buffer, tmp_str, sizeof(buffer), '/');
+    char_cnt = mds_api_remove_char(buffer, tmp_str, sizeof(buffer), '/');
+    if ( char_cnt <= 0 )
+    {
+        g_rfid_passenger_data_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_passenger_data_info.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_FAIL;
+    }
+    memset(&buffer, 0x00, sizeof(buffer));
+    strcpy(buffer, tmp_str);
+
+    memset(&tmp_str,0x00, sizeof(tmp_str));
+    char_cnt = mds_api_remove_char(buffer, tmp_str, sizeof(buffer), ':');
+    if ( char_cnt <= 0 )
+    {
+        g_rfid_passenger_data_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_passenger_data_info.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_FAIL;
+    }
     memset(&buffer,0x00, sizeof(buffer));
     strcpy(buffer, tmp_str);
 
     memset(&tmp_str,0x00, sizeof(tmp_str));
-    mds_api_remove_char(buffer, tmp_str, sizeof(buffer), ':');
+    char_cnt = mds_api_remove_char(buffer, tmp_str, sizeof(buffer), '.');
+    if ( char_cnt <= 0 )
+    {
+        g_rfid_passenger_data_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_passenger_data_info.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_FAIL;
+    }
     memset(&buffer,0x00, sizeof(buffer));
     strcpy(buffer, tmp_str);
 
-    memset(&tmp_str,0x00, sizeof(tmp_str));
-    mds_api_remove_char(buffer, tmp_str, sizeof(buffer), '.');
-    memset(&buffer,0x00, sizeof(buffer));
-    strcpy(buffer, tmp_str);
-
-    //printf("%s() -> [%s]\r\n", __func__, buffer);
     p_cmd = buffer;
 
     if ( p_cmd == NULL)
+    {
+        g_rfid_passenger_data_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_passenger_data_info.data_result = KJTEC_RFID_RET_FAIL;
         return KJTEC_RFID_RET_FAIL;
+    }
     
     tr = strtok_r(p_cmd, token_0, &temp_bp);
-    if(tr == NULL) return KJTEC_RFID_RET_FAIL;
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, tr);
+    if(tr == NULL)     
+    {
+        g_rfid_passenger_data_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_passenger_data_info.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_FAIL;
+    }
 
     tr = strtok_r(NULL, token_0, &temp_bp);
-    if(tr == NULL) return KJTEC_RFID_RET_FAIL;
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, tr);
+    if(tr == NULL)
+    {
+        g_rfid_passenger_data_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_passenger_data_info.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_FAIL;
+    }
+
+    if ( strlen(tr) <= 2 )
+    {
+        g_rfid_passenger_data_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_passenger_data_info.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_FAIL;
+    }
 
     strcpy(g_rfid_passenger_data_info.saved_timestamp, tr+2);
 
-    // printf("%s()(%d) -> g_rfid_passenger_data_info.saved_timestamp [%s]\r\n", __func__, __LINE__, g_rfid_passenger_data_info.saved_timestamp);
-
     g_rfid_passenger_data_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+    g_rfid_passenger_data_info.data_result = KJTEC_RFID_RET_SUCCESS;
 
     return KJTEC_RFID_RET_SUCCESS;
 }
@@ -683,7 +726,6 @@ int kjtec_rfid__dev_wakeup(RFID_DEV_INFO_T* result)
         return KJTEC_RFID_RET_FAIL;
     }
 
-
     if ( at_get_phonenum(dev_phone_num, sizeof(dev_phone_num)) == AT_RET_SUCCESS)
         write_len += sprintf(cmd_data_buff+write_len, "%s", dev_phone_num);
     else
@@ -693,10 +735,9 @@ int kjtec_rfid__dev_wakeup(RFID_DEV_INFO_T* result)
     write_len += sprintf(cmd_data_buff+write_len, "%s", ",");
     write_len += sprintf(cmd_data_buff+write_len, "%s", time_str);
     
-    //printf("[KJTEC RFID] write cmd [%s] \r\n", __func__);
-
     memset(&g_rfid_dev_info, 0x00, sizeof(g_rfid_dev_info));
     memset(&g_rfid_passenger_data_info, 0x00, sizeof(g_rfid_passenger_data_info));
+
     g_rfid_dev_info.cmd_result = -1;
     g_rfid_passenger_data_info.cmd_result = -1;
     
@@ -717,7 +758,7 @@ int kjtec_rfid__dev_wakeup(RFID_DEV_INFO_T* result)
             clear_main_watchdog();
     }
 
-    if ( g_rfid_dev_info.cmd_result  != KJTEC_RFID_RET_SUCCESS )
+    if ( ( g_rfid_dev_info.cmd_result != KJTEC_RFID_RET_SUCCESS ) && ( g_rfid_dev_info.data_result != KJTEC_RFID_RET_SUCCESS ))
     {
         LOGE(LOG_TARGET, "[KJTEC RFID] SEND CMD :: WAKEUP - FAIL 3 \r\n");
         printf( "[KJTEC RFID] SEND CMD :: WAKEUP - FAIL 3 \r\n");
@@ -736,7 +777,7 @@ int kjtec_rfid__dev_wakeup(RFID_DEV_INFO_T* result)
         usleep(KJTEC_RFID_CMD_RESP_WAIT_ONE_INTERVAL);
     }
 
-    if ( g_rfid_passenger_data_info.cmd_result != KJTEC_RFID_RET_SUCCESS )
+    if ( ( g_rfid_passenger_data_info.cmd_result != KJTEC_RFID_RET_SUCCESS ) && ( g_rfid_passenger_data_info.data_result != KJTEC_RFID_RET_SUCCESS ) )
     {
         LOGE(LOG_TARGET, "[KJTEC RFID] SEND CMD :: WAKEUP - FAIL 4 \r\n");
         printf( "[KJTEC RFID] SEND CMD :: WAKEUP - FAIL 4 \r\n");
@@ -749,7 +790,6 @@ int kjtec_rfid__dev_wakeup(RFID_DEV_INFO_T* result)
     strcpy(result->saved_timestamp, g_rfid_passenger_data_info.saved_timestamp);
 
     LOGT(LOG_TARGET, "[KJTEC RFID] SEND CMD :: WAKEUP - SUCCESS [%s][%d][%s]\r\n",result->model_no, result->total_passenger_cnt, result->saved_timestamp);
-    //printf( "[KJTEC RFID] SEND CMD :: WAKEUP - SUCCESS [%s][%d][%s]\r\n",result->model_no, result->total_passenger_cnt, result->saved_timestamp);
 
     return KJTEC_RFID_RET_SUCCESS;
 }
@@ -764,28 +804,46 @@ static int _parse_cmd__wakeup(const char* buf)
     char *p_cmd = NULL;
     char buffer[RIFD_READ_BUFF_SIZE] = {0,};
     
+    
+    if ( buf == NULL)
+    {
+        g_rfid_dev_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_dev_info.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_FAIL;
+    }
+
     memset(buffer, 0x00, sizeof(buffer));
     strcpy(buffer, buf);
-    //printf("%s() -> [%s]\r\n", __func__, buffer);
     p_cmd = buffer;
 
-    if ( p_cmd == NULL)
-        return KJTEC_RFID_RET_FAIL;
-    
     tr = strtok_r(p_cmd, token_0, &temp_bp);
-    if(tr == NULL) return KJTEC_RFID_RET_FAIL;
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, tr);
+    if(tr == NULL) 
+    {
+        g_rfid_dev_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_dev_info.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_FAIL;
+    }
     strcpy(g_rfid_dev_info.model_no,tr);
 
     tr = strtok_r(NULL, token_0, &temp_bp);
-    if(tr == NULL) return KJTEC_RFID_RET_FAIL;
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, tr);
+    if(tr == NULL) 
+    {
+        g_rfid_dev_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_dev_info.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_FAIL;
+    }
 
     tr = strtok_r(NULL, token_0, &temp_bp);
-    if(tr == NULL) return KJTEC_RFID_RET_FAIL;
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, tr);
+    if(tr == NULL) 
+    {
+        g_rfid_dev_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_dev_info.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_FAIL;
+    }
+    
     g_rfid_dev_info.total_passenger_cnt = atoi(tr);
 
+    g_rfid_dev_info.data_result = KJTEC_RFID_RET_SUCCESS;
     g_rfid_dev_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
 
     return KJTEC_RFID_RET_SUCCESS;
@@ -812,10 +870,8 @@ int kjtec_rfid__dev_ready_chk(RIFD_CHK_READY_T* result)
     {
         if ( g_rfid_chk_ready.cmd_result  == KJTEC_RFID_RET_SUCCESS )
         {
-        //    printf("[KJTEC RFID] write cmd [%s] -> resp success\r\n", __func__);
             break;
         }
-     //   printf("[KJTEC RFID] write cmd [%s] -> resp wait...\r\n", __func__);
         usleep(KJTEC_RFID_CMD_RESP_WAIT_ONE_INTERVAL);
     }
 
@@ -832,8 +888,6 @@ int kjtec_rfid__dev_ready_chk(RIFD_CHK_READY_T* result)
     }
 
     LOGT(LOG_TARGET, "[KJTEC RFID] SEND CMD :: ARE YOU READY? - SUCCESS [%d][%d]\r\n", result->cmd_result, result->data_result );
-    //printf( "[KJTEC RFID] SEND CMD :: ARE YOU READY? - SUCCESS [%d][%d]\r\n", result->cmd_result, result->data_result );
-
 
     return KJTEC_RFID_RET_SUCCESS;
     
@@ -841,16 +895,22 @@ int kjtec_rfid__dev_ready_chk(RIFD_CHK_READY_T* result)
 
 static int _parse_cmd__chk_ready(const char* buf)
 {
-   // printf("%s() parse => [%s]\r\n", __func__, buf);
+    g_rfid_chk_ready.cmd_result = KJTEC_RFID_RET_FAIL;
+    g_rfid_chk_ready.data_result = KJTEC_RFID_RET_FAIL;
 
+    if ( buf == NULL)
+    {
+        g_rfid_chk_ready.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_chk_ready.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_SUCCESS;
+    }
+    
     if ( strstr(buf, "Ready") != NULL )
     {
-    //    printf ("_parse_cmd__chk_ready is success\r\n");
         g_rfid_chk_ready.data_result = KJTEC_RFID_RET_SUCCESS;
     }
     else 
     {
-   //     printf ("_parse_cmd__chk_ready is fail\r\n");
         g_rfid_chk_ready.data_result = KJTEC_RFID_RET_FAIL;
     }
 
@@ -905,22 +965,29 @@ int kjtec_rfid__dev_rfid_all_clear(RIFD_DATA_ALL_CLR_T* result)
     }
 
     LOGT(LOG_TARGET, "[KJTEC RFID] SEND CMD :: ALL CLR SAVED RFID USER INFO - SUCCESS [%d][%d]\r\n", result->cmd_result, result->data_result );
-   // printf( "[KJTEC RFID] SEND CMD :: ALL CLR SAVED RFID USER INFO - SUCCESS [%d][%d]\r\n", result->cmd_result, result->data_result );
 
     return KJTEC_RFID_RET_SUCCESS;
 }
 
 static int _parse_cmd__data_all_clr(const char* buf)
 {
-  //  printf("%s() parse => [%s]\r\n", __func__, buf);
+    g_rfid_all_clr.cmd_result = KJTEC_RFID_RET_FAIL;
+    g_rfid_all_clr.data_result = KJTEC_RFID_RET_FAIL;
+
+    if ( buf == NULL )
+    {
+        g_rfid_all_clr.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_all_clr.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_SUCCESS;
+    }
+
+
     if (( strstr(buf, "Success") != NULL ))
     {
-  //      printf ("_parse_cmd__data_all_clr is success\r\n");
         g_rfid_all_clr.data_result = KJTEC_RFID_RET_SUCCESS;
     }
     else 
     {
-  //      printf ("_parse_cmd__data_all_clr is fail\r\n");
         g_rfid_all_clr.data_result = KJTEC_RFID_RET_FAIL;
     }
 
@@ -937,7 +1004,6 @@ static int _parse_cmd__data_all_clr(const char* buf)
 int kjtec_rfid__dev_rfid_req()
 {
     LOGT(LOG_TARGET, "[KJTEC RFID] SEND CMD :: REQ TAGED RFID USER INFO\r\n");
-    //printf("[KJTEC RFID] write cmd [%s] \r\n", __func__);
     _kjtec_rfid_cmd(1, RFID_CMD_ID_REQ__GET_PASSENGER_DATA, "Bus Log Request", strlen("Bus Log Request"), NULL);
     return 0;
 }
@@ -961,7 +1027,6 @@ static int _get_boarding_info(const char* buf, RFID_BOARDING_INFO_T* boarding_in
 
     memset(buffer, 0x00, sizeof(buffer));
     strcpy(buffer, buf);
-    //printf("%s() -> [%s]\r\n", __func__, buffer);
     p_cmd = buffer;
 
     if ( p_cmd == NULL)
@@ -969,12 +1034,10 @@ static int _get_boarding_info(const char* buf, RFID_BOARDING_INFO_T* boarding_in
     
     tr = strtok_r(p_cmd, token_0, &temp_bp);
     if(tr == NULL) return KJTEC_RFID_RET_FAIL;
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, tr);
     strcpy(tmp_boarding.rfid_uid,tr);
 
     tr = strtok_r(NULL, token_0, &temp_bp);
     if(tr == NULL) return KJTEC_RFID_RET_FAIL;
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, tr);
     tmp_boarding.boarding = 1; // 1 fix
 
     tr = strtok_r(NULL, token_0, &temp_bp);
@@ -983,6 +1046,7 @@ static int _get_boarding_info(const char* buf, RFID_BOARDING_INFO_T* boarding_in
 
     tr = strtok_r(NULL, token_0, &temp_bp);
     if(tr == NULL) return KJTEC_RFID_RET_FAIL;
+    
     {
         int tmp_stat = atoi(tr); // rfid 에서 읽은값 :: 0 :등록사용자, 1:미등록사용자
         if ( tmp_stat == 0 )
@@ -1005,13 +1069,13 @@ static int _get_boarding_info(const char* buf, RFID_BOARDING_INFO_T* boarding_in
 
 static int _parse_cmd__get_passenger_data(const char* buf)
 {
-    int buf_len = strlen(buf);
+    int buf_len;
 
     int prefix_cnt = 0;
     int suffix_cnt = 0;
 
     char real_data[RIFD_READ_BUFF_SIZE] = {0,};
-    char one_data[64][512];
+    char one_data[64][1024];
     int one_data_cnt = 0;
 
     char* tmp_p = NULL;
@@ -1019,25 +1083,35 @@ static int _parse_cmd__get_passenger_data(const char* buf)
     
     int i = 0;
 
-    LOGT(LOG_TARGET, "[KJTEC RFID] DATA PARSER :: GET PASSENGER START [%d] \"%s\" \r\n", buf_len, buf);
-/*
-    for ( i = 0; i < buf_len ; i++ )
+    if ( buf == NULL )
     {
-        printf("buf[%d] : [0x%x]=[%c]\r\n", i, buf[i], buf[i]);
+        //devel_webdm_send_log("get passenger err - 1 ");
+        return KJTEC_RFID_RET_FAIL;
     }
-*/
+
+    buf_len = strlen(buf);
+    
+    if ( buf_len > 512 )
+    {
+        //devel_webdm_send_log("get passenger err - 2 ");
+        return KJTEC_RFID_RET_FAIL;
+    }
+
+    LOGT(LOG_TARGET, "[KJTEC RFID] DATA PARSER :: GET PASSENGER START [%d] \"%s\" \r\n", buf_len, buf);
+
     if ( strstr(buf, "...") != NULL )
     {
         // rfid check interval change : end data.
         rfid_tool__env_set_rfid_chk_interval(RFID_CHK_DEFAULT_INTERVAL_SEC);
         return KJTEC_RFID_RET_SUCCESS;
     }
-    
+    // devel_webdm_send_log("get passenger chk ++ ");
     memset(&one_data, 0x00, sizeof(one_data));
 
     if ( buf_len < 5 )
     {
         LOGE(LOG_TARGET, "[KJTEC RFID] DATA PARSER :: FAIL case 1\r\n");
+        //devel_webdm_send_log("get passenger err - %d", __LINE__);
         return KJTEC_RFID_RET_FAIL;
     }
 
@@ -1046,18 +1120,18 @@ static int _parse_cmd__get_passenger_data(const char* buf)
     if (( buf[0] != '[' ) || (buf[buf_len-1] != ']'))
     {
         LOGE(LOG_TARGET, "[KJTEC RFID] DATA PARSER :: FAIL case 2\r\n");
+        //devel_webdm_send_log("get passenger err - %d", __LINE__);
         return KJTEC_RFID_RET_FAIL;
     }
 
     strncpy(real_data, buf, buf_len);
-    //printf(" >> buf [%s]\r\n", buf);
-    //printf(" >> real_data [%s]\r\n", real_data);
-    
+
     // chk prefix
     tmp_p = real_data;
     while(1)
     {
-      //  printf(" >> GET_PASSENGER_DATA_PREFIX_STR 1 target [%s]\r\n", tmp_p);
+        if ( tmp_p == NULL )
+            break;
         tmp_p = strstr(tmp_p, GET_PASSENGER_DATA_PREFIX_STR);
         if ( tmp_p == NULL )
             break;
@@ -1069,7 +1143,8 @@ static int _parse_cmd__get_passenger_data(const char* buf)
     tmp_p = real_data;
     while(1)
     {
-        // printf(" >> GET_PASSENGER_DATA_SUFFIX_STR 1 target [%s]\r\n", tmp_p);
+        if ( tmp_p == NULL )
+            break;
         tmp_p = strstr(tmp_p, GET_PASSENGER_DATA_SUFFIX_STR);
         if ( tmp_p == NULL )
             break;
@@ -1077,10 +1152,10 @@ static int _parse_cmd__get_passenger_data(const char* buf)
         suffix_cnt++ ;
     }
 
-    // printf(" >> prefix cnt [%d] / suffix cnt [%d]\r\n" , prefix_cnt, suffix_cnt);
-    if ( prefix_cnt != suffix_cnt)
+    if ( ( prefix_cnt != suffix_cnt ) || ( prefix_cnt<= 0 ) || ( suffix_cnt <= 0 ))
     {
         LOGE(LOG_TARGET, "[KJTEC RFID] DATA PARSER :: FAIL case 3\r\n");
+        //devel_webdm_send_log("get passenger err - %d", __LINE__);
         return KJTEC_RFID_RET_FAIL;
     }
 
@@ -1089,22 +1164,29 @@ static int _parse_cmd__get_passenger_data(const char* buf)
     buf_len = strlen(real_data);
     while(1)
     {
-        // printf(" >> GET_PASSENGER_DATA_PREFIX_STR 2 target [%s]\r\n", tmp_p);
+        if ( tmp_p == NULL )
+            break;
         tmp_p = strstr(tmp_p, GET_PASSENGER_DATA_PREFIX_STR);
         if ( tmp_p == NULL )
             break;
         tmp_p += strlen(GET_PASSENGER_DATA_PREFIX_STR);
-
+        if ( tmp_p == NULL )
+            break;
         tmp_one_start_p = tmp_p;
 
-        // printf(" >> GET_PASSENGER_DATA_SUFFIX_STR 2 target [%s]\r\n", tmp_p);
         tmp_p = strstr(tmp_p, GET_PASSENGER_DATA_SUFFIX_STR);
         if ( tmp_p == NULL )
             break;
         
         strncpy(one_data[one_data_cnt], tmp_one_start_p, strlen(tmp_one_start_p) - strlen(tmp_p));
-        // printf(" ---> one data : [%d] => [%s] \r\n", one_data_cnt, one_data[one_data_cnt]);
         one_data_cnt++;
+    }
+
+    if ( one_data_cnt <= 0 )
+    {
+        LOGE(LOG_TARGET, "[KJTEC RFID] DATA PARSER :: FAIL case 4\r\n");
+        //devel_webdm_send_log("get passenger err - %d", __LINE__);
+        return KJTEC_RFID_RET_FAIL;
     }
 
     RFID_BOARDING_MGR_T boarding_list;
@@ -1121,6 +1203,7 @@ static int _parse_cmd__get_passenger_data(const char* buf)
         if ( char_cnt != (GET_PASSENGER_DATA_ARGUMENT_CNT-1) )
         {
             LOGE(LOG_TARGET, "[KJTEC RFID] DATA PARSER :: FAIL case 4 [%d]/[%d]\r\n", char_cnt, (GET_PASSENGER_DATA_ARGUMENT_CNT-1));
+            //devel_webdm_send_log("get passenger err - %d", __LINE__);
             return KJTEC_RFID_RET_FAIL;
         }
         // printf(" ---> one data : [%d] => [%s] \r\n", i, one_data[i]);
@@ -1144,7 +1227,6 @@ static int _parse_cmd__get_passenger_data(const char* buf)
     rfid_tool__env_set_rfid_chk_interval(RFID_CHK_READ_MORE_INTERVAL_SEC);
 
     LOGT(LOG_TARGET, "[KJTEC RFID] DATA PARSER :: GET PASSENGER SUCCESS AND SEND TO PKT \r\n");
-
     return KJTEC_RFID_RET_SUCCESS;
 }
 
@@ -1175,7 +1257,9 @@ int kjtec_rfid__dev_write_rfid_data(int flag, char* rfid_user_str)
 
     LOGT(LOG_TARGET, "[KJTEC RFID] SEND CMD :: WRITE RFID USER INFO\r\n");
 
-    // printf("[KJTEC RFID] write rfid data [%s] \r\n", __func__);
+    if (rfid_user_str == NULL)
+        return KJTEC_RFID_RET_FAIL;
+        
     printf("flag [%d] rfid_user_str [%d]/[%d] is ==> \"%s\" \r\n", flag, strlen(rfid_user_str),RFID_CMD_PASSENGER_STR_MAX_LEN, rfid_user_str);
 
     if ( strlen(rfid_user_str) > RFID_CMD_PASSENGER_STR_MAX_LEN )
@@ -1187,8 +1271,6 @@ int kjtec_rfid__dev_write_rfid_data(int flag, char* rfid_user_str)
     cmd_str[0] = flag;
 
     sprintf(cmd_str + 1, "%s", rfid_user_str);
-
-    //printf("[KJTEC RFID] write cmd [%s] \r\n", __func__);
 
     memset(&g_rfid_all_clr, 0x00, sizeof(g_rfid_all_clr));
     g_rfid_save_passenger_data.cmd_result = KJTEC_RFID_RET_FAIL;
@@ -1204,7 +1286,6 @@ int kjtec_rfid__dev_write_rfid_data(int flag, char* rfid_user_str)
     {
         if ( g_rfid_save_passenger_data.cmd_result  == KJTEC_RFID_RET_SUCCESS )
         {
-        //    printf("[KJTEC RFID] write cmd [%s] -> resp success\r\n", __func__);
             break;
         }
         LOGE(LOG_TARGET, "[KJTEC RFID] write cmd [%s] flag [%d] ->  resp wait... [%d]/[%d] \r\n", __func__, flag, sleep_time_usec, max_cmd_wait_time );
@@ -1230,15 +1311,22 @@ int kjtec_rfid__dev_write_rfid_data(int flag, char* rfid_user_str)
 
 static int _parse_cmd__save_passenger_data(const char* buf)
 {
+    g_rfid_save_passenger_data.data_result = KJTEC_RFID_RET_FAIL;
+    g_rfid_save_passenger_data.cmd_result = KJTEC_RFID_RET_FAIL;
+
+    if ( buf == NULL )
+    {
+        g_rfid_save_passenger_data.data_result = KJTEC_RFID_RET_FAIL;
+        g_rfid_save_passenger_data.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        return KJTEC_RFID_RET_SUCCESS;
+    }
 
     if ( strstr(buf, "DataResult,1,") != NULL )
     {
-        //printf ("_parse_cmd__save_passenger_data is success\r\n");
         g_rfid_save_passenger_data.data_result = KJTEC_RFID_RET_SUCCESS;
     }
     else 
     {
-       // printf ("_parse_cmd__save_passenger_data is fail\r\n");
         g_rfid_save_passenger_data.data_result = KJTEC_RFID_RET_FAIL;
     }
 
@@ -1269,10 +1357,8 @@ int kjtec_rfid__firmware_ver_info(RFID_FIRMWARE_VER_T* result)
     {
         if ( g_rfid_firmware_ver.cmd_result  == KJTEC_RFID_RET_SUCCESS )
         {
-        //    printf("[KJTEC RFID] write cmd [%s] -> resp success\r\n", __func__);
             break;
         }
-     //   printf("[KJTEC RFID] write cmd [%s] -> resp wait...\r\n", __func__);
         usleep(KJTEC_RFID_CMD_RESP_WAIT_ONE_INTERVAL);
     }
 
@@ -1289,11 +1375,8 @@ int kjtec_rfid__firmware_ver_info(RFID_FIRMWARE_VER_T* result)
     }
 
     LOGT(LOG_TARGET, "[KJTEC RFID] SEND CMD :: CHK VER? - SUCCESS [%d][%s]\r\n", result->cmd_result, result->data_result );
-    //printf( "[KJTEC RFID] SEND CMD :: ARE YOU READY? - SUCCESS [%d][%d]\r\n", result->cmd_result, result->data_result );
-
 
     return KJTEC_RFID_RET_SUCCESS;
-    
 }
 
 static int _parse_cmd__firmware_ver_info(const char* buf)
@@ -1307,6 +1390,9 @@ static int _parse_cmd__firmware_ver_info(const char* buf)
     char buffer[RIFD_READ_BUFF_SIZE] = {0,};
 
     RFID_FIRMWARE_VER_T tmp_version;
+
+    if ( buf == NULL )
+        return KJTEC_RFID_RET_FAIL;
 
     printf("%s() parse => [%s]\r\n", __func__, buf);
     //FWversionis,1.3.0.BusSR-t5, 
@@ -1323,7 +1409,6 @@ static int _parse_cmd__firmware_ver_info(const char* buf)
     memset(buffer, 0x00, sizeof(buffer));
 
     strcpy(buffer, buf);
-    //printf("%s() -> [%s]\r\n", __func__, buffer);
     p_cmd = buffer;
 
     if ( p_cmd == NULL)
@@ -1331,12 +1416,10 @@ static int _parse_cmd__firmware_ver_info(const char* buf)
     
     tr = strtok_r(p_cmd, token_0, &temp_bp);
     if(tr == NULL) return KJTEC_RFID_RET_FAIL;
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, tr);
 
     tr = strtok_r(NULL, token_0, &temp_bp);
     if(tr == NULL) return KJTEC_RFID_RET_FAIL;
     strcpy(tmp_version.data_result, tr);
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, tr);
     
     tmp_version.cmd_result = KJTEC_RFID_RET_SUCCESS;
     // 여기까지 왔으면 정상 파싱
@@ -1370,10 +1453,8 @@ int kjtec_rfid__rfid_db_info(RFID_DB_INFO_T* result)
     {
         if ( g_rfid_db_info.cmd_result  == KJTEC_RFID_RET_SUCCESS )
         {
-        //    printf("[KJTEC RFID] write cmd [%s] -> resp success\r\n", __func__);
             break;
         }
-     //   printf("[KJTEC RFID] write cmd [%s] -> resp wait...\r\n", __func__);
         usleep(KJTEC_RFID_CMD_RESP_WAIT_ONE_INTERVAL);
     }
 
@@ -1383,16 +1464,18 @@ int kjtec_rfid__rfid_db_info(RFID_DB_INFO_T* result)
         return KJTEC_RFID_RET_FAIL;
     }
 
-    if ( g_rfid_db_info.cmd_result == KJTEC_RFID_RET_SUCCESS )
+    if ( ( g_rfid_db_info.cmd_result == KJTEC_RFID_RET_SUCCESS ) && ( g_rfid_db_info.data_result == KJTEC_RFID_RET_SUCCESS ) )
     {
-        result->cmd_result = g_rfid_db_info.cmd_result;
+        result->cmd_result = g_rfid_db_info.data_result;
         result->db_cnt = g_rfid_db_info.db_cnt;
         strcpy(result->db_date, g_rfid_db_info.db_date);
     }
+    else
+    {
+        return KJTEC_RFID_RET_FAIL;
+    }
 
     LOGT(LOG_TARGET, "[KJTEC RFID] SEND CMD :: DB INFO? - SUCCESS [%d], cnt [%d] , ver[%s]\r\n", result->cmd_result, result->db_cnt, result->db_date );
-    //printf( "[KJTEC RFID] SEND CMD :: ARE YOU READY? - SUCCESS [%d][%d]\r\n", result->cmd_result, result->data_result );
-
 
     return KJTEC_RFID_RET_SUCCESS;
     
@@ -1410,73 +1493,99 @@ static int _parse_cmd__rfid_db_info(const char* buf)
     char buffer2[128] = {0,};
     char tmp_str[128] = {0,};
 
-    RFID_DB_INFO_T tmp_dbinfo;
+    g_rfid_db_info.cmd_result = KJTEC_RFID_RET_FAIL;
+    g_rfid_db_info.data_result = KJTEC_RFID_RET_FAIL;
 
-    printf("%s() parse => [%s]\r\n", __func__, buf);
+    if ( buf == NULL )
+    {
+        g_rfid_db_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_db_info.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_FAIL;
+    }
+    
+    // printf("%s():%d parse => [%s]\r\n", __func__, __LINE__, buf);
     //FWversionis,1.3.0.BusSR-t5, 
 
     if ( strstr(buf, "EnRollCount") == NULL )
     {
-    //    printf ("_parse_cmd__chk_ready is success\r\n");
-        strcpy(g_rfid_db_info.db_date, "FAIL");
+        strcpy(g_rfid_db_info.db_date, "0");
+        g_rfid_db_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_db_info.data_result = KJTEC_RFID_RET_FAIL;
         return KJTEC_RFID_RET_FAIL;
     }
-
-    memset(&tmp_dbinfo, 0x00, sizeof(tmp_dbinfo));
 
     memset(buffer, 0x00, sizeof(buffer));
 
     strcpy(buffer, buf);
-    //printf("%s() -> [%s]\r\n", __func__, buffer);
     p_cmd = buffer;
 
     if ( p_cmd == NULL)
+    {
+        strcpy(g_rfid_db_info.db_date, "0");
+        g_rfid_db_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_db_info.data_result = KJTEC_RFID_RET_FAIL;
         return KJTEC_RFID_RET_FAIL;
-    
-    tr = strtok_r(p_cmd, token_0, &temp_bp);
-    if(tr == NULL) return KJTEC_RFID_RET_FAIL;
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, tr);
+    }
 
-    tr = strtok_r(NULL, token_0, &temp_bp);
-    if(tr == NULL) return KJTEC_RFID_RET_FAIL;
-    tmp_dbinfo.db_cnt = atoi(tr);
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, tr);
+    tr = strtok_r(p_cmd, token_0, &temp_bp);
+    if(tr == NULL)
+    {
+        strcpy(g_rfid_db_info.db_date, "0");
+        g_rfid_db_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_db_info.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_FAIL;
+    }
     
     tr = strtok_r(NULL, token_0, &temp_bp);
-    if(tr == NULL) return KJTEC_RFID_RET_FAIL;
+    if(tr == NULL)
+    {
+        strcpy(g_rfid_db_info.db_date, "0");
+        g_rfid_db_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_db_info.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_FAIL;
+    }
+    g_rfid_db_info.db_cnt = atoi(tr);
+    
+    tr = strtok_r(NULL, token_0, &temp_bp);
+    if(tr == NULL)
+    {
+        strcpy(g_rfid_db_info.db_date, "0");
+        g_rfid_db_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_db_info.data_result = KJTEC_RFID_RET_FAIL;
+        return KJTEC_RFID_RET_FAIL;
+    }
     strcpy(buffer2,tr);
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, buffer2);
 
     memset(&tmp_str,0x00, sizeof(tmp_str));
     mds_api_remove_char(buffer2, tmp_str, sizeof(tmp_str), '/');
     memset(&buffer2,0x00, sizeof(buffer2));
     strcpy(buffer2, tmp_str);
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, buffer2);
 
     memset(&tmp_str,0x00, sizeof(tmp_str));
     mds_api_remove_char(buffer2, tmp_str, sizeof(tmp_str), ':');
     memset(&buffer2,0x00, RIFD_READ_BUFF_SIZE);
     strcpy(buffer2, tmp_str);
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, buffer2);
 
     memset(&tmp_str,0x00, sizeof(tmp_str));
     mds_api_remove_char(buffer2, tmp_str, sizeof(tmp_str), '.');
     memset(&buffer2,0x00, RIFD_READ_BUFF_SIZE);
     strcpy(buffer2, tmp_str);
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, buffer2);
 
-    strcpy(tmp_dbinfo.db_date, buffer2+2);
-    //printf("%s()(%d) -> [%s]\r\n", __func__, __LINE__, tr);
+    if ( strlen(buffer2) > 2 )
+    {
+        strcpy(g_rfid_db_info.db_date, buffer2+2);
+        //printf("%s():%d parse => [%s]\r\n", __func__, __LINE__, buffer2);
+    }
+    else
+    {
+        strcpy(g_rfid_db_info.db_date, "0");
+        g_rfid_db_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
+        g_rfid_db_info.data_result = KJTEC_RFID_RET_FAIL;
+    }
+    
+    g_rfid_db_info.data_result = KJTEC_RFID_RET_SUCCESS;
+    g_rfid_db_info.cmd_result = KJTEC_RFID_RET_SUCCESS;
 
-    tmp_dbinfo.cmd_result = KJTEC_RFID_RET_SUCCESS;
-    // 여기까지 왔으면 정상 파싱
-    memcpy(&g_rfid_db_info, &tmp_dbinfo, sizeof(tmp_dbinfo));
-/*
-    printf(" >> boarding_info->rfid_uid [%s]\r\n", boarding_info->rfid_uid );
-    printf(" >> boarding_info->boarding [%d]\r\n", boarding_info->boarding );
-    printf(" >> boarding_info->date [%s]\r\n", boarding_info->date );
-    printf(" >> boarding_info->chk_result [%d]\r\n", boarding_info->chk_result );
-*/
     return KJTEC_RFID_RET_SUCCESS;
 }
 
@@ -1565,7 +1674,6 @@ static int _parse_cmd__firmware_write_one_pkt(const char* buf)
 {
     char *tr;
     char token_0[ ] = ",";
-//    char token_1[ ] = "\r\n";
     char *temp_bp = NULL;
     
     char *p_cmd = NULL;
@@ -1573,7 +1681,6 @@ static int _parse_cmd__firmware_write_one_pkt(const char* buf)
 
     RFID_FIRMWARE_DOWN_PKT_T tmp_result;
 
-    //printf("%s() parse => [%s]\r\n", __func__, buf);
     //FWversionis,1.3.0.BusSR-t5, 
 
     if ( strstr(buf, "Result") == NULL )
@@ -1614,7 +1721,6 @@ static int _parse_cmd__firmware_write_one_pkt(const char* buf)
     g_rfid_firm_down_pkt.data_result = KJTEC_RFID_RET_SUCCESS;
 
     // 여기까지 왔으면 정상 파싱
-
 /*
     printf(" >> boarding_info->rfid_uid [%s]\r\n", boarding_info->rfid_uid );
     printf(" >> boarding_info->boarding [%d]\r\n", boarding_info->boarding );
@@ -1623,66 +1729,3 @@ static int _parse_cmd__firmware_write_one_pkt(const char* buf)
 */
     return KJTEC_RFID_RET_SUCCESS;
 }
-
-
-
-#if 0
-void main()
-{
-    
-
-    int ret = 0;
-
-
-
-    {
-        RFID_DEV_INFO_T dev_info = {0,};
-        ret = kjtec_rfid__dev_wakeup(&dev_info);
-        if ( ret == KJTEC_RFID_RET_SUCCESS )
-        {
-            printf("kjtec_rfid__dev_wakeup :: ret [%d]\r\n",ret);
-            printf("kjtec_rfid__dev_wakeup :: dev_info.cmd_result [%d]\r\n",dev_info.cmd_result);
-            printf("kjtec_rfid__dev_wakeup :: dev_info.model_no [%s]\r\n",dev_info.model_no);
-            printf("kjtec_rfid__dev_wakeup :: dev_info.total_passenger_cnt [%d]\r\n",dev_info.total_passenger_cnt);
-            printf("kjtec_rfid__dev_wakeup :: dev_info.saved_timestamp [%s]\r\n",dev_info.saved_timestamp);
-        }
-    }
-
-    {
-        RIFD_CHK_READY_T dev_ready = {0,};
-
-        ret = kjtec_rfid__dev_ready_chk(&dev_ready);
-        if ( ret == KJTEC_RFID_RET_SUCCESS )
-        {
-            printf("kjtec_rfid__dev_ready_chk :: ret [%d]\r\n",ret);
-            printf("kjtec_rfid__dev_ready_chk :: dev_ready.cmd_result [%d]\r\n",dev_ready.cmd_result);
-            printf("kjtec_rfid__dev_ready_chk :: dev_ready.data_result [%d]\r\n", dev_ready.data_result);
-        }
-    }
-
-    {
-        RIFD_DATA_ALL_CLR_T rfid_data_all_clr = {0,};
-
-        ret = kjtec_rfid__dev_rfid_all_clear(&rfid_data_all_clr);
-        if ( ret == KJTEC_RFID_RET_SUCCESS )
-        {
-            printf("kjtec_rfid__dev_rfid_all_clear :: ret [%d]\r\n",ret);
-            printf("kjtec_rfid__dev_rfid_all_clear :: rfid_data_all_clr.cmd_result [%d]\r\n",rfid_data_all_clr.cmd_result);
-            printf("kjtec_rfid__dev_rfid_all_clear :: rfid_data_all_clr.data_result [%d]\r\n", rfid_data_all_clr.data_result);
-        }
-    }
-
-    kjtec_rfid__dev_write_rfid_data();
-
-
-
-
-    while(1)
-    {
-        kjtec_rfid__dev_rfid_req();
-        sleep(20);
-    }
-}
-
-#endif
-

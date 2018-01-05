@@ -56,6 +56,9 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 	
 	int found_cmd = 0;
 
+    if ( sms == NULL)
+        return -1;
+    
 	base = sms;
 	len = strlen(sms);
 	

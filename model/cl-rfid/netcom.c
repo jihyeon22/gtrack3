@@ -113,10 +113,17 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 		}
 		case PACKET_TYPE_HTTP_GET_PASSENGER_LIST:
 		{
-			LOGD(LOG_TARGET, "[MAKE PKT] PACKET_TYPE_HTTP_GET_PASSENGER_LIST\r\n");
-			rfid_tool__set_senario_stat(e_RFID_DOWNLOAD_START);
-			res = make_clrfid_pkt__req_passenger(packet_buf, packet_len,((char *)param));
-			break;
+            char tmp_buff[512] = {0,};
+
+            strcpy(tmp_buff, "0");
+            LOGD(LOG_TARGET, "[MAKE PKT] PACKET_TYPE_HTTP_GET_PASSENGER_LIST\r\n");
+
+            if ( param != NULL )
+                strcpy(tmp_buff, ((char *)param));
+
+            rfid_tool__set_senario_stat(e_RFID_DOWNLOAD_START);
+            res = make_clrfid_pkt__req_passenger(packet_buf, packet_len,tmp_buff);
+            break;
 		}
 		case PACKET_TYPE_HTTP_SET_BOARDING_LIST:
 		{
@@ -164,7 +171,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 		res = parse_clrfid_pkt__req_passenger(g_html_recv_buff, recv_ret);
 		
 		if ( res < 0 )
-			rfid_tool__set_senario_stat(e_NEED_TO_RFID_USER_CHK); 
+			rfid_tool__set_senario_stat(e_RFID_INIT); // err fix
 		else
 			rfid_tool__set_senario_stat(e_RFID_DOWNLOAD_END);
 

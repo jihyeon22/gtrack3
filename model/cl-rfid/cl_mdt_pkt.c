@@ -856,7 +856,7 @@ int make_mst_packet(unsigned char **pbuf, unsigned short *packet_len, CL_MST_BOD
 	ptail = (CL_COMM_TAIL *)(packet_buf + sizeof(CL_COMM_HEAD) + data_len);
 
 	/* phead */
-	_set_comm_head_data((CL_COMM_HEAD *)phead, CMD_GIO);
+	_set_comm_head_data((CL_COMM_HEAD *)phead, CMD_MST);
 
 	/* pbody */
 	memcpy(pbody, body, sizeof(CL_MST_BODY));

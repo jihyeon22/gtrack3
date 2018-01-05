@@ -34,4 +34,6 @@ int set_fwdown_target_ver(char* buff);
 int get_fwdown_target_ver(char* buff);
 int get_fwdown_target_path(char* ver);
 
+int mds_api_remove_etc_char(const char *s, char* target, int target_len);
+
 #endif

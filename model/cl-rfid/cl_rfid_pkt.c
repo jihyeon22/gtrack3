@@ -36,9 +36,15 @@ static int __make_http_header__req_passenger(char* buff, char* version)
 
     int  ver_int_sec = 0;
 
+    if ( version == NULL )
+    {
+        strcpy(target_ver,"0");
+        kjtec_rfid_mgr__clr_all_user_data();
+    }
+    
     // 170807 202552 
     if ( strlen(version) == 12 )
-{
+    {
         strcpy(target_ver, version);
         #if 0
         strncpy(ver_str_date, version, 6);
@@ -158,15 +164,29 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
     
     memset(&cur_user, 0x00, sizeof(RFID_USER_INFO_T));
 
+    if ( buff == NULL )
+        return -1;
+    
+    if ( strstr(buff, "HTTP/1.1 200 OK") == NULL )
+    {
+        devel_webdm_send_log("DOWNLOAD USER : server ret fail cnt -1 [%d]", _g_parse_fail_cnt);
+        if ( _g_parse_fail_cnt++ > MAX_CLRFID_PKT_PARSE_FAIL )
+        {
+            //parse_fail_cnt = 0;
+            return 0;
+        }
+        return -1;
+    }
+
     printf("%s() [%d]=> dump pkt -------------------------------------------------\r\n", __func__, len_buff);
     printf("%s\r\n", buff);
     printf("-------------------------------------------------\r\n");
 
-
+    
     if ( strncmp("HTTP/1.1 200 OK", buff, strlen("HTTP/1.1 200 OK")  ) )
     {
         LOGE(LOG_TARGET, "%s:%d> http return fail \r\n", __func__, __LINE__);
-        devel_webdm_send_log("DOWNLOAD USER : server ret fail cnt [%d]", _g_parse_fail_cnt);
+        devel_webdm_send_log("DOWNLOAD USER : server ret fail cnt -2 [%d]", _g_parse_fail_cnt);
         if ( _g_parse_fail_cnt++ > MAX_CLRFID_PKT_PARSE_FAIL )
         {
             //parse_fail_cnt = 0;
@@ -222,18 +242,33 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
                 case 0:
                 {
                     return_str = json_string_value(element);
+                    if ( return_str == NULL)
+                    {
+                        devel_webdm_send_log("json Parse fail - 0");
+                        return -1;
+                    }
                     strcpy(cur_user.rfid_uid, return_str);
                     break;
                 }
                 case 1:
                 {
                     return_str = json_string_value(element);
+                    if ( return_str == NULL)
+                    {
+                        devel_webdm_send_log("json Parse fail - 1");
+                        return -1;
+                    }
                     cur_user.day_limit = atoi(return_str);
                     break;
                 }
                 case 2:
                 {
                     return_str = json_string_value(element);
+                    if ( return_str == NULL)
+                    {
+                        devel_webdm_send_log("json Parse fail - 2");
+                        return -1;
+                    }
                     cur_user.is_use = atoi(return_str);
                     if ( cur_user.is_use == 1)
                         passenger_list_add++;
@@ -244,12 +279,22 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
                 case 3:
                 {
                     return_str = json_string_value(element);
+                    if ( return_str == NULL)
+                    {
+                        devel_webdm_send_log("json Parse fail - 3");
+                        return -1;
+                    }
                     cur_user.boarding_cont = atoi(return_str);
                     break;
                 }
                 case 4:
                 {
                     return_str = json_string_value(element);
+                    if ( return_str == NULL)
+                    {
+                        devel_webdm_send_log("json Parse fail - 4");
+                        return -1;
+                    }
                     strcpy(cur_user.last_boarding_date, return_str);
                     break;
                 }
@@ -314,7 +359,7 @@ static int __make_http_header__set_boarding(char* buff, RFID_BOARDING_MGR_T* boa
     char host_ip[64] ={0,};
     int host_port = 0;
 
-    char blist_str[512] ={0,};
+    char blist_str[1024] ={0,};
     int blist_str_len = 0;
 
     int i = 0;
@@ -388,25 +433,28 @@ int make_clrfid_pkt__set_boarding(unsigned char **pbuf, unsigned short *packet_l
 int parse_clrfid_pkt__set_boarding(unsigned char * buff, int len_buff)
 {
     char* ret_str_p = NULL;
+    static int _g_parse_fail_cnt2 = 0;
+
+    if ( buff == NULL ) 
+        return -1;
     
+
+    if ( strstr(buff, "HTTP/1.1 200 OK") == NULL )
+    {
+        devel_webdm_send_log("DOWNLOAD USER : server ret fail cnt -22 [%d]", _g_parse_fail_cnt);
+        if ( _g_parse_fail_cnt2++ > MAX_CLRFID_PKT_PARSE_FAIL )
+        {
+            //parse_fail_cnt = 0;
+            return 0;
+        }
+        return -1;
+    }
+    LOGI(LOG_TARGET, "SET BOARDING SERVER RET [%s]\r\n", buff);
+
     printf("%s() [%d]=> dump pkt -------------------------------------------------\r\n", __func__, len_buff);
     printf("%s\r\n", buff);
     printf("-------------------------------------------------\r\n");
 
-    LOGI(LOG_TARGET, "SET BOARDING SERVER RET [%s]\r\n", buff);
-    return 0;
-
-    
-    if ( strncmp("HTTP/1.1 200 OK", buff, strlen("HTTP/1.1 200 OK")  ) )
-    {
-        LOGE(LOG_TARGET, "%s:%d> http return fail \r\n", __func__, __LINE__);
-        return -1;
-    }
-    
-    ret_str_p = strstr(buff, "\r\n\r\n");
-    if ( ret_str_p != NULL )
-        printf(" return val is [%d]\r\n", atoi(ret_str_p));
-    //json_start_p = buff;
     return 1;
 
 }

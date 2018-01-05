@@ -37,6 +37,7 @@ static RFID_SAVE_PASSENGER_DATA_T       g_rfid_save_passenger_data;
 typedef struct rfid_dev_info
 {
     int cmd_result;
+    int data_result;
     char model_no[32];
     int total_passenger_cnt;
     char saved_timestamp[12+1]; // char??
@@ -47,6 +48,7 @@ typedef struct rfid_dev_info
 typedef struct rfid_passenger_data_info
 {
     int cmd_result;
+    int data_result;
     char saved_timestamp[12+1]; // char??
 }RIFD_PASSENGER_DATA_INFO_T;
 #define RFID_CMD_ID_RESP__PASSENGER_DATA_INFO           0x30 // [ 01222605817,2017/06/30.10:00:09,]
@@ -94,6 +96,7 @@ typedef struct rfid_firmware_ver
 typedef struct rfid_db_info
 {
     int cmd_result;
+    int data_result;
     int db_cnt;
     char db_date[128]; // char??
 }RFID_DB_INFO_T; // g_rfid_db_info
@@ -107,7 +110,7 @@ typedef struct rfid_firmware_down_pkt
     int data_result; // char??
 }RFID_FIRMWARE_DOWN_PKT_T; // g_rfid_firm_down_pkt
 #define RFID_CMD_FIRMWARE_ONE_PKT_SIZE_BYTE        254
-#define RFID_CMD_FIRMWARE_ONE_PKT_MAX_RETRY        1        // ¿©·¯¹ø ½ÃµµÇØºÃÀÚ Çê¼ö°í;;
+#define RFID_CMD_FIRMWARE_ONE_PKT_MAX_RETRY        1        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ãµï¿½ï¿½Øºï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½;;
 #define RFID_CMD_ID_REQ__FIRMWARE_DOWNLOAD_START    0x50
 #define RFID_CMD_ID_REQ__FIRMWARE_DOWNLOAD_ONE_PKT  0x99
 #define RFID_CMD_ID_REQ__FIRMWARE_DOWNLOAD_WRITE_RET   0x51 // [Data Result,1,]
@@ -127,7 +130,7 @@ typedef struct rfid_firmware_down_pkt
 #define RIFD_MAX_READ_USER_INFO_TRY_FAIL_CNT 4
 
 // -------------------------------------------------------
-
+void kjtec_rfid__flush_data();
 int kjtec_rfid__dev_wakeup(RFID_DEV_INFO_T* result);
 int kjtec_rfid__dev_ready_chk(RIFD_CHK_READY_T* result);
 int kjtec_rfid__dev_rfid_all_clear(RIFD_DATA_ALL_CLR_T* result);
@@ -140,6 +143,7 @@ int kjtec_rfid__firmware_write_one_pkt(char* buff, int buff_len);
 
 
 void init_kjtec_rfid();
+
 
 
 #endif // __KJTEC_RFID_PROTOCOL_H__
