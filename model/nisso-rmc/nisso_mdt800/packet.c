@@ -14,6 +14,8 @@
 #include "debug.h"
 
 
+//#define TEST_NISSO_TEST_NUM
+
 int create_report2_divert_buffer(unsigned char **buf, int num)
 {
 	*buf = malloc( sizeof(nisso_packet2_t) * 2 * num);
@@ -71,10 +73,13 @@ unsigned char convert_angle(float azimuth)
 	return 0;
 }
 
+static unsigned short saved_speed = 0;
+
 int create_report2_data(int ev_code, nisso_packet2_t *packet, gpsData_t gpsdata, char *record, int rec_len)
 {
 	char *ver = PRG_VER;
 	char phonenum[MAX_DEV_ID_LED] = {0,};
+    unsigned int tmp_uint = 0;
 
 	memset(packet, 0x00, sizeof(nisso_packet2_t));
 
@@ -102,8 +107,11 @@ int create_report2_data(int ev_code, nisso_packet2_t *packet, gpsData_t gpsdata,
 	packet->msg_type = MDT800_MESSAGE_TYPE2;
 
 	memset(packet->dev_id, 0x20, MAX_DEV_ID_LED);
+#ifndef TEST_NISSO_TEST_NUM
 	at_get_phonenum(phonenum, MAX_DEV_ID_LED);
-	//strcpy(phonenum, "01211112222"); // 테스트번호
+#else
+	strcpy(phonenum, "01223865316"); // 테스트번호
+#endif
 	memcpy(packet->dev_id, phonenum, strlen(phonenum));
 	
 	packet->evcode = ev_code;
@@ -122,31 +130,42 @@ int create_report2_data(int ev_code, nisso_packet2_t *packet, gpsData_t gpsdata,
 
 	packet->gps_pos.latitude = gpsdata.lat * 10000000.0;
 	packet->gps_pos.longitude = gpsdata.lon * 10000000.0;
+    // 닛소에서 데이터 밀리는게 이것때문일지도..
+    // 서버변경을 절대 않할놈들이니 이런저런짓;;
+    if ( packet->gps_pos.latitude > 0 )
+        packet->gps_pos.latitude += 1;
+    
+    if ( packet->gps_pos.longitude > 0 )
+        packet->gps_pos.longitude += 1;
 	//packet->gps_pos.latitude = 37400305;
 	//packet->gps_pos.longitude = 127102385;
 
 	packet->gps_dir = convert_angle(gpsdata.angle);
 
-	{
-		static short saved_speed = 0;
 
-		if ( ( gpsdata.speed >= 0 ) && ( gpsdata.speed < 180 ) )
-		{
-			saved_speed = gpsdata.speed;
-			printf(" >> current gps speed vaild [%d]\r\n", saved_speed);
-		}
-		else
-		{
-			printf(" >> current gps speed invaild [%d]\r\n", saved_speed);
-		}
+    if ( ( gpsdata.speed >= 0 ) && ( gpsdata.speed < 180 ) )
+    {
+        saved_speed = gpsdata.speed;
+        printf(" >> current gps speed vaild [%d]\r\n", saved_speed);
+    }
+    else
+    {
+        printf(" >> current gps speed invaild [%d]\r\n", saved_speed);
+    }
 
-		packet->speed = saved_speed;
-	}
+    packet->speed = (unsigned short)saved_speed;
+
 
 	if(get_server_mileage() == MILEAGE_NOT_INIT)
-		packet->vehicle_odo = 0;
+    {
+		tmp_uint = 0;
+    }
 	else
-		packet->vehicle_odo = get_server_mileage() + get_gps_mileage();
+    {
+        tmp_uint = get_server_mileage() + get_gps_mileage();
+    }
+
+    packet->vehicle_odo = (unsigned int) tmp_uint;
 
 	packet->report_cycle_time = get_report_interval(); // unit : sec
 

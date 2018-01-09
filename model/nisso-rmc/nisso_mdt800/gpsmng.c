@@ -170,8 +170,8 @@ int check_geofence(gpsData_t *pData)
 	// [37.47562] [126.88189]
 	if(geo_test_flag == 0) //geo in
 	{
-		pData->lat = 37.47562;
-		pData->lon = 126.88189;
+		pData->lat = 37.4836196;
+		pData->lon = 126.8798599;
 	}
 
 	else if(geo_test_flag == 1) //geo out
@@ -179,6 +179,8 @@ int check_geofence(gpsData_t *pData)
 		pData->lat = 37.394865;
 		pData->lon = 127.105379;
 	}
+
+//37.4836196,126.8798599
 
 	//printf("geofence ->  pos lat:%3.7f, lon:%3.7f \r\n", pData->lat , pData->lon);
 #endif

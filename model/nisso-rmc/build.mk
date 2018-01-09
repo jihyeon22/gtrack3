@@ -2,6 +2,7 @@
 # not use sms.o
 
 OBJS_MODEL	+= $(MODEL_PATH)/netcom.o
+OBJS_MODEL	+= $(MODEL_PATH)/transfer_nisso.o
 OBJS_MODEL	+= $(MODEL_PATH)/callback.o
 
 OBJS_MODEL	+= $(MODEL_PATH)/config.o
@@ -21,4 +22,5 @@ OBJS_MODEL	+= $(MODEL_PATH)/nisso_mdt800/gpsmng.o
 OBJS_MODEL	+= $(MODEL_PATH)/nisso_mdt800/hdlc_async.o 
 OBJS_MODEL	+= $(MODEL_PATH)/nisso_mdt800/packet.o 
 OBJS_MODEL	+= $(MODEL_PATH)/nisso_mdt800/sms.o 
+
 

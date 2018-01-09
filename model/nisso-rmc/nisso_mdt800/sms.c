@@ -257,7 +257,7 @@ static int _server_ip_set(int argc, char **argv)
 	if(atoi(p_str_response) == SMS_CMD_RESPONSE_NEED)
 	{
 		char smsmsg[100] = {0,};
-   		sender_add_data_to_buffer(eIP_SETUP_EVC, NULL, ePIPE_2);
+   		sender_add_data_to_buffer(eIP_SETUP_EVC, NULL, ePIPE_1);
 		
 		sprintf(smsmsg, "ip> %s:%s\n", argv[2],  argv[3]);
 		devel_send_sms_noti(smsmsg, strlen(smsmsg), 3);
@@ -323,7 +323,7 @@ static int _rpt_cycle_keyon(int argc, char **argv)
 	if(atoi(p_str_response) == SMS_CMD_RESPONSE_NEED)
 	{
 		char smsmsg[100] = {0,};
-		sender_add_data_to_buffer(eREPORT_CYCLE_SETUP_EVT, NULL, ePIPE_2);
+		sender_add_data_to_buffer(eREPORT_CYCLE_SETUP_EVT, NULL, ePIPE_1);
 		
 		sprintf(smsmsg, "report> %u:%u\n", report_interval,  collect_interval);
 		devel_send_sms_noti(smsmsg, strlen(smsmsg), 3);
@@ -354,7 +354,7 @@ static int _mileage_set (int argc, char **argv)
 	if(atoi(p_str_response) == SMS_CMD_RESPONSE_NEED)
 	{
 		char smsmsg[100] = {0,};
-		sender_add_data_to_buffer(eODO_SETUP_EVC, NULL, ePIPE_2);
+		sender_add_data_to_buffer(eODO_SETUP_EVC, NULL, ePIPE_1);
 		
 		sprintf(smsmsg, "mileage> %d\n", dist);
 		devel_send_sms_noti(smsmsg, strlen(smsmsg), 3);
@@ -376,7 +376,7 @@ static int _mdt_status (int argc, char **argv)
 	
 	if(atoi(argv[1]) == SMS_CMD_RESPONSE_NEED)
 	{
-		sender_add_data_to_buffer(eMDT_STATUS_EVC, NULL, ePIPE_2);
+		sender_add_data_to_buffer(eMDT_STATUS_EVC, NULL, ePIPE_1);
 	}
 
 	return 0;
@@ -423,7 +423,7 @@ static int _mdt_reset (int argc, char **argv)
 	
 	if(atoi(p_str_response) == SMS_CMD_RESPONSE_NEED)
 	{
-		sender_add_data_to_buffer(eMDM_DEV_RESET, NULL, ePIPE_2);
+		sender_add_data_to_buffer(eMDM_DEV_RESET, NULL, ePIPE_1);
 	}
 	sleep(10);
 	poweroff(__FUNCTION__, sizeof(__FUNCTION__));
@@ -524,7 +524,7 @@ static int _rpt_cycle2 (int argc, char **argv)
 	if(atoi(p_str_response) == SMS_CMD_RESPONSE_NEED)
 	{
 		char smsmsg[100] = {0,};
-		sender_add_data_to_buffer(eSMS_TRANSFER_EVT, NULL, ePIPE_2);
+		sender_add_data_to_buffer(eSMS_TRANSFER_EVT, NULL, ePIPE_1);
 		
 		sprintf(smsmsg, "report2> %u:%u:%u:%u\n", report_interval_keyon, collect_interval_keyon, report_interval_keyoff, collect_interval_keyoff);
 		devel_send_sms_noti(smsmsg, strlen(smsmsg), 3);
@@ -731,19 +731,19 @@ static int _fence_set (int argc, char **argv)
 			switch(parse_fence[j].idx)
 			{
 				case 0 :
-					//sender_add_data_to_buffer(eGEO_FENCE_NUM0_ENTRY_EVT , NULL, ePIPE_2);
+					//sender_add_data_to_buffer(eGEO_FENCE_NUM0_ENTRY_EVT , NULL, ePIPE_1);
 					break;
 				case 1 :
-					//sender_add_data_to_buffer(eGEO_FENCE_NUM1_ENTRY_EVT , NULL, ePIPE_2);
+					//sender_add_data_to_buffer(eGEO_FENCE_NUM1_ENTRY_EVT , NULL, ePIPE_1);
 					break;
 				case 2 :
-					//sender_add_data_to_buffer(eGEO_FENCE_NUM2_ENTRY_EVT , NULL, ePIPE_2);
+					//sender_add_data_to_buffer(eGEO_FENCE_NUM2_ENTRY_EVT , NULL, ePIPE_1);
 					break;
 				case 3 : 
-					//sender_add_data_to_buffer(eGEO_FENCE_NUM3_ENTRY_EVT , NULL, ePIPE_2);
+					//sender_add_data_to_buffer(eGEO_FENCE_NUM3_ENTRY_EVT , NULL, ePIPE_1);
 					break;
 				case 4 : 
-					//sender_add_data_to_buffer(eGEO_FENCE_NUM4_ENTRY_EVT , NULL, ePIPE_2);
+					//sender_add_data_to_buffer(eGEO_FENCE_NUM4_ENTRY_EVT , NULL, ePIPE_1);
 					break;
 				default:
 					break;
@@ -782,7 +782,7 @@ static int _fence_set (int argc, char **argv)
 	if(atoi(argv[argc-1]) == SMS_CMD_RESPONSE_NEED)
 	{
 		char smsmsg[100] = {0,};
-		sender_add_data_to_buffer(eGEO_FENCE_SETUP, NULL, ePIPE_2);
+		sender_add_data_to_buffer(eGEO_FENCE_SETUP, NULL, ePIPE_1);
 		
 		//sprintf(smsmsg, "geo fence> %d:%d:%3.5f:%3.5f:%d\n", fence_address, fence_cond, sms_lat, sms_lon, fence_range);
 		//devel_send_sms_noti(smsmsg, strlen(smsmsg), 3);
@@ -813,7 +813,7 @@ static int _invoice_set (int argc, char **argv)
 
 	if(atoi(p_str_response) == SMS_CMD_RESPONSE_NEED)
 	{
-		sender_add_data_to_buffer(eINVOCE_RECV_EVT, NULL, ePIPE_2);
+		sender_add_data_to_buffer(eINVOCE_RECV_EVT, NULL, ePIPE_1);
 	}
 	
 	return 0;

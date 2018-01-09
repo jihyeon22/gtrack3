@@ -191,34 +191,59 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 	return res;
 }
 
+//#define TEST_CODE_TEST_TEST__TEST
 int __send_packet(char op, unsigned char *packet_buf, int packet_len)
 {
 	int res;
 	int wait_count;
 	char svr_resp[SERVER_RESP_MAX_LEN] = {0,};
 	int ret_val = -1;
+    int fail_count = 0;
+
 	printf("\n\nsend_packet : op[%d]============>\n", op);
 	hdlc_async_print_data(packet_buf, packet_len);
 	
 	while(1) 
 	{
 		memset(&svr_resp, 0x00, sizeof(svr_resp));
-		res = transfer_packet_recv_etx(&gSetting_report, packet_buf, packet_len, svr_resp, sizeof(svr_resp), ']');
+		//res = transfer_packet_recv_etx(&gSetting_report, packet_buf, packet_len, svr_resp, sizeof(svr_resp), ']');
+#ifdef TEST_CODE_TEST_TEST__TEST
+        static int test_cnt = 0;
+        if ( test_cnt++ == 0 )
+            strcpy(svr_resp, "[0][&12,2,3,2,37.4836196,126.8798599,150,4,2,37.4836196,126.8798599,70,1][&12,1, 0,2,37.4756163,126.8818914,60 ,1,2,00.0000000,000.0000000,0 ,2,2,00.0000000,000.0000000,0,3,2,37.399693, 127.100937,10,1]");
+        else
+            strcpy(svr_resp, "[2]");
+#else
+        transfer_packet_recv_nisso(&gSetting_report, packet_buf, packet_len, (unsigned char *)&svr_resp, SERVER_RESP_MAX_LEN);
+#endif
+        if ( strlen(svr_resp) )
+        {
+            if ( strlen(svr_resp) > 3 )
+                devel_webdm_send_log("pkt send recv \"%s\"", svr_resp);
 
-		if(res == 0) //send and recv success
-		{
-			LOGI(LOG_TARGET, "%s> send success : get data >> \"%s\"\n", __func__, svr_resp);
-			ret_val = server_resp_proc(svr_resp);
-			break;
-		}
+            LOGI(LOG_TARGET, "%s> send success : get data >> \"%s\"\n", __func__, svr_resp);
+            ret_val = server_resp_proc(svr_resp);
+        }
+        else
+            devel_webdm_send_log("pkt send recv fail");
+
+        if (ret_val >= 0)
+            break;
+        else
+        {
+            devel_webdm_send_log("pkt parse fail [%d]", fail_count);
+        }
 
 		LOGE(LOG_TARGET, "%s> Fail to send packet [%d]\n", __func__, op);
 
-		wait_count = MAX_WAIT_RETRY_TIME/WAIT_INTERVAL_TIME;
-		while(wait_count-- > 0) {
-			LOGI(LOG_TARGET, "%s> wait time count [%d]\n", __func__, wait_count);
-			sleep(WAIT_INTERVAL_TIME);
-		}
+		//wait_count = MAX_WAIT_RETRY_TIME/WAIT_INTERVAL_TIME;
+		//while(wait_count-- > 0) {
+		//	LOGI(LOG_TARGET, "%s> wait time count [%d]\n", __func__, wait_count);
+        fail_count ++;
+		sleep(WAIT_INTERVAL_TIME);
+        if ( fail_count > PACKET_RETRY_COUNT )
+            break;
+		//}
 		
 		if(op == eCYCLE_REPORT_EVC)
 		{
@@ -278,11 +303,20 @@ int setting_network_param(void)
 	configurationModel_t *conf = get_config_model();
 	strncpy(gSetting_report.ip, conf->model.report_ip, 40);
 	gSetting_report.port = conf->model.report_port;
+	gSetting_report.retry_count_connect = 1;
+	gSetting_report.retry_count_send = 1;
+	gSetting_report.retry_count_receive = 7;
+	gSetting_report.timeout_secs = 30;
+// ±âÁ¸
+/*
+	configurationModel_t *conf = get_config_model();
+	strncpy(gSetting_report.ip, conf->model.report_ip, 40);
+	gSetting_report.port = conf->model.report_port;
 	gSetting_report.retry_count_connect = 3;
 	gSetting_report.retry_count_send = 3;
 	gSetting_report.retry_count_receive = 3;
 	gSetting_report.timeout_secs = 30;
-
+*/
 	return 0;
 }
 

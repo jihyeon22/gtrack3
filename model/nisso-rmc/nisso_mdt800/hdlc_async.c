@@ -21,12 +21,17 @@ int hdlc_async_encode(uint8_t *dst, const uint8_t *src, int len)
 	int dstlen = 0;
 
 	while(len--) {
-		if(*src == 0x7e || *src == 0x7d) {
+        #if 0 // don`t encode..
+		if(*src == 0x7e || *src == 0x7d) 
+        {
 			*dst = 0x7d;
 			dst++;
 			dstlen++;
 			*dst = *src ^ 0x20;
-		} else {
+		} 
+        else 
+        #endif
+        {
 			*dst = *src;
 		}
 		dst++;

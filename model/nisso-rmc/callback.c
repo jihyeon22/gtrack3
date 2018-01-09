@@ -112,12 +112,11 @@ void button1_callback(void)
 
 	conf_model = get_config_model();
 
-	sender_add_data_to_buffer(eBUTTON_NUM0_EVT, NULL, ePIPE_2);
-
-	//parse_model_sms("0000", "000111122222", "&12,1, 0,2,37.4756163,126.8818914,60 ,1,2,00.0000000,000.0000000,0 ,2,2,00.0000000,000.0000000,0,3,2,37.399693, 127.100937,10,1");
-
+	sender_add_data_to_buffer(eBUTTON_NUM0_EVT, NULL, ePIPE_1);
 
 #ifdef FEATURE_GEO_FENCE_SIMULATION
+    //parse_model_sms("0000", "000111122222", "&12,1, 0,2,37.4756163,126.8818914,60 ,1,2,00.0000000,000.0000000,0 ,2,2,00.0000000,000.0000000,0,3,2,37.399693, 127.100937,10,1");
+    //parse_model_sms("0000", "000111122222", "&12,2,3,2,37.4836196,126.8798599,150,4,2,37.4836196,126.8798599,70,1");
 	geo_test_flag = 0; //geo out
 #endif
 	//test_gps_func();
@@ -132,7 +131,7 @@ void button2_callback(void)
 
 	conf_model = get_config_model();
 
-	sender_add_data_to_buffer(eBUTTON_NUM1_EVT, NULL, ePIPE_2);
+	sender_add_data_to_buffer(eBUTTON_NUM1_EVT, NULL, ePIPE_1);
 	
 #ifdef FEATURE_GEO_FENCE_SIMULATION
 	geo_test_flag = 1; //geo in
@@ -159,7 +158,7 @@ void ignition_on_callback(void)
 
 	wait_time_sync();
 
-	sender_add_data_to_buffer(eIGN_ON_EVT, NULL, ePIPE_2);
+	sender_add_data_to_buffer(eIGN_ON_EVT, NULL, ePIPE_1);
 
 	//parse_model_sms("0000", "000111122222", "&12,1, 0,2,37.4756163,126.8818914,60 ,1,2,00.0000000,000.0000000,0 ,2,2,00.0000000,000.0000000,0,3,2,37.399693, 127.100937,11,1");
 
@@ -169,8 +168,6 @@ void ignition_off_callback(void)
 {
 	configurationModel_t *conf = get_config_model();
 
-	is_run_ignition_off = 1;
-	
 	printf("%s ++\n", __func__);
 	LOGI(LOG_TARGET, "ignition_off_callback ++\n");
 
@@ -178,13 +175,16 @@ void ignition_off_callback(void)
 	{
 		therm_set_sense_cycle(conf->model.tempature_cycle*3);
 	}
-
 	wait_time_sync();
 
 	//TODO : last gps pos file save for correcting more gen-fence
-	sender_add_data_to_buffer(eIGN_OFF_EVT, NULL, ePIPE_2);
+    sender_add_data_to_buffer(eCYCLE_REPORT_EVC, NULL, ePIPE_1);
+    is_run_ignition_off = 1;
+
+	sender_add_data_to_buffer(eIGN_OFF_EVT, NULL, ePIPE_1);
 	sender_add_data_to_buffer(eCYCLE_REPORT_EVC, NULL, ePIPE_1);
 	save_mileage_file(get_server_mileage() + get_gps_mileage());
+    
 }
 
 void power_on_callback(void)
@@ -207,8 +207,8 @@ void power_off_callback(void)
 	}
 
 	LOGI(LOG_TARGET, "power_off_callback ++\n");
-	sender_add_data_to_buffer(ePOWER_SOURCE_CHANGE_EVT, NULL, ePIPE_2);
-    sender_add_data_to_buffer(eMDM_DEV_RESET, NULL, ePIPE_2);
+	sender_add_data_to_buffer(ePOWER_SOURCE_CHANGE_EVT, NULL, ePIPE_1);
+    // sender_add_data_to_buffer(eMDM_DEV_RESET, NULL, ePIPE_1); // remove..
 	
 	batt = battery_get_battlevel_internal();
 	if(batt > 0 && batt < 3600)
@@ -243,6 +243,27 @@ void gps_parse_one_context_callback(void)
 
 	if ( gps_chk_valid_time(&cur_gpsdata) <= 0 )
 		return;
+
+    // key off 일때는 아무런 동작을 하지 않게한다. 
+    // nisso 요청사항
+    if ( is_run_ignition_off == 1 )
+    {
+        int data_cnt = get_gps_data_count();
+        int i = 0;
+        LOGI(LOG_TARGET, "gpsthread : key off : do nothing.. [%d]\r\n", data_cnt);
+
+        for ( i = 0 ; i < data_cnt ; i++ )
+        {
+            nisso_packet2_t *p_packet2 = NULL;
+
+            LOGI(LOG_TARGET, "gpsthread : key off : free cont [%d]\r\n", i);
+            if(list_pop(&gps_buffer_list, (void *)&p_packet2) < 0)
+                break;
+            free(p_packet2);
+        }
+
+        return;
+    }
 
 	static int show_mileage = 0;
 	if(show_mileage++ >= 5)
@@ -407,7 +428,7 @@ void main_loop_callback(void)
 			while(get_gps_data_count() >= (condition_send) && n_try-->0)
 #endif
 			{
-				sender_add_data_to_buffer(eCYCLE_REPORT_EVC, NULL, ePIPE_1);
+			    sender_add_data_to_buffer(eCYCLE_REPORT_EVC, NULL, ePIPE_1);
 			}
 		}
 
@@ -545,7 +566,7 @@ static void _check_battery(int ignition)
 		LOGI(LOG_TARGET, "%s> Prev:%d Cur:%d V:%d\n", __FUNCTION__, prev_time_chk_batt, cur_ktime, cur_car_volt);
 		
 		cur_car_volt = cur_car_volt / 1000;
-		sender_add_data_to_buffer(eREPORT_BATT, &cur_car_volt, ePIPE_2);
+		sender_add_data_to_buffer(eREPORT_BATT, &cur_car_volt, ePIPE_1);
 		return;
 	}
 
@@ -569,7 +590,7 @@ static void _check_battery(int ignition)
 			prev_car_volt = cur_car_volt;
 			
 			cur_car_volt = cur_car_volt / 1000;
-			sender_add_data_to_buffer(eREPORT_BATT, &cur_car_volt, ePIPE_2);
+			sender_add_data_to_buffer(eREPORT_BATT, &cur_car_volt, ePIPE_1);
 		}
 		prev_time_chk_batt = cur_ktime;
 		return;
