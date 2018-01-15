@@ -128,8 +128,10 @@ static void _kjtec_rfid_cmd_proc(char* data_buff, int buff_len)
     //-------------------------------------------------------------------------------
     // 스페이스제거
     //-------------------------------------------------------------------------------
-    memset(&buff, 0x00, sizeof(tmp_buff));
-
+    memset(&buff, 0x00, sizeof(buff));
+    memcpy(&buff, data_buff, buff_len);
+    cmd_cnt = buff_len;
+/*
     cmd_cnt = mds_api_remove_char(data_buff, buff, RIFD_READ_BUFF_SIZE, ' ');
     if ( cmd_cnt <= 0 )
     {
@@ -138,6 +140,7 @@ static void _kjtec_rfid_cmd_proc(char* data_buff, int buff_len)
     }
 
     buff_len = cmd_cnt;
+*/
     // -------------------------------------------------------------------------------
     //printf("_kjtec_rfid_cmd_proc is start!! [%s][%d] -> [%d]\r\n", data_buff, buff_len, __LINE__);
     if ( buff_len < 4 )
@@ -188,6 +191,16 @@ static void _kjtec_rfid_cmd_proc(char* data_buff, int buff_len)
     //-------------------------------------------------------------------------------
     memset(&tmp_buff, 0x00, sizeof(tmp_buff));
     cmd_cnt = mds_api_remove_etc_char(tmp_str1, tmp_buff, cmd_cnt);
+    if ( cmd_cnt <= 0 )
+    {
+        printf("%s() - err : line [%d]\r\n", __func__, __LINE__);
+        return;
+    }
+
+    memcpy(&tmp_str1, tmp_buff, cmd_cnt);
+    memset(&tmp_buff, 0x00, sizeof(tmp_buff));
+
+    cmd_cnt = mds_api_remove_char(tmp_str1, tmp_buff, RIFD_READ_BUFF_SIZE, ' ');
     if ( cmd_cnt <= 0 )
     {
         printf("%s() - err : line [%d]\r\n", __func__, __LINE__);

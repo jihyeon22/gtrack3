@@ -232,6 +232,7 @@ void rfid_main_senario()
         kjtec_rfid_mgr__download_fw(fw_filename);
         rfid_tool__set_senario_stat(e_RFID_INIT); // 처음부터 루틴을 다시 태우도록
     }
+    
     rfid_main_loop_cnt ++;
     main_rfid_chk_cnt++;
 }

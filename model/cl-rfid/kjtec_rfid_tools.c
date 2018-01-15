@@ -350,7 +350,8 @@ int kjtec_rfid_mgr__write_user_info()
 int kjtec_rfid_mgr__clr_all_user_data()
 {
     rfid_tool__env_set_all_clear(1);
-    rfid_tool__set_senario_stat(e_NEED_TO_RFID_USER_CHK);
+    if ( e_RFID_DOWNLOAD_START != rfid_tool__get_senario_stat())
+        rfid_tool__set_senario_stat(e_NEED_TO_RFID_USER_CHK);
 
     LOGT(LOG_TARGET, "[KJTEC-RFID TOOL] RFID ALL CLR DATA :: REWRITE \r\n");
 
