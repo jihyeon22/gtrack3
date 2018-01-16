@@ -113,6 +113,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 										packet_len, 
 										(unsigned char *)&rcv_packet, 
 										recv_size);
+			LOGT(LOG_TARGET, "%s() : KATECH_PKT_ID_FW_CHK - rcv ret is [%d] size is [%d]\r\n", __func__, res, recv_size);
 			res = katech_pkt_fw_parse(res, (KATCH_PKT_FW_RESP*) rcv_packet);
 			break;
 		}

@@ -2,12 +2,14 @@
 #define __KATECH_TRIPDATA_H__
 
 #include "seco_obd_1.h"
-
+#include <board/board_system.h>
 
 #define TRIPDATA_STAT_KEYON         1
 #define TRIPDATA_STAT_KEYOFF        2
 
 #define TRIPDATA_RPM_ZERO_CHK_CNT   5
+
+#define TRIPDATA_DEV_BOOT_CNT_PATH  CONCAT_STR(USER_DATA_DIR, "/katech_dev_boot_cnt.log")
 
 void init_tripdata();
 void start_tripdata();
@@ -45,23 +47,22 @@ int tripdata__calc_total_time_sec();
 // 5) driving time : tripdata_driving_time
 int tripdata__init_driving_time_sec();
 int tripdata__get_driving_time_sec();
-int tripdata__calc_driving_time_sec(int speed);
+int tripdata__calc_driving_time_sec(float speed);
 
 // 6) stop time : tripdata_stop_time
 int tripdata__init_stoptime_sec();
 int tripdata__get_stoptime_sec();
-int tripdata__calc_stoptime_sec(int speed);
+int tripdata__calc_stoptime_sec(float speed);
 
 // 7) driving distance : tripdata_driving_dist
-int tripdata__init_driving_distance_m();
-int tripdata__get_driving_distance_m();
-int tripdata__set_driving_distance_m(int flag, int distance);
-int tripdata__calc_driving_distance_m(int speed);
+float tripdata__init_driving_distance_km();
+float tripdata__get_driving_distance_km();
+float tripdata__calc_driving_distance_km(float speed);
 
 // 8) number of stop : tripdata_num_of_stop
 int tripdata__init_stop_cnt();
 int tripdata__get_stop_cnt();
-int tripdata__calc_stop_cnt(int speed);
+int tripdata__calc_stop_cnt(float speed);
 
 // 9) mean speed w/ stop : tripdata_mean_spd_w_stop
 int tripdata__init_total_speed_avg();
@@ -74,16 +75,16 @@ int tripdata__get_run_speed_avg();
 // 11) acc rate : tripdata_acc_rate
 int tripdata__init_accelation_rate();
 int tripdata__get_accelation_rate();
-int tripdata__calc_accelation_rate(float acceleration, int speed);
+int tripdata__calc_accelation_rate(float acceleration, float speed);
 
 // 12) dec rate : tripdata_dec_rate
 int tripdata__init_deaccelation_rate();
 int tripdata__get_deaccelation_rate();
-int tripdata__calc_deaccelation_rate(float acceleration, int speed);
+int tripdata__calc_deaccelation_rate(float acceleration, float speed);
 
 // 13) cruise rate : tripdata_cruise_rate
 int tripdata__init_cruise_rate();
-int tripdata__calc_cruise_rate(float acceleration, int speed);
+int tripdata__calc_cruise_rate(float acceleration, float speed);
 int tripdata__get_cruise_rate();
 
 // 14) stop rate : tripdata_stop_rate
@@ -98,36 +99,36 @@ int tripdata__calc_PKE(int cur_speed);
 // 16) PRA : tripdata_rpa
 int tripdata__init_RPA();
 int tripdata__get_RPA();
-int tripdata__calc_RPA(float acceleration, int speed);
+int tripdata__calc_RPA(float acceleration, float speed);
 
 // 17) Mean acc : tripdata_mean_acc
 int tripdata__init_acc_avg();
 int tripdata__get_acc_avg();
-int tripdata__calc_acc_avg(float acceleration, int speed);
+int tripdata__calc_acc_avg(float acceleration, float speed);
 
 // 18) cold rate : tripdata_cold_rate
 int tripdata__init_cold_rate();
 int tripdata__get_cold_rate();
-int tripdata__calc_cold_rate(int cot);
+int tripdata__calc_cold_rate(float cot);
 
 // 19) warm : tripdata_warm
 int tripdata__init_warm_rate();
 int tripdata__get_warm_rate();
-int tripdata__calc_warm_rate(int cot);
+int tripdata__calc_warm_rate(float cot);
 
 // 20) hot rate : tripdata_hot
 int tripdata__init_hot_rate();
 int tripdata__get_hot_rate();
-int tripdata__calc_hot_rate(int cot);
+int tripdata__calc_hot_rate(float cot);
 
 // 21) fuel useage : tripdata_fuel_usage
 int tripdata__init_fuel_useage();
-int tripdata__set_fuel_useage(int flag, int fuel_useage);
-int tripdata__get_fuel_useage();
+float tripdata__calc_fuel_usage(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_TA2_T* ta2_buff);
+float tripdata__get_fuel_useage();
 
 // 22) fuel economy : tripdata_fuel_eco
 int tripdata__init_fuel_economy();
-int tripdata__get_fuel_economy();
+float tripdata__get_fuel_economy();
 
 // 23) trip start date : trip_start_date
 int tripdata__init_start_date();
@@ -156,7 +157,7 @@ int tripdata__get_end_time();
 int timeserise_calc__set_fuel_type(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_TA2_T* ta2_buff);
 int timeserise_calc__set_ef_cal_type(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_TA2_T* ta2_buff);
 // 79 Fuel flow rate;
-int timeserise_calc__fuel_fr(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_TA2_T* ta2_buff);
+float timeserise_calc__fuel_fr(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_TA2_T* ta2_buff);
 // 80 Engine brake Torque;
 int timeserise_calc__engine_break_torque(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_TA2_T* ta2_buff);
 // 81 Engine brake Power;
@@ -172,7 +173,10 @@ int timeserise_calc__corr_v_speed(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DA
 // 89 road gradient;
 int timeserise_calc__garde(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_TA2_T* ta2_buff);
 
+int get_running_time_sec();
 
+int init_dev_boot_time();
+int get_dev_boot_time();
 
 
 #endif

@@ -36,7 +36,7 @@ int _init_seco_obd_1_uart(char* dev, int baud , int *fd);
 // OBD+FWU+NON=
 // OBD+FWU+NON?
 // OBD+FWU+ERR=xxxx
-#define DEBUG_MSG_OBD_UART
+//#define DEBUG_MSG_OBD_UART
 char debug_tmp_str[1024] = {0,};
 
 int seco_obd_1_write_cmd_resp(const char* sec_obd_cmd1, const char* sec_obd_cmd2, const int cmd_type, const char* sec_obd_data, char* ret_buff, int* error_code)

@@ -707,7 +707,7 @@ int get_seco_obd_cmd_ta1(SECO_CMD_DATA_SRR_TA1_T* p_ta1_buff)
         return OBD_RET_FAIL;
 
     read_cnt = seco_obd_1_write_cmd_resp("OBD+SRR+", "TA1", eCMD_TYPE_GET_VALUE, NULL, ret_buff, &error_code);
-    printf("obd cmd return : [%s] / [%d]\r\n", ret_buff, read_cnt);
+    //printf("obd cmd return : [%s] / [%d]\r\n", ret_buff, read_cnt);
     
     if ( read_cnt <= 0 )
     {

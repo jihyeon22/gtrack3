@@ -1,6 +1,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
 
 #include <at/at_util.h>
 #include <base/gpstool.h>
@@ -10,6 +12,9 @@
 #include "board/modem-time.h"
 #include "logd/logd_rpc.h"
 #include "seco_obd_1.h"
+#include "seco_obd_mgr.h"
+#include "katech-packet.h"
+#include <base/devel.h>
 
 #define LOG_TARGET eSVC_COMMON
 
@@ -23,10 +28,9 @@
 #endif
 
 
-float tripdata__get_acceleration(int speed)
+float tripdata__get_acceleration(float speed)
 {
-    static int speed_data[3] = {0,};
-
+    static float speed_data[3] = {0,};
     static float calc_acceleration = 0;
     float tmp_accelation = 0;
 
@@ -69,7 +73,7 @@ void init_tripdata()
     tripdata__init_total_time_sec();    // 4) total time : 개별트립의 주행시간
     tripdata__init_driving_time_sec();  // 5) driving time 
     tripdata__init_stoptime_sec();      // 6) stop time
-    tripdata__init_driving_distance_m();    // 7) driving distance
+    tripdata__init_driving_distance_km();    // 7) driving distance
     tripdata__init_stop_cnt();              // 8) number of stop
     tripdata__init_total_speed_avg();       // 9) mean speed w/ stop
     tripdata__init_run_speed_avg();         // 10) mean speed w/o stop
@@ -106,8 +110,8 @@ void dbg_print_trip_info()
     OBD_DEBUG_PRINT("  - 4) total time : [%d]\r\n", tripdata__get_total_time_sec());
     OBD_DEBUG_PRINT("  - 5) driving time : [%d]\r\n", tripdata__get_driving_time_sec());
     OBD_DEBUG_PRINT("  - 6) stop time : [%d]\r\n", tripdata__get_stoptime_sec());
-    OBD_DEBUG_PRINT("  - 7.1) driving distance : [%d]m\r\n", tripdata__get_driving_distance_m());
-    OBD_DEBUG_PRINT("  - 7.2) driving distance : [%d]km\r\n", tripdata__get_driving_distance_m()/1000);
+    OBD_DEBUG_PRINT("  - 7.1) driving distance : [%f]m\r\n", tripdata__get_driving_distance_km());
+    OBD_DEBUG_PRINT("  - 7.2) driving distance : [%f]km\r\n", tripdata__get_driving_distance_km()/1000);
     OBD_DEBUG_PRINT("  - 8) number of stop : [%d]\r\n", tripdata__get_stop_cnt());
     OBD_DEBUG_PRINT("  - 9) mean speed w stop 1 [%d]/100 m/h\r\n", tripdata__get_total_speed_avg());
     OBD_DEBUG_PRINT("  - 10) mean speed w stop 2 [%d]/100 m/h\r\n", tripdata__get_run_speed_avg());
@@ -147,22 +151,17 @@ static int tripdata_stat__get_stat()
 // OBD+SRR+TDD? // km
 void start_tripdata()
 {
-    int tmp_total_distance = get_obd_total_distance();
-    int tmp_fuel_usage = get_obd_total_fuel_usage();
+    float tmp_total_distance = tripdata__get_driving_distance_km();
+    float tmp_fuel_usage = tripdata__get_fuel_useage();
     int tmp_cur_time = get_modem_time_utc_sec();
-    //int tmp_cur_time = time_cnt;
 
-    LOGI(LOG_TARGET, "\t > START-TRIP : distance_m %d\r\n", tmp_total_distance);
+    LOGI(LOG_TARGET, "\t > START-TRIP : distance_m %f\r\n", tmp_total_distance);
+    LOGI(LOG_TARGET, "\t > START-TRIP : fuel_useage %f\r\n", tmp_fuel_usage);
     LOGI(LOG_TARGET, "\t > START-TRIP : time_sec %d\r\n", tmp_cur_time);
-    LOGI(LOG_TARGET, "\t > START-TRIP : fuel_useage %d\r\n", tmp_fuel_usage);
-
-    devel_webdm_send_log("start trip : [%d], [%d], [%d]\r\n", tmp_total_distance, tmp_cur_time, tmp_fuel_usage);
+    
+    devel_webdm_send_log("start trip [%d][%u] => [%f][%f]\r\n",tmp_cur_time, mileage_get_m(), tmp_total_distance, tmp_fuel_usage);
 
     init_tripdata();
-
-    tripdata__set_total_time_sec(TRIPDATA_STAT_KEYON, tmp_cur_time);
-    tripdata__set_fuel_useage(TRIPDATA_STAT_KEYON, tmp_fuel_usage);
-    tripdata__set_driving_distance_m(TRIPDATA_STAT_KEYON, tmp_total_distance);
 
     tripdata_stat__set_stat(TRIPDATA_STAT_KEYON);
 
@@ -171,22 +170,20 @@ void start_tripdata()
 
 void end_tripdata()
 {
-    int tmp_total_distance = get_obd_total_distance();
-    int tmp_fuel_usage = get_obd_total_fuel_usage();
+    float tmp_total_distance = tripdata__get_driving_distance_km();
+    float tmp_fuel_usage = tripdata__get_fuel_useage();
     int tmp_cur_time = get_modem_time_utc_sec();
-
-    LOGI(LOG_TARGET, "\t > END-TRIP : distance_m %d\r\n", tmp_total_distance);
+    
+    LOGI(LOG_TARGET, "\t > END-TRIP : distance_m %f\r\n", tmp_total_distance);
+    LOGI(LOG_TARGET, "\t > END-TRIP : fuel_useage %f\r\n", tmp_fuel_usage);
     LOGI(LOG_TARGET, "\t > END-TRIP : time_sec %d\r\n", tmp_cur_time);
-    LOGI(LOG_TARGET, "\t > END-TRIP : fuel_useage %d\r\n", tmp_fuel_usage);
 
-    devel_webdm_send_log("end trip : [%d], [%d], [%d]\r\n", tmp_total_distance, tmp_cur_time, tmp_fuel_usage);
+    devel_webdm_send_log("end trip [%d][%u] => [%f][%f]\r\n",tmp_cur_time, mileage_get_m(), tmp_total_distance, tmp_fuel_usage);
 
     if ( TRIPDATA_STAT_KEYON != tripdata_stat__get_stat() )
         return;
     
-    tripdata__set_driving_distance_m(TRIPDATA_STAT_KEYOFF, tmp_total_distance);
     tripdata__set_total_time_sec(TRIPDATA_STAT_KEYOFF, tmp_cur_time);
-    tripdata__set_fuel_useage(TRIPDATA_STAT_KEYOFF, tmp_fuel_usage);
     
     tripdata_stat__set_stat(TRIPDATA_STAT_KEYOFF);
 
@@ -196,13 +193,8 @@ void end_tripdata()
 
 void tmp_save_end_tripdata()
 {
-    int tmp_total_distance = get_obd_total_distance();
-    int tmp_fuel_usage = get_obd_total_fuel_usage();
     int tmp_cur_time = get_modem_time_utc_sec();
-
     tripdata__set_total_time_sec(TRIPDATA_STAT_KEYOFF, tmp_cur_time);
-    tripdata__set_fuel_useage(TRIPDATA_STAT_KEYOFF, tmp_fuel_usage);
-    tripdata__set_driving_distance_m(TRIPDATA_STAT_KEYOFF, tmp_total_distance);
 }
 
 // 1초에 1번씩 불려야함.
@@ -210,11 +202,11 @@ void calc_tripdata()
 {
     float accelation_val = 0;
 
-    int factor_SPD = 0;
-    int factor_COT = 0;
+    float factor_SPD = 0;
+    float factor_COT = 0;
 
-    static int chk_rpm_zero_cnt = 0;
-    static int chk_rpm_zero_cnt2 = 0;
+    // static int chk_rpm_zero_cnt = 0;
+    // static int chk_rpm_zero_cnt2 = 0;
 
     if ( TRIPDATA_STAT_KEYON != tripdata_stat__get_stat() )
     {
@@ -222,29 +214,34 @@ void calc_tripdata()
         return;
     }
 
-    SECO_CMD_DATA_SRR_TA1_T ta1_buff_cur = {0,};
-    SECO_CMD_DATA_SRR_TA2_T ta2_buff_cur = {0,};
+    SECO_CMD_DATA_SRR_TA1_T ta1_buff_cur;
+    SECO_CMD_DATA_SRR_TA2_T ta2_buff_cur;
+
+    memset(&ta1_buff_cur, 0x00, sizeof(ta1_buff_cur));
+    memset(&ta2_buff_cur, 0x00, sizeof(ta2_buff_cur));
 
     if ( katech_obd_mgr__get_ta1_obd_info(&ta1_buff_cur) <= 0)
     {
-        devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+        //devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
         return;
     }
 
     if ( katech_obd_mgr__get_ta2_obd_info(&ta2_buff_cur) <= 0)
     {
-        devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+        //devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
         return;
     }
 
     factor_SPD = ta1_buff_cur.obd_data[eOBD_CMD_SRR_TA1_SPD].data;
     if ( factor_SPD == -1 )
         factor_SPD = 0;
-        
+    
     factor_COT = ta1_buff_cur.obd_data[eOBD_CMD_SRR_TA1_COT].data;
+    if ( factor_COT == -1 )
+        factor_COT = 0;
 
     accelation_val = tripdata__get_acceleration(factor_SPD);
-    printf(" >>>>>>> accel [%f]  / spd [%d] \r\n",accelation_val, factor_SPD);
+    //printf(" >>>>>>> accel [%f]  / spd [%f] \r\n",accelation_val, factor_SPD);
 
     // 1) device ID : mdm_dev_id
     // 2) vIN : mdm_char_vin
@@ -252,7 +249,7 @@ void calc_tripdata()
     tripdata__calc_total_time_sec(); // 4) total time : 개별트립의 주행시간 : tripdata_total_time
     tripdata__calc_driving_time_sec(factor_SPD);    // 5) driving time : tripdata_driving_time
     tripdata__calc_stoptime_sec(factor_SPD);        // 6) stop time : tripdata_stop_time
-    tripdata__calc_driving_distance_m(factor_SPD);  // 7) driving distance : tripdata_driving_dist
+    tripdata__calc_driving_distance_km(factor_SPD);  // 7) driving distance : tripdata_driving_dist
     tripdata__calc_stop_cnt(factor_SPD);            // 8) number of stop : tripdata_num_of_stop
     // 9) mean speed w/ stop : tripdata_mean_spd_w_stop
     // 10) mean speed w/o stop : tripdata_mean_spd_wo_stop
@@ -267,6 +264,7 @@ void calc_tripdata()
     tripdata__calc_warm_rate(factor_COT);   // 19) warm : tripdata_warm
     tripdata__calc_hot_rate(factor_COT);    // 20) hot rate : tripdata_hot
     // 21) fuel useage : tripdata_fuel_usage
+    tripdata__calc_fuel_usage(&ta1_buff_cur,&ta2_buff_cur);
     // 22) fuel economy : tripdata_fuel_eco
     // 23) trip start date : trip_start_date
     // 24) trip start time : trip_start_time
@@ -275,6 +273,7 @@ void calc_tripdata()
 
     // 시동꺼짐 체크..
     // obd 데이터를 갖고오지 못하고 그냥 꺼지는일이 발생할까봐 가끔저장
+    /*
     if ( ta1_buff_cur.obd_data[eOBD_CMD_SRR_TA1_RPM].data == 0 )
     {
         chk_rpm_zero_cnt++;
@@ -285,7 +284,7 @@ void calc_tripdata()
         tmp_save_end_tripdata();
         chk_rpm_zero_cnt = 0;
         chk_rpm_zero_cnt2++;
-    }
+    }*/
 
 }
 
@@ -436,12 +435,13 @@ int tripdata__get_driving_time_sec()
     return _g_drivingtime_sec;
 }
 
-int tripdata__calc_driving_time_sec(int speed)
+int tripdata__calc_driving_time_sec(float speed)
 {
     if (speed > 0)
         _g_drivingtime_sec++;
 
-    _g_drivingtime_sec;
+    return _g_drivingtime_sec;
+
 }
 
 // --------------------------------------------------
@@ -459,7 +459,7 @@ int tripdata__get_stoptime_sec()
     return _g_stoptime_sec;
 }
 
-int tripdata__calc_stoptime_sec(int speed)
+int tripdata__calc_stoptime_sec(float speed)
 {
     if (speed == 0)
         _g_stoptime_sec ++;
@@ -471,59 +471,33 @@ int tripdata__calc_stoptime_sec(int speed)
 // --------------------------------------------------
 // 7) driving distance
 // --------------------------------------------------
-//#define TRIP_CALC__DISTANCE_FROM_SPEED
-static int _g_total_drive_distance = 0;
-static int _g_total_drive_distance_keyon = 0;
-static int _g_total_drive_distance_keyoff = 0;
-int tripdata__init_driving_distance_m()
+static float _g_total_drive_distance = 0;
+float tripdata__init_driving_distance_km()
 {
     _g_total_drive_distance = 0;
-    _g_total_drive_distance_keyon = 0;
-    _g_total_drive_distance_keyoff = 0;
     return _g_total_drive_distance;
 }
 
-int tripdata__get_driving_distance_m()
+float tripdata__get_driving_distance_km()
 {
-#ifdef TRIP_CALC__DISTANCE_FROM_SPEED
-    return _g_total_drive_distance;
-#else
-
-    int total_distance_m = _g_total_drive_distance_keyoff - _g_total_drive_distance_keyon;
-    if ( total_distance_m <= 0 )
-        return 0;
-
-    return total_distance_m;
-#endif
-}
-
-int tripdata__set_driving_distance_m(int flag, int distance)
-{
-    if ( distance <= 0 )
-        return 0;
-
-    if ( flag == TRIPDATA_STAT_KEYON)
-        _g_total_drive_distance_keyon = distance;
-    else
-        _g_total_drive_distance_keyoff = distance;
     return _g_total_drive_distance;
 }
 
-int tripdata__calc_driving_distance_m(int speed)
+float tripdata__calc_driving_distance_km(float cur_speed)
 {
-#ifdef TRIP_CALC__DISTANCE_FROM_SPEED
-    static int speed_prev = 0;
+    static float speed_prev = 0;
     float speed_diff_calc = 0;
 
-    int speed_cur;
-    speed_diff_calc = ((speed + speed_prev)/7200);
+    float calc_factor_1 = cur_speed + speed_prev;
+    float calc_factor_2 = 7200;
+
+    speed_diff_calc = calc_factor_1 / calc_factor_2;
     
-    _g_total_drive_distance += _g_total_drive_distance + speed_diff_calc;
-    speed_prev = speed_prev;
+    _g_total_drive_distance = _g_total_drive_distance + speed_diff_calc;
+
+    //printf("total distance : [%f][%f], [%f],[%f]\r\n", calc_factor_1, calc_factor_2, speed_diff_calc, _g_total_drive_distance);
+    speed_prev = cur_speed;
     return _g_total_drive_distance;
-#else
-    return 0;
-#endif
 }
 
 
@@ -543,13 +517,13 @@ int tripdata__get_stop_cnt()
     return _g_tripdata__stop_cnt;
 }
 
-int tripdata__calc_stop_cnt(int speed)
+int tripdata__calc_stop_cnt(float speed)
 {
-    static int speed_data[3] = {0,};
+    static float speed_data[3] = {0,};
 
     int i = 0;
 
-    float tmp_accelation = 0;
+//    float tmp_accelation = 0;
 
     //OBD_DEBUG_PRINT(" set accelation calc : cur speed [%d]\r\n", speed);
     for ( i = 0 ; i < (3 -1) ; i ++)
@@ -580,7 +554,7 @@ int tripdata__init_total_speed_avg()
 // TODO : 형변환관련 추가
 int tripdata__get_total_speed_avg()
 {
-    int total_distance = tripdata__get_driving_distance_m();
+    float total_distance = tripdata__get_driving_distance_km();
     int total_time_sec = tripdata__get_total_time_sec();
 
     //float speed_avg = total_distance / total_time_sec;
@@ -588,11 +562,17 @@ int tripdata__get_total_speed_avg()
 
     float calc_factor_1 = total_distance;
     float calc_factor_2 = total_time_sec;
+    float calc_factor_3 = 3600;
 
     if ( ( calc_factor_1 > 0 ) && (calc_factor_2 > 0) )
-        speed_avg = calc_factor_1 / calc_factor_2 / 3600;
+    {
+        speed_avg = calc_factor_1 / calc_factor_2 / calc_factor_3;
+    }
     else
-        devel_webdm_send_log("%s : %d => err [%d] [%d]\n", __func__, __LINE__, total_distance, total_time_sec);
+    {
+        speed_avg = 0;
+        //devel_webdm_send_log("%s : %d => err [%d] [%d]\n", __func__, __LINE__, total_distance, total_time_sec);
+    }
    // speed_avg = speed_avg * 100;
 
     return speed_avg;
@@ -608,7 +588,7 @@ int tripdata__init_run_speed_avg()
 
 int tripdata__get_run_speed_avg()
 {
-    int total_distance = tripdata__get_driving_distance_m();
+    float total_distance = tripdata__get_driving_distance_km();
     int total_time_sec = tripdata__get_driving_time_sec();
 
     float speed_avg = 0;
@@ -617,9 +597,14 @@ int tripdata__get_run_speed_avg()
     float calc_factor_2 = total_time_sec;
 
     if ( calc_factor_2 > 0 )
+    {
         speed_avg = calc_factor_1 / calc_factor_2;
+    }
     else
-        devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    {
+        speed_avg = 0;
+        //devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    }
     
     speed_avg = speed_avg * 100;
 
@@ -646,9 +631,14 @@ int tripdata__get_accelation_rate()
     float calc_factor_2 = total_time_sec;
 
     if ( calc_factor_2 > 0 )
+    {
         total_rate = calc_factor_1 / calc_factor_2;
+    }
     else
-        devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    {
+        total_rate = 0;
+        //devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    }
 
     OBD_DEBUG_PRINT("              --> tripdata__get_accelation_rate : [%d] / [%d] = [%f]\r\n", _g_acceleration_rate, total_time_sec, total_rate);
     total_rate = total_rate * 100;
@@ -656,7 +646,7 @@ int tripdata__get_accelation_rate()
     return total_rate;
 }
 
-int tripdata__calc_accelation_rate(float acceleration, int speed)
+int tripdata__calc_accelation_rate(float acceleration, float speed)
 {
     if ( ( acceleration >= 0.5 ) && (speed > 0) )
     {
@@ -689,9 +679,14 @@ int tripdata__get_deaccelation_rate()
     float calc_factor_2 = total_time_sec;
 
     if ( calc_factor_2 > 0 )
+    {
         total_rate = calc_factor_1 / calc_factor_2;
+    }
     else
-        devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    {
+        total_rate = 0;
+        // devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    }
 
     OBD_DEBUG_PRINT("              --> tripdata__get_deaccelation_rate : [%d] / [%d] = [%f]\r\n", _g_deacceleration_rate, total_time_sec, total_rate);
     total_rate = total_rate * 100;
@@ -699,7 +694,7 @@ int tripdata__get_deaccelation_rate()
     return total_rate;
 }
 
-int tripdata__calc_deaccelation_rate(float acceleration, int speed)
+int tripdata__calc_deaccelation_rate(float acceleration, float speed)
 {
     if ( ( acceleration <= -0.5 ) && (speed > 0) )
     {
@@ -722,7 +717,7 @@ int tripdata__init_cruise_rate()
     return _g_cruise_rate;
 }
 
-int tripdata__calc_cruise_rate(float acceleration, int speed)
+int tripdata__calc_cruise_rate(float acceleration, float speed)
 {
     
     if ( ( acceleration >= -0.5 ) && ( acceleration <= 0.5 ) && (speed > 0) )
@@ -732,6 +727,7 @@ int tripdata__calc_cruise_rate(float acceleration, int speed)
         #endif
         _g_cruise_rate ++;
     }
+    return _g_cruise_rate;
 }
 
 int tripdata__get_cruise_rate()
@@ -743,9 +739,14 @@ int tripdata__get_cruise_rate()
     float calc_factor_2 = total_time_sec;
 
     if ( calc_factor_2 > 0 )
+    {
         total_rate = calc_factor_1 / calc_factor_2;
+    }
     else
-        devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    {
+        total_rate = 0;
+        //devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    }
 
     OBD_DEBUG_PRINT("              --> tripdata__get_cruise_rate : [%d] / [%d] = [%f]\r\n", _g_cruise_rate, total_time_sec, total_rate);
     total_rate = total_rate * 100;
@@ -770,9 +771,14 @@ int tripdata__get_stop_rate()
     float calc_factor_2 = total_time_sec;
 
     if ( calc_factor_2 > 0 )
+    {
         stop_rate = calc_factor_1 / calc_factor_2;
+    }
     else
-        devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    {
+        stop_rate = 0;
+        //devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    }
 
     OBD_DEBUG_PRINT("              --> tripdata__get_stop_rate : [%d] / [%d] = [%f]\r\n", stop_time_sec, total_time_sec, stop_rate);
     stop_rate = stop_rate * 100;
@@ -794,16 +800,24 @@ int tripdata__init_PKE()
 
 int tripdata__get_PKE()
 {
-    int driving_distance = tripdata__get_driving_distance_m();
+    float driving_distance = tripdata__get_driving_distance_km();
 
     float tmp_pke_val = 0;
     float calc_factor_1 = _g_pke_value;
     float calc_factor_2 = driving_distance;
+    float calc_factor_3 = 1000;
+
+    calc_factor_2 = calc_factor_2 * calc_factor_3;
 
     if ( calc_factor_2 > 0 )
+    {
         tmp_pke_val = calc_factor_1 / calc_factor_2 ;
+    }
     else
-        devel_webdm_send_log("%s : %d => err [%f]\n", __func__, __LINE__, calc_factor_2);
+    {
+        tmp_pke_val = 0;
+        //devel_webdm_send_log("%s : %d => err [%f]\n", __func__, __LINE__, calc_factor_2);
+    }
 
     OBD_DEBUG_PRINT("              --> tripdata__get_PKE is [%f]/[%f] -> [%f]\r\n", calc_factor_1, calc_factor_2, tmp_pke_val);
     //tmp_pke_val = tmp_pke_val * 1000;
@@ -847,15 +861,23 @@ int tripdata__init_RPA()
 int tripdata__get_RPA()
 {
     float tmp_rpa = 0 ;
-    int driving_distance = tripdata__get_driving_distance_m();
+    float driving_distance = tripdata__get_driving_distance_km();
 
     float calc_factor_1 = _g_rpa_value;
     float calc_factor_2 = driving_distance;
+    float calc_factor_3 = 1000;
+
+    calc_factor_2 = calc_factor_2 * calc_factor_3;
 
     if ( calc_factor_2 > 0 )
+    {
         tmp_rpa = calc_factor_1 / calc_factor_2;
+    }
     else
-        devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    {
+        tmp_rpa = 0;
+        //devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    }
 
     OBD_DEBUG_PRINT("              --> tripdata__get_RPA is [%f]/[%f] -> [%f]\r\n", calc_factor_1, calc_factor_2, tmp_rpa);
     //tmp_rpa = tmp_rpa * 1000;
@@ -864,14 +886,15 @@ int tripdata__get_RPA()
     return tmp_rpa;
 }
 
-int tripdata__calc_RPA(float acceleration, int speed)
+int tripdata__calc_RPA(float acceleration, float speed)
 {
     float tmp_speed = speed ;
 
     float tmp_rpa = 0;
+    float calc_factor_2 = 3.6;
 
     if ( acceleration > 0 )
-        tmp_rpa = (acceleration * tmp_speed) / 3.6;
+        tmp_rpa = (acceleration * tmp_speed) / calc_factor_2;
 
 
     _g_rpa_value += tmp_rpa;
@@ -885,8 +908,8 @@ int tripdata__calc_RPA(float acceleration, int speed)
 // 17) Mean acc
 // --------------------------------------------------
 static int _g_mean_acc_over_cnt;
-static float _g_mean_acc_total;
 static int _g_mean_acc_total_cnt;
+static float _g_mean_acc_total;
 
 int tripdata__init_acc_avg()
 {
@@ -903,17 +926,22 @@ int tripdata__get_acc_avg()
     float calc_factor_2 = _g_mean_acc_total_cnt;
 
     if ( calc_factor_2 > 0 )
+    {
         tmp_acc_avg = calc_factor_1 / calc_factor_2;
+    }
     else
-        devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    {
+        tmp_acc_avg = 0;
+        //devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    }
 
     tmp_acc_avg = tmp_acc_avg * 100;
 
-    printf("tripdata__get_acc_avg :: [%f][%d] \r\n",tmp_acc_avg, tmp_acc_avg);
+    // printf("tripdata__get_acc_avg :: [%f][%f] \r\n",tmp_acc_avg, tmp_acc_avg);
     return tmp_acc_avg;
 }
 
-int tripdata__calc_acc_avg(float acceleration, int speed)
+int tripdata__calc_acc_avg(float acceleration, float speed)
 {
     if ( ( acceleration > 0 ) && ( speed > 0 ) )
     {
@@ -921,7 +949,8 @@ int tripdata__calc_acc_avg(float acceleration, int speed)
         _g_mean_acc_total += acceleration;
     }
 
-    printf("tripdata__get_acc_avg :: [%f][%d] ==> [%f]/[%f]\r\n",acceleration, speed, _g_mean_acc_total_cnt, _g_mean_acc_total);
+    // printf("tripdata__get_acc_avg :: [%f][%f] ==> [%d]/[%f]\r\n" , acceleration, speed, _g_mean_acc_total_cnt, _g_mean_acc_total);
+
     return 0;
 }
 
@@ -946,16 +975,21 @@ int tripdata__get_cold_rate()
     float calc_factor_2 = total_time_sec;
 
     if ( calc_factor_2 > 0 )
+    {
         tmp_cot_rate = calc_factor_1 / calc_factor_2;
+    }
     else
-        devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    {
+        tmp_cot_rate = 0;
+        //devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    }
 
     tmp_cot_rate = tmp_cot_rate*100;
 
     return tmp_cot_rate;
 }
 
-int tripdata__calc_cold_rate(int cot)
+int tripdata__calc_cold_rate(float cot)
 {
     if (cot <= 20)
         _g_cot_rate ++;
@@ -984,9 +1018,14 @@ int tripdata__get_warm_rate()
     float calc_factor_2 = total_time_sec;
 
     if ( calc_factor_2 > 0 )
+    {
         tmp_warm_rate = calc_factor_1 / calc_factor_2;
+    }
     else
-        devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    {
+        tmp_warm_rate = 0;
+        // devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    }
 
     tmp_warm_rate = tmp_warm_rate * 100;
 
@@ -994,7 +1033,7 @@ int tripdata__get_warm_rate()
 }
 
 
-int tripdata__calc_warm_rate(int cot)
+int tripdata__calc_warm_rate(float cot)
 {
     if ((cot > 20) && (cot <= 60))
         _g_warm_rate ++;
@@ -1021,15 +1060,20 @@ int tripdata__get_hot_rate()
     float calc_factor_2 = total_time_sec;
 
     if ( calc_factor_2 > 0 )
+    {
         tmp_hot_rate = calc_factor_1 / calc_factor_2;
+    }
     else
-        devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    {
+        tmp_hot_rate = 0;
+        //devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
+    }
     tmp_hot_rate = tmp_hot_rate * 100;
 
     return tmp_hot_rate;
 }
 
-int tripdata__calc_hot_rate(int cot)
+int tripdata__calc_hot_rate(float cot)
 {
     if (cot > 60)
         _g_hot_rate ++;
@@ -1039,16 +1083,16 @@ int tripdata__calc_hot_rate(int cot)
 // --------------------------------------------------
 // 21) fuel useage
 // --------------------------------------------------
-static int _g_start_fuel_useage = 0;
-static int _g_end_fuel_useage = 0;
+static float _g_trip_fuel_useage = 0;
 
+// Trip.fuel_usage=Trip.fuel_usage+Post.Post.fuel_fr/3600;
 int tripdata__init_fuel_useage()
 {
-    _g_start_fuel_useage = 0;
-    _g_end_fuel_useage = 0;
+    _g_trip_fuel_useage = 0;
     return 0;
 }
 
+/*
 int tripdata__set_fuel_useage(int flag, int fuel_useage)
 {
     if ( fuel_useage <= 0 )
@@ -1061,13 +1105,24 @@ int tripdata__set_fuel_useage(int flag, int fuel_useage)
 
     return 0;
 }
-
-int tripdata__get_fuel_useage()
+*/
+float tripdata__calc_fuel_usage(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_TA2_T* ta2_buff)
 {
-    int tmp_fuel_useage = 0;
-    tmp_fuel_useage = _g_end_fuel_useage - _g_start_fuel_useage;
-    return tmp_fuel_useage;
+    float calc_factor_1 = timeserise_calc__fuel_fr(ta1_buff, ta2_buff);
+    float calc_factor_2 = 3600;
+
+    _g_trip_fuel_useage = _g_trip_fuel_useage + (calc_factor_1 / calc_factor_2);
+    //printf("fuel useage [%f][%f][%f]\r\n", _g_trip_fuel_useage, calc_factor_1, calc_factor_2);
+    return _g_trip_fuel_useage;
 }
+
+float tripdata__get_fuel_useage()
+{
+    return _g_trip_fuel_useage;
+}
+
+
+
 
 // --------------------------------------------------
 // 22) fuel economy
@@ -1077,25 +1132,23 @@ int tripdata__init_fuel_economy()
     return 0;
 }
 
-int tripdata__get_fuel_economy()
+float tripdata__get_fuel_economy()
 {
     float tmp_fuel_economy = 0;
 
-    int distance = tripdata__get_driving_distance_m();
-    int fuel_usage = tripdata__get_fuel_useage();
+    float distance = tripdata__get_driving_distance_km();
+    float fuel_usage = tripdata__get_fuel_useage();
 
     float calc_factor_1 = distance;
     float calc_factor_2 = fuel_usage;
 
-    // m -> km
-    calc_factor_1 = distance / 1000;
 
     if ( calc_factor_2 > 0 )
         tmp_fuel_economy = calc_factor_1 / calc_factor_2;
   
-    tmp_fuel_economy = tmp_fuel_economy * 100;
+    //tmp_fuel_economy = tmp_fuel_economy * 100;
 
-    return 0;
+    return tmp_fuel_economy;
 }
 
 // --------------------------------------------------
@@ -1113,7 +1166,7 @@ int tripdata__init_start_date()
 
 int tripdata__get_start_date()
 {
-    int time_sec = tripdata__get_keystat_time_sec(TRIPDATA_STAT_KEYON);
+    time_t time_sec = tripdata__get_keystat_time_sec(TRIPDATA_STAT_KEYON);
     int trip_date = 0;
 
     struct tm *lt;
@@ -1138,7 +1191,7 @@ int tripdata__init_start_time()
 
 int tripdata__get_start_time()
 {
-    int time_sec = tripdata__get_keystat_time_sec(TRIPDATA_STAT_KEYON);
+    time_t time_sec = tripdata__get_keystat_time_sec(TRIPDATA_STAT_KEYON);
     int trip_time = 0;
 
     struct tm *lt;
@@ -1178,7 +1231,7 @@ int tripdata__init_end_date()
 
 int tripdata__get_end_date()
 {
-    int time_sec = tripdata__get_keystat_time_sec(TRIPDATA_STAT_KEYOFF);
+    time_t time_sec = tripdata__get_keystat_time_sec(TRIPDATA_STAT_KEYOFF);
     int trip_date = 0;
 
     struct tm *lt;
@@ -1203,7 +1256,7 @@ int tripdata__init_end_time()
 
 int tripdata__get_end_time()
 {
-    int time_sec = tripdata__get_keystat_time_sec(TRIPDATA_STAT_KEYOFF);
+    time_t time_sec = tripdata__get_keystat_time_sec(TRIPDATA_STAT_KEYOFF);
     int trip_time = 0;
 
     struct tm *lt;
@@ -1246,9 +1299,10 @@ int timeserise_calc__set_fuel_type(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_D
     int i = 0;
     char fuel_type[512] = {0,};
 
+    float obd_data_MAF = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_MAF].data;
     for ( i = 0 ; i < max_retry ; i++ )
     {
-        memset(&fuel_type, 0x00, 512);
+        memset(fuel_type, 0x00, 512);
         if ( get_seco_obd_1_fueltype(fuel_type) == OBD_RET_SUCCESS )
         {
             OBD_DEBUG_PRINT("[ALLOC2 SENARIO] get obd fueltype : [%s]\r\n", fuel_type);
@@ -1280,7 +1334,7 @@ int timeserise_calc__set_fuel_type(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_D
         _g_lambda_st=14.6;                /*연비 계산 방법 Case 설정용 변수, 연료 이론 공연비 */
     }
 
-    devel_webdm_send_log("ts calc init :: _g_den_fuel [%f] / _g_lambda_st [%f]", _g_den_fuel, _g_lambda_st);
+    devel_webdm_send_log("ts calc init :: _g_den_fuel [%f] / _g_lambda_st [%f] / MAF [%f] ", _g_den_fuel, _g_lambda_st, obd_data_MAF);
     return 0;
 }
 
@@ -1297,10 +1351,10 @@ CASE 4 : 그외 차량, 연료량 산출 안함
 static int _g_car_ef_cal_type = 4;
 int timeserise_calc__set_ef_cal_type(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_TA2_T* ta2_buff)
 {
-    int obd_data_EFR = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_EFR].data;
-    int obd_data_BS1 = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_BS1].data;
-    int obd_data_MAF = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_MAF].data;
-    int obd_data_CLV = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_CLV].data;
+    float obd_data_EFR = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_EFR].data;
+    float obd_data_BS1 = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_BS1].data;
+    float obd_data_MAF = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_MAF].data;
+    float obd_data_CLV = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_CLV].data;
 
     if ( obd_data_EFR >= 0 )
         _g_car_ef_cal_type = 1;
@@ -1315,14 +1369,19 @@ int timeserise_calc__set_ef_cal_type(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD
 }
 
 // 79 Fuel flow rate
-int timeserise_calc__fuel_fr(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_TA2_T* ta2_buff)
+/*
+항목 : Post.fuel_fr
+내용 : 일반data 중 시계열 후처리 항목인 79 Fuel flow rate, 1초 간격으로 후처리 된 연료 유량을 의미함
+Unit : L/hr
+*/
+float timeserise_calc__fuel_fr(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_TA2_T* ta2_buff)
 {
     float fuel_fr = 0;
     
-    int obd_data_EFR = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_EFR].data;
-    int obd_data_MAF = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_MAF].data;
-    int obd_data_BS1 = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_BS1].data;
-    int obd_data_CLV = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_CLV].data;
+    float obd_data_EFR = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_EFR].data;
+    float obd_data_MAF = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_MAF].data;
+    float obd_data_BS1 = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_BS1].data;
+    float obd_data_CLV = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_CLV].data;
 
     switch (_g_car_ef_cal_type) {
         case 1:
@@ -1359,13 +1418,13 @@ int timeserise_calc__fuel_fr(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SR
         }
         
     }
-
-    OBD_DEBUG_PRINT("%s() -> fuel type : [%d] / obd_data_EFR [%d], obd_data_MAF [%d], obd_data_BS1 [%d], obd_data_CLV [%d]\r\n", __func__, _g_car_ef_cal_type, obd_data_EFR, obd_data_MAF, obd_data_BS1, obd_data_CLV);
-    OBD_DEBUG_PRINT("%s() -> ret : [%f], [%d]\r\n", __func__, fuel_fr, (int)fuel_fr);
+    //printf("%s() -> _g_lambda_st [%f], _g_den_fuel [%f]\r\n", __func__,  _g_lambda_st, _g_den_fuel);
+    //printf("%s() -> fuel type : [%d] / obd_data_EFR [%f], obd_data_MAF [%f], obd_data_BS1 [%f], obd_data_CLV [%f]\r\n", __func__, _g_car_ef_cal_type, obd_data_EFR, obd_data_MAF, obd_data_BS1, obd_data_CLV);
+    //printf("%s() -> ret : [%f]\r\n", __func__, fuel_fr);
 
     // 변환...
-    fuel_fr = fuel_fr*100;
-    return (int)fuel_fr;
+    //fuel_fr = fuel_fr*100;
+    return fuel_fr;
 }
 
 
@@ -1375,12 +1434,14 @@ int timeserise_calc__engine_break_torque(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO
 {
     float eng_trq = 0;
 
-    int obd_data_EAT = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_EAT].data;
-    int obd_data_ERT = ta2_buff->obd_data[eOBD_CMD_SRR_TA2_ERT].data ;
+    float obd_data_EAT = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_EAT].data;
+    float obd_data_ERT = ta2_buff->obd_data[eOBD_CMD_SRR_TA2_ERT].data ;
+    float calc_factor_3 = 8;
+    float calc_factor_4 = 0.01;
 
     if ( ( obd_data_EAT >= 0 ) && ( obd_data_ERT >= 0 ))
     {
-        eng_trq = obd_data_ERT * (obd_data_EAT - 8) * 0.01;
+        eng_trq = obd_data_ERT * (obd_data_EAT - calc_factor_3) * calc_factor_4;
     }
     else 
     {
@@ -1396,7 +1457,7 @@ if (ERT(i)<>'X' and EAT(i)<>'X'){
     OBD_DEBUG_PRINT("%s() -> fuel type : [%d] / obd_data_EAT [%d], obd_data_ERT [%d]\r\n", __func__, _g_car_ef_cal_type, obd_data_EAT, obd_data_ERT);
     OBD_DEBUG_PRINT("%s() -> ret : [%f], [%d]\r\n", __func__, eng_trq,  (int)eng_trq);
     // 변환...
-    eng_trq = eng_trq*100;
+    eng_trq = eng_trq * 100.0;
     return (int)eng_trq;
 }
 
@@ -1408,11 +1469,12 @@ int timeserise_calc__eng_break_pwr(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_D
     float eng_trq = timeserise_calc__engine_break_torque(ta1_buff, ta2_buff);;
     float obd_data_RPM = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_RPM].data;
     
-    eng_pwr = 2 * 3.141592 * obd_data_RPM * eng_trq / 60000;
+    
+    eng_pwr = 2.0 * 3.141592 * obd_data_RPM * eng_trq / 60000.0;
 
     OBD_DEBUG_PRINT("%s() -> [%f], [%d]\r\n", __func__, eng_pwr, (int)eng_pwr);
 
-    eng_pwr = eng_pwr * 100;
+    eng_pwr = eng_pwr * 100.0;
     return (int)eng_pwr;
 }
 
@@ -1422,8 +1484,8 @@ int timeserise_calc__exhaus_gas_mass_fr(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_
 {
     float exh_fr = 0 ;
 
-    int obd_data_EFR = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_EFR].data;
-    int obd_data_MAF = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_MAF].data;
+    float obd_data_EFR = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_EFR].data;
+    float obd_data_MAF = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_MAF].data;
 
     switch (_g_car_ef_cal_type) {
         case 1:
@@ -1452,7 +1514,7 @@ int timeserise_calc__exhaus_gas_mass_fr(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_
 
     OBD_DEBUG_PRINT("%s() -> [%f], [%d]\r\n", __func__, exh_fr, (int)exh_fr);
 
-    exh_fr = exh_fr * 10;
+    exh_fr = exh_fr * 10.0;
     return (int)exh_fr;
 }
 
@@ -1468,7 +1530,7 @@ int timeserise_calc__accessory_power(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD
     float acc_power = 0;
     OBD_DEBUG_PRINT("%s() -> [%f], [%d]\r\n", __func__, acc_power, (int)acc_power);
 
-    acc_power = acc_power * 100;
+    acc_power = acc_power * 100.0;
     return (int)acc_power;
 }
 
@@ -1476,9 +1538,9 @@ int timeserise_calc__accessory_power(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD
 int timeserise_calc__acceleration(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_TA2_T* ta2_buff)
 {
     //Post.acc(i)=(Post.VS_corr(i+1)-Post.VS_corr(i-1))/7.2;
-    static int speed_data[3] = {0,};
+    static float speed_data[3] = {0,};
 
-    int factor_SPD = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_SPD].data;
+    float factor_SPD = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_SPD].data;
     float tmp_accelation = 0;
 
     int i = 0;
@@ -1496,18 +1558,18 @@ int timeserise_calc__acceleration(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DA
 
     OBD_DEBUG_PRINT("%s() -> [%f], [%d]\r\n", __func__, tmp_accelation, (int)tmp_accelation);
 
-    tmp_accelation = tmp_accelation * 500;
+    // tmp_accelation = tmp_accelation * 500.0;
     return (int)tmp_accelation;
 }
 
 //  88 Corrected vehicle speed
 int timeserise_calc__corr_v_speed(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_TA2_T* ta2_buff)
 {
-    int veh_speed = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_SPD].data;
+    float veh_speed = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_SPD].data;
 
     OBD_DEBUG_PRINT("%s() -> [%f], [%d]\r\n", __func__, veh_speed, (int)veh_speed);
 
-    veh_speed = veh_speed * 100;
+    veh_speed = veh_speed * 100.0;
     return (int)veh_speed;
 }
 
@@ -1518,14 +1580,14 @@ int timeserise_calc__garde(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_
 {
     gpsData_t cur_gpsdata = {0,};
 
-    static int speed_data[3] = {0,};
+    static float speed_data[3] = {0,};
     static float gps_altitude[3]  = {0,};
     
-    int factor_SPD = 0;
+    float factor_SPD = 0;
     float facotor_gps_altitude = 0;
 
     float tmp_accelation = 0;
-    float tmp_altitude = 0;
+//    float tmp_altitude = 0;
 
     float tmp_garde = 0;
 
@@ -1564,13 +1626,16 @@ int timeserise_calc__garde(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_
 
 void timeserise_calc__init()
 {
-    SECO_CMD_DATA_SRR_TA1_T ta1_buff_cur = {0,};
-    SECO_CMD_DATA_SRR_TA2_T ta2_buff_cur = {0,};
+    SECO_CMD_DATA_SRR_TA1_T ta1_buff_cur;
+    SECO_CMD_DATA_SRR_TA2_T ta2_buff_cur;
 
     int ret_ta1 = 0;
     int ret_ta2 = 0;
 
     int max_wait_init = 30;
+
+    memset(&ta1_buff_cur, 0x00, sizeof(ta1_buff_cur));
+    memset(&ta2_buff_cur, 0x00, sizeof(ta2_buff_cur));
 
     while(max_wait_init--)
     {
@@ -1590,3 +1655,70 @@ void timeserise_calc__init()
     timeserise_calc__set_fuel_type(&ta1_buff_cur, &ta2_buff_cur);
     timeserise_calc__set_ef_cal_type(&ta1_buff_cur, &ta2_buff_cur);
 }
+
+int get_running_time_sec()
+{
+#if 0
+    static int boot_time = 0;
+    int tmp_cur_time = get_modem_time_utc_sec();
+    int tmp_ret_val = 0;
+
+    if ( boot_time == 0 )
+        boot_time = tmp_cur_time;
+
+    tmp_ret_val = tmp_cur_time - boot_time;
+    printf("get_running_time_sec() => [%d]\r\n", tmp_ret_val);
+    return tmp_ret_val;
+#endif
+    static int running_time = 0;
+    return running_time++;
+}
+
+static int _dev_boot_time = 0;
+
+
+static int _get_dev_boot_time()
+{
+    char read_buff[128] = {0,};
+    int read_cnt = 0;
+
+    int ret_val = 0;
+
+    read_cnt = mds_api_read_data(TRIPDATA_DEV_BOOT_CNT_PATH, (void*)read_buff, sizeof(read_buff));
+    if ( read_cnt > 0 )
+        ret_val = atoi(read_buff);
+
+    LOGT(eSVC_COMMON,"get dev boot cnt cnt [%d]\r\n", ret_val);
+
+    return ret_val;
+}
+
+static int _set_dev_boot_time(int cnt)
+{
+    char write_buff[128] = {0,};
+    int write_cnt = 0;
+
+    write_cnt = sprintf(write_buff,"%d", cnt);
+
+    mds_api_write_data(TRIPDATA_DEV_BOOT_CNT_PATH, (void*)write_buff, write_cnt, 0);
+
+    LOGT(eSVC_COMMON,"set dev boot cnt cnt  [%d]\r\n", cnt);
+
+    return cnt;
+}
+
+int init_dev_boot_time()
+{
+    int boot_cnt = _get_dev_boot_time();
+    boot_cnt = boot_cnt + 1;
+    _set_dev_boot_time(boot_cnt);
+    _dev_boot_time = boot_cnt;
+    return _dev_boot_time;
+}
+
+int get_dev_boot_time()
+{
+    return _dev_boot_time;
+}
+
+

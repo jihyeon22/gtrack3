@@ -80,7 +80,7 @@ void seco_obd_1_read_thread(void)
             if ( g_bmsg_proc != NULL )
                 g_bmsg_proc(0, NULL);
 
-            printf("[obd read thread] read fail case 1 do anything...\r\n");
+            //printf("[obd read thread] read fail case 1 do anything...\r\n");
             continue;
         }
 
@@ -92,14 +92,14 @@ void seco_obd_1_read_thread(void)
             if ( g_bmsg_proc != NULL )
                 g_bmsg_proc(0, NULL);
 
-            printf("[obd read thread] read fail case 2 do anything...\r\n");
+            //printf("[obd read thread] read fail case 2 do anything...\r\n");
             continue;
         }
 
         strcpy(seco_obd_1_recv_data, tmp_recv_data);
         memset(tmp_recv_data, 0x00, 512);
 
-        printf("[obd read thread] read sucess [%s] \r\n", seco_obd_1_recv_data);
+        //printf("[obd read thread] read sucess [%s] \r\n", seco_obd_1_recv_data);
         broad_cast_chk_msg_len = strlen(BROAD_CAST_CHK_MSG);
         
         if ( strncmp(seco_obd_1_recv_data, BROAD_CAST_CHK_MSG, broad_cast_chk_msg_len) == 0 )

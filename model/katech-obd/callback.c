@@ -28,6 +28,7 @@
 
 
 static int flag_run_thread_main = 1;
+#define LOG_TARGET eSVC_MODEL
 
 #define TRIP_NONE			0
 #define TRIP_START			1
@@ -54,6 +55,7 @@ void init_model_callback(void)
 	tripdata__set_car_vin("KMHSU81UBGU678413");
 	katech_tools__set_svr_stat(KATECH_SVR_STAT_NONE);
 
+    init_dev_boot_time();
 }
 
 void network_on_callback(void)
@@ -124,6 +126,7 @@ void gps_parse_one_context_callback(void)
 //	static int init_pkt_res = 0;
 
     gpsData_t cur_gpsdata = {0,};
+    gpsData_t last_gpsdata = {0,};
 
 	// 초당 1번이라고 가정하고 코딩한다.
     gps_get_curr_data(&cur_gpsdata);
@@ -133,11 +136,22 @@ void gps_parse_one_context_callback(void)
 	}
 	
 	// 시간체크한다.
-	if ( gps_chk_valid_time(&cur_gpsdata) > 0 )
+	if ( gps_chk_valid_time(&cur_gpsdata) <= 0 )
+        return;
+    
+    // 잡혔을때..
+    if ( cur_gpsdata.active == 1 ) 
 	{
+        mileage_process(&cur_gpsdata);
     	katech_pkt_1_insert_and_send(&cur_gpsdata, KATECH_PKT_INTERVAL_SEND);
-		//
 	}
+    else // 안잡혔을때..
+    {
+        gps_valid_data_get(&last_gpsdata);
+        last_gpsdata.satellite = 0;
+        katech_pkt_1_insert_and_send(&last_gpsdata, KATECH_PKT_INTERVAL_SEND);
+    }
+
 }
 
 void main_loop_callback(void)
@@ -154,24 +168,14 @@ void main_loop_callback(void)
         // server auth senario
         // -------------------------------------------------------
         // 서버인증 체크 인증용 패킷 날린다.
-        printf("katech_tools__get_svr_stat ==> [%d]\r\n", katech_tools__get_svr_stat());
+  		LOGI(LOG_TARGET, "MAIN :: SERVER STAT [%d]\n", katech_tools__get_svr_stat());
+
         if ( katech_tools__get_svr_stat() == KATECH_SVR_STAT_NONE )
         {
-            printf("send auth pkt...\r\n");
+            LOGI(LOG_TARGET, "MAIN :: SEND AUTH PKT [%d]\n", katech_tools__get_svr_stat());
             katech_pkt_auth_send();
         }
         
-        if ( katech_tools__get_svr_stat() == KATECH_SVR_STAT_AUTH_FAIL )
-        {
-            auth_fail_chk_cnt ++;
-            if ( auth_fail_chk_cnt > 60)
-            {
-                devel_webdm_send_log("auth fail and resend.");
-                auth_fail_chk_cnt = 0;
-                katech_pkt_auth_send();
-            }
-        }
-
         calc_tripdata();
 
 		time_cnt++;

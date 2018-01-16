@@ -92,21 +92,23 @@ int katech_pkt_auth_make(unsigned short *size, unsigned char **pbuf)
 int katech_pkt_auth_parse(int res, KATCH_PKT_AUTH_RESP* packet)
 {
 	char tmp_str[128]= {0,};
+    static int auth_fail_cnt = 0;
 
-	if ( res != 0 )
-	{
-		katech_tools__set_svr_stat(KATECH_SVR_STAT_NONE);
-		return 0;
-	}
-	
-	if ( packet->resp_code != 0 )
+	if (( res != 0 ) || ( packet->resp_code != 0 ))
 	{
 		printf("packet->resp_code [0x%x]\r\n", packet->resp_code);
 		katech_tools__set_svr_stat(KATECH_SVR_STAT_AUTH_FAIL);
         LOGE(LOG_TARGET, "response err!!! [0x%x] \r\n", packet->resp_code);
-		return 0;
+        if ( auth_fail_cnt ++ > 50)
+        {
+            devel_webdm_send_log("auth fail and resend.");
+            katech_tools__set_svr_stat(KATECH_SVR_STAT_NONE);
+            auth_fail_cnt = 0;
+        }
+		return -1;
 	}
 	
+    auth_fail_cnt = 0;
 	// 여기까지왔으면, 인증성공
 	
 	printf("packet->header.pkt_start = [%c]\r\n", packet->header.pkt_start);
@@ -240,6 +242,7 @@ int katech_pkt_1_insert_and_send(gpsData_t* p_gpsdata, int force_send)
 	int res = 0;
 	
 	int tmp_int_val = 0;
+    float tmp_float_val = 0;
 
 	int collect_cnt = 0; 
 	
@@ -295,98 +298,165 @@ int katech_pkt_1_insert_and_send(gpsData_t* p_gpsdata, int force_send)
         pkt_body->mdm_gps_attitude = p_gpsdata->altitude * 10;
         pkt_body->mdm_gps_heading = p_gpsdata->angle * 100;
         pkt_body->mdm_gps_speed = p_gpsdata->speed * 100;
+        pkt_body->mdm_gps_num_of_sat = p_gpsdata->satellite;
     }
 
+    // obd_trip_elapsed : since boot time sec
+    tmp_int_val = get_running_time_sec();
+    tmp_int_val = tmp_int_val * 100;
+    _pkt_data_convert((int)tmp_int_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_trip_elapsed) );          // 10 
+
+
+    // obd_trip_elapsed : since boot time sec
+    tmp_int_val = get_dev_boot_time();
+    tmp_int_val = tmp_int_val * 100;
+    _pkt_data_convert((int)tmp_int_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_trip_num) );          // 10 
+
+    
 	//srr_data_ta1->obd_data[num].idx;
 	//srr_data_ta1->obd_data[num].data;
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_CLV].data;
+    tmp_float_val = tmp_float_val * 2.55;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_calc_load_val) );          // 41
 
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_CLV].data, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_calc_load_val) );          // 41
-    // pkt_body->obd_calc_load_val = pkt_body->obd_calc_load_val * 255/100;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_MAP].data, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_intake_map ) );             // 42
-    // pkt_body->obd_intake_map = pkt_body->obd_intake_map * 1;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_RPM].data, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_rpm ) );                    // 43
-    // pkt_body->obd_rpm = pkt_body->obd_rpm * 4;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_SPD].data, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_speed ) );                  // 44
-    // pkt_body->obd_speed = pkt_body->obd_speed * 1;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_MAF].data, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_air_flow_rate ) );          // 45
-    // pkt_body->obd_air_flow_rate = pkt_body->obd_air_flow_rate * 0.01;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_TPA].data, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_abs_throttle_posi ) );      // 46
-    // pkt_body->obd_air_flow_rate = pkt_body->obd_air_flow_rate * 255/100;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_BS1].data, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_lambda ) );                 // 47
-    // pkt_body->obd_lambda = pkt_body->obd_lambda *65535/2;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_BAV].data, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_ctrl_module_vol ) );        // 48
-    // pkt_body->obd_ctrl_module_vol = pkt_body->obd_ctrl_module_vol * 1000;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_APD].data, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_acc_pedal_posi ) );         // 49
-    // pkt_body->obd_acc_pedal_posi = pkt_body->obd_acc_pedal_posi * 255/100;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_EFR].data, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_engine_fule_rate ) );       // 50
-    // pkt_body->obd_engine_fule_rate = pkt_body->obd_engine_fule_rate * 20;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_EAT].data, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_actual_engine ) );          // 51
-    // pkt_body->obd_actual_engine = pkt_body->obd_actual_engine  +125;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_CED].data, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_command_egr ) );            // 52
-    // pkt_body->obd_command_egr = pkt_body->obd_command_egr *255/100;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_AED].data, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_actual_egr_duty ) );        // 53
-    // pkt_body->obd_actual_egr_duty = pkt_body->obd_actual_egr_duty *255/100;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_EFT].data, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_engine_friction ) );        // 54
-    // pkt_body->obd_engine_friction = pkt_body->obd_engine_friction  +125;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_COT].data, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_engine_coolant_temp ) );    // 55
-    // pkt_body->obd_engine_coolant_temp = pkt_body->obd_engine_coolant_temp  +40;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_ATS].data, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_intake_air_temp ) );        // 56
-    // pkt_body->obd_intake_air_temp = pkt_body->obd_intake_air_temp  +40;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_TB1].data, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_catalyst_temp_1 ) );        // 57
-    // pkt_body->obd_catalyst_temp_1 = (pkt_body->obd_catalyst_temp_1+40) * 10;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_EST].data, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_time_engine_start ) );      // 58
-    // pkt_body->obd_time_engine_start = pkt_body->obd_time_engine_start * 1;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_BRO].data, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_barometic_press ) );        // 59
-    // pkt_body->obd_barometic_press = pkt_body->obd_barometic_press  * 1;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_ABT].data, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_ambient_air_temp ) );       // 60
-    // pkt_body->obd_ambient_air_temp = pkt_body->obd_ambient_air_temp + 40;
-    _pkt_data_convert(srr_data_ta2.obd_data[eOBD_CMD_SRR_TA2_ERT].data, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_ref_torque ) );             // 61
-    // pkt_body->obd_ref_torque = pkt_body->obd_ref_torque  * 1;
-    _pkt_data_convert(srr_data_ta2.obd_data[eOBD_CMD_SRR_TA2_DTC].data, UNSIGNED_4_BYTE , (char*)(&pkt_body->obd_mon_st_since_dtc_clr ) );   // 62
-    // pkt_body->obd_mon_st_since_dtc_clr = pkt_body->obd_mon_st_since_dtc_clr  * 1;
-    _pkt_data_convert(srr_data_ta2.obd_data[eOBD_CMD_SRR_TA2_DTM].data, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_dist_travled_mil ) );       // 63
-    // pkt_body->obd_dist_travled_mil = pkt_body->obd_dist_travled_mil * 1 ;
-    _pkt_data_convert(srr_data_ta2.obd_data[eOBD_CMD_SRR_TA2_DTS].data, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_dist_travled_dtc ) );       // 64
-    // pkt_body->obd_dist_travled_dtc = pkt_body->obd_dist_travled_dtc  * 1;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_EGR].data, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_spare_1_egr_cmd2 ) );       // 65
-    // pkt_body->obd_spare_1_egr_cmd2 = pkt_body->obd_spare_1_egr_cmd2 *255/100;
-    _pkt_data_convert(srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_EGE].data, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_spare_2_egr_err ) );        // 66
-    // pkt_body->obd_spare_2_egr_err = pkt_body->obd_spare_2_egr_err *255/100;
-	
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_MAP].data;
+    tmp_float_val = tmp_float_val * 1;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_intake_map ) );             // 42
+
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_RPM].data;
+    tmp_float_val = tmp_float_val * 4;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_rpm ) );                    // 43
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_SPD].data;
+    tmp_float_val = tmp_float_val * 1;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_speed ) );                  // 44
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_MAF].data;
+    tmp_float_val = tmp_float_val * 0.01;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_air_flow_rate ) );          // 45
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_TPA].data;
+    tmp_float_val = tmp_float_val * 2.55;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_abs_throttle_posi ) );      // 46
+
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_BS1].data;
+    tmp_float_val = tmp_float_val * (65535/2);
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_lambda ) );                 // 47
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_BAV].data;
+    tmp_float_val = tmp_float_val * 1000;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_ctrl_module_vol ) );        // 48
+
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_APD].data;
+    tmp_float_val = tmp_float_val * 2.55;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_acc_pedal_posi ) );         // 49
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_EFR].data;
+    tmp_float_val = tmp_float_val * 20;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_engine_fule_rate ) );       // 50
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_EAT].data;
+    tmp_float_val = tmp_float_val + 125;
+    _pkt_data_convert((int)tmp_float_val, SIGNED_1_BYTE , (char*)(&pkt_body->obd_actual_engine ) );          // 51
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_CED].data;
+    tmp_float_val = tmp_float_val * 2.55;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_command_egr ) );            // 52
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_AED].data;
+    tmp_float_val = tmp_float_val * 2.55;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_actual_egr_duty ) );        // 53
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_EFT].data;
+    tmp_float_val = tmp_float_val + 125;
+    _pkt_data_convert((int)tmp_float_val, SIGNED_1_BYTE , (char*)(&pkt_body->obd_engine_friction ) );        // 54
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_COT].data;
+    tmp_float_val = tmp_float_val + 40;
+    _pkt_data_convert((int)tmp_float_val, SIGNED_1_BYTE , (char*)(&pkt_body->obd_engine_coolant_temp ) );    // 55
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_ATS].data;
+    tmp_float_val = tmp_float_val + 40;
+    _pkt_data_convert((int)tmp_float_val, SIGNED_1_BYTE , (char*)(&pkt_body->obd_intake_air_temp ) );        // 56
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_TB1].data;
+    tmp_float_val = tmp_float_val + 40;
+    tmp_float_val = tmp_float_val * 10;
+    _pkt_data_convert((int)tmp_float_val, SIGNED_2_BYTE , (char*)(&pkt_body->obd_catalyst_temp_1 ) );        // 57
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_EST].data;
+    tmp_float_val = tmp_float_val * 1;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_time_engine_start ) );      // 58
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_BRO].data;
+    tmp_float_val = tmp_float_val * 1;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_barometic_press ) );        // 59
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_ABT].data;
+    tmp_float_val = tmp_float_val + 40;
+    _pkt_data_convert((int)tmp_float_val, SIGNED_1_BYTE , (char*)(&pkt_body->obd_ambient_air_temp ) );       // 60
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA2_ERT].data;
+    tmp_float_val = tmp_float_val * 1;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_ref_torque ) );             // 61
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA2_DTC].data;
+    tmp_float_val = tmp_float_val * 1;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_4_BYTE , (char*)(&pkt_body->obd_mon_st_since_dtc_clr ) );   // 62
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA2_DTM].data;
+    tmp_float_val = tmp_float_val * 1;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_dist_travled_mil ) );       // 63
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA2_DTS].data;
+    tmp_float_val = tmp_float_val * 1;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_dist_travled_dtc ) );       // 64
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_EGR].data;
+    tmp_float_val = tmp_float_val * 2.55;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_spare_1_egr_cmd2 ) );       // 65
+    
+    tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_EGE].data;
+    tmp_float_val = tmp_float_val * 2.55;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_spare_2_egr_err ) );        // 66
+    
 	// timeserise calc..
 
-	tmp_int_val = timeserise_calc__fuel_fr(&srr_data_ta1,&srr_data_ta2);
-    _pkt_data_convert(tmp_int_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_fuel_flow_rate ) );        // 79
-    pkt_body->obd_fuel_flow_rate = pkt_body->obd_fuel_flow_rate * 100;
+	//tmp_int_val = timeserise_calc__fuel_fr(&srr_data_ta1,&srr_data_ta2);
+    tmp_float_val = timeserise_calc__fuel_fr(&srr_data_ta1,&srr_data_ta2);
+    tmp_float_val = tmp_float_val * 100;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_fuel_flow_rate ) );        // 79
 
-	tmp_int_val = timeserise_calc__engine_break_torque(&srr_data_ta1,&srr_data_ta2);
+	tmp_int_val = timeserise_calc__engine_break_torque(&srr_data_ta1, &srr_data_ta2);
+    tmp_int_val = tmp_int_val * 100;
     _pkt_data_convert(tmp_int_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_engine_brake_torq ) );        // 80
-    pkt_body->obd_engine_brake_torq = pkt_body->obd_engine_brake_torq * 100 ;
 
 	tmp_int_val = timeserise_calc__eng_break_pwr(&srr_data_ta1,&srr_data_ta2);
+    tmp_int_val = tmp_int_val * 100;
     _pkt_data_convert(tmp_int_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_engine_brake_pwr ) );        // 81
-    pkt_body->obd_engine_brake_pwr = pkt_body->obd_engine_brake_pwr * 100;
 
 	tmp_int_val = timeserise_calc__exhaus_gas_mass_fr(&srr_data_ta1,&srr_data_ta2);
+    tmp_int_val = tmp_int_val * 100;
     _pkt_data_convert(tmp_int_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_exhaust_gas_flowrate ) );     // 82
-    pkt_body->obd_exhaust_gas_flowrate = pkt_body->obd_exhaust_gas_flowrate  * 10;
+    
 
 	tmp_int_val = timeserise_calc__accessory_power(&srr_data_ta1,&srr_data_ta2);
+    tmp_int_val = tmp_int_val * 100;
     _pkt_data_convert(tmp_int_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_acc_power ) );              // 83
-    pkt_body->obd_acc_power = pkt_body->obd_acc_power * 100;
 
-	tmp_int_val = timeserise_calc__acceleration(&srr_data_ta1,&srr_data_ta2);
-    _pkt_data_convert(tmp_int_val, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_acceleration ) );       // 87
-    pkt_body->obd_fuel_flow_rate = ( pkt_body->obd_fuel_flow_rate + 0.64) * 20 ;
+	tmp_float_val = timeserise_calc__acceleration(&srr_data_ta1,&srr_data_ta2);
+    tmp_float_val = tmp_float_val + 0.64;
+    tmp_float_val = tmp_float_val * 20;
+    _pkt_data_convert((int)tmp_float_val, SIGNED_1_BYTE , (char*)(&pkt_body->obd_acceleration ) );       // 87
 
 	tmp_int_val = timeserise_calc__corr_v_speed(&srr_data_ta1,&srr_data_ta2);
+    tmp_int_val = tmp_int_val * 100;
     _pkt_data_convert(tmp_int_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_cor_speed ) );          // 88
-    pkt_body->obd_fuel_flow_rate = pkt_body->obd_fuel_flow_rate * 100;
 
 	tmp_int_val = timeserise_calc__garde(&srr_data_ta1,&srr_data_ta2);
-    _pkt_data_convert(tmp_int_val, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_road_gradient ) );      // 89
-    pkt_body->obd_fuel_flow_rate = pkt_body->obd_fuel_flow_rate + 127 ;
-	// _debug_print_report1_pkt(pkt_body);
+    tmp_int_val = tmp_int_val + 127 ;
+    _pkt_data_convert(tmp_int_val, SIGNED_1_BYTE , (char*)(&pkt_body->obd_road_gradient ) );      // 89
+	//_debug_print_report1_pkt(pkt_body);
 	// cpy buffer.
 	//memcpy( pkt_body->obd_raw_data, &mux_body, 200);
 	
@@ -411,13 +481,13 @@ int katech_pkt_1_insert_and_send(gpsData_t* p_gpsdata, int force_send)
 	if ( katech_tools__get_svr_stat() != KATECH_SVR_STAT_AUTH_SUCCESS )
 		return KATECH_PKT_RET_FAIL_NO_AUTH;
 	
-	printf("DATA 1 PKT - make pkt time [%d]/[%d]\r\n", katech_packet_list_cnt_1(), collect_cnt);
+	LOGI(LOG_TARGET, "DATA 1 PKT - make pkt time [%d]/[%d]\r\n", katech_packet_list_cnt_1(), collect_cnt);
     
 	// interval atteribute
 	if (( force_send == KATECH_PKT_INTERVAL_SEND ) && ( katech_packet_list_cnt_1() >= collect_cnt) )
 	{
         int force_send_arg = force_send;
-		printf("DATA 1 PKT - SEND TIME \r\n");
+		LOGT(LOG_TARGET, "DATA 1 PKT - SEND TIME \r\n");
 		res = sender_add_data_to_buffer(KATECH_PKT_ID_REPORT_1, &force_send_arg, ePIPE_1);
 	}
 	
@@ -534,7 +604,7 @@ int katech_pkt_report_data_1_resp(int res, KATCH_PKT_REPORT_DATA_1_RESP* packet)
     LOGI(LOG_TARGET, "report 1 :: res = [%d]\r\n", res);
     LOGI(LOG_TARGET, "report 1 :: packet->resp_code = [%d]\r\n", packet->resp_code);
 
-    if ( packet->resp_code != 0x00)
+    if (( res != 0 ) || ( packet->resp_code != 0x00))
     {
         LOGE(LOG_TARGET, "report 1 :: packet->resp_code = ERR \r\n");
         return KATECH_PKT_RET_FAIL;
@@ -556,6 +626,8 @@ int katech_pkt_2_insert_and_send()
 {
 	REPORT_DATA_2_BODY_DATA*   pkt_body = {0,};
 	
+    float tmp_float_val = 0;
+
 	pkt_body = (REPORT_DATA_2_BODY_DATA *) malloc ( sizeof(REPORT_DATA_2_BODY_DATA) );
 	
 	if (pkt_body == NULL) 
@@ -572,7 +644,7 @@ int katech_pkt_2_insert_and_send()
 	pkt_body->tripdata_total_time = tripdata__get_total_time_sec();
 	pkt_body->tripdata_driving_time = tripdata__get_driving_time_sec();
 	pkt_body->tripdata_stop_time = tripdata__get_stoptime_sec();
-	pkt_body->tripdata_driving_dist = tripdata__get_driving_distance_m() * 100;
+	pkt_body->tripdata_driving_dist = tripdata__get_driving_distance_km() * 100;
 	pkt_body->tripdata_num_of_stop = tripdata__get_stop_cnt();
 	pkt_body->tripdata_mean_spd_w_stop = tripdata__get_total_speed_avg() * 100;
 	pkt_body->tripdata_mean_spd_wo_stop = tripdata__get_run_speed_avg() * 100;
@@ -587,7 +659,11 @@ int katech_pkt_2_insert_and_send()
 	pkt_body->tripdata_warm = tripdata__get_warm_rate() * 255/100;
 	pkt_body->tripdata_hot = tripdata__get_hot_rate() * 255/100;
 	pkt_body->tripdata_fuel_usage = tripdata__get_fuel_useage() * 100;
-	pkt_body->tripdata_fuel_eco = tripdata__get_fuel_economy() * 100;
+	tmp_float_val = tripdata__get_fuel_economy();
+    tmp_float_val = tmp_float_val * 100.0;
+    _pkt_data_convert((int)tmp_float_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->tripdata_fuel_eco ) ); 
+
+    devel_webdm_send_log("tripdata__get_fuel_economy() => [%d] [%f]\r\n",pkt_body->tripdata_fuel_eco, tripdata__get_fuel_economy());
 	// pkt_body->tripdata_trip_spare_1;
 	// pkt_body->tripdata_trip_spare_2;
 	// pkt_body->tripdata_trip_spare_3;
@@ -738,7 +814,7 @@ int katech_pkt_report_data_2_resp(int res, KATCH_PKT_REPORT_DATA_2_RESP* packet)
     printf("report 2 :: packet->resp_code = [%d]\r\n", packet->resp_code);
 //    printf("report 2 :: packet->resp_msg_1 = [%s]\r\n", packet->resp_msg_1);
  //   printf("report 2 :: packet->resp_msg_2 = [%d]\r\n", packet->resp_msg_2);
-    if ( packet->resp_code != 0x00)
+    if ( ( res != 0 ) || ( packet->resp_code != 0x00) )
     {
         LOGE(LOG_TARGET, "report 2 :: packet->resp_code = ERR \r\n");
         return KATECH_PKT_RET_FAIL;
