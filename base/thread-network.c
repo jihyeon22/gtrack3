@@ -125,6 +125,10 @@ void *thread_network(void *args)
                  saved_network_fail_cnt = 0;
             }
             
+#if defined (RDATE_TIME_SYNC_ENABLE)
+            if ( mds_api_set_network_time(KOR_TIME_ZONE_OFFSET) == DEFINES_MDS_API_NOK ) 
+                devel_webdm_send_log("rdate time sync fail ");
+#endif
 			network_on_callback();
 			break;
 		}
@@ -458,6 +462,12 @@ int chk_runtime_network_chk()
     {
         network_fail_cnt = 0;
         LOGI(LOG_TARGET, "RUNTIME NETCHK : NETWORK CONN OK\n");
+
+    // 모뎀이 이상한 시간을 세팅하는경우가 있때에 대비
+#if defined (RDATE_TIME_SYNC_ENABLE)
+        if ( mds_api_set_network_time(KOR_TIME_ZONE_OFFSET) == DEFINES_MDS_API_NOK ) 
+            devel_webdm_send_log("rdate time sync fail ");
+#endif
         return 0;
     }
 
