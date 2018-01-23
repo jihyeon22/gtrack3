@@ -41,6 +41,26 @@ static int trip_status = 0;
 
 gpsData_t g_gpsdata;
 
+static void wait_time_sync()
+{
+	gpsData_t cur_gpsdata;
+    int max_retry_cnt = 20;
+	while(max_retry_cnt--) {
+		gps_get_curr_data(&cur_gpsdata);
+		if(cur_gpsdata.year > 2013)
+			break;
+		
+		sleep(5);
+
+		printf("wait_time_sync : year[%d]\n", cur_gpsdata.year);
+		LOGI(LOG_TARGET, "wait_time_sync : year[%d]\n", cur_gpsdata.year);
+	}
+
+    if (max_retry_cnt <= 0)
+        devel_webdm_send_log("time sync fail..");
+}
+
+
 void init_model_callback(void)
 {
 	configurationModel_t *conf = get_config_model();
@@ -87,11 +107,15 @@ void ignition_on_callback(void)
 	printf("ignition on callback!!!!\r\n");
 	printf("ignition on callback!!!!\r\n");
 
+    wait_time_sync();
+
 	start_tripdata();
 }
 
 void ignition_off_callback(void)
 {
+    wait_time_sync();
+
 	printf("ignition off callback!!!!\r\n");
 	printf("ignition off callback!!!!\r\n");
 	printf("ignition off callback!!!!\r\n");
@@ -153,6 +177,8 @@ void main_loop_callback(void)
     
 	katech_obd_mgr__timeserise_calc_init();
 	
+    wait_time_sync();
+
 	while(flag_run_thread_main)
 	{
         watchdog_set_cur_ktime(eWdMain);
