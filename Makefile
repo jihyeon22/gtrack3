@@ -145,6 +145,7 @@ SERVER_ABBR	:=	DSMT
 else ifeq ($(SERVER),katech-obd)
 SERVER_ABBR := KATO
 USE_SECO_OBD_1=y
+USE_RDATE_TIME_SYNC=y
 else
 $(error SERVER is not registerd in Makefile, please input registred server)
 endif
@@ -353,6 +354,10 @@ OBJS	+= $(OBJ_SECO_OBD_1)
 CFLAGS  += $(SECO_OBD_1_CFLAGS)
 endif
 
+
+ifeq ($(USE_RDATE_TIME_SYNC),y)
+CFLAGS  += -DRDATE_TIME_SYNC_ENABLE
+endif
 
 ifndef BOARD
 $(error BOARD is not correct, please define correct BOARD)
