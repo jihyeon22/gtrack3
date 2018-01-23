@@ -303,7 +303,7 @@ int katech_pkt_1_insert_and_send(gpsData_t* p_gpsdata, int force_send)
 
     // obd_trip_elapsed : since boot time sec
     tmp_int_val = get_running_time_sec();
-    tmp_int_val = tmp_int_val * 100;
+    tmp_int_val = tmp_int_val * 1; // 20180123 fix : 100 -> 1
     _pkt_data_convert((int)tmp_int_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_trip_elapsed) );          // 10 
 
 

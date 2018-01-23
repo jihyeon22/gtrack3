@@ -13,6 +13,8 @@
 #include <util/list.h>
 #include <util/transfer.h>
 #include <util/poweroff.h>
+#include <base/watchdog.h>
+
 #include "logd/logd_rpc.h"
 
 #include <netcom.h>
@@ -118,6 +120,7 @@ void power_off_callback(void)
 SECO_CMD_DATA_SRR_TA1_T g_obd_ta1_buff_cur;
 SECO_CMD_DATA_SRR_TA2_T g_obd_ta2_buff_cur;
 
+static gpsData_t g_cur_gpsdata = {0,};
 void gps_parse_one_context_callback(void)
 {
 //	int res = 0;
@@ -126,31 +129,19 @@ void gps_parse_one_context_callback(void)
 //	static int init_pkt_res = 0;
 
     gpsData_t cur_gpsdata = {0,};
-    gpsData_t last_gpsdata = {0,};
 
 	// 초당 1번이라고 가정하고 코딩한다.
     gps_get_curr_data(&cur_gpsdata);
-    
-	if (( trip_status == TRIP_START) || ( trip_status == TRIP_CALC ) )
-	{
-	}
-	
+
 	// 시간체크한다.
 	if ( gps_chk_valid_time(&cur_gpsdata) <= 0 )
-        return;
-    
-    // 잡혔을때..
-    if ( cur_gpsdata.active == 1 ) 
-	{
-        mileage_process(&cur_gpsdata);
-    	katech_pkt_1_insert_and_send(&cur_gpsdata, KATECH_PKT_INTERVAL_SEND);
-	}
-    else // 안잡혔을때..
     {
-        gps_valid_data_get(&last_gpsdata);
-        last_gpsdata.satellite = 0;
-        katech_pkt_1_insert_and_send(&last_gpsdata, KATECH_PKT_INTERVAL_SEND);
+        LOGE(LOG_TARGET, "[GPS THREAD] time invaild ..\n");
+        return;
     }
+
+    LOGT(LOG_TARGET, "[GPS THREAD] GET OK ..\n");
+    memcpy(&g_cur_gpsdata, &cur_gpsdata, sizeof(cur_gpsdata));
 
 }
 
@@ -159,11 +150,12 @@ void main_loop_callback(void)
 	int time_cnt = 0;
 	int auth_fail_chk_cnt = 0;
 
+    
 	katech_obd_mgr__timeserise_calc_init();
 	
 	while(flag_run_thread_main)
 	{
-
+        watchdog_set_cur_ktime(eWdMain);
         // -------------------------------------------------------
         // server auth senario
         // -------------------------------------------------------
@@ -174,6 +166,22 @@ void main_loop_callback(void)
         {
             LOGI(LOG_TARGET, "MAIN :: SEND AUTH PKT [%d]\n", katech_tools__get_svr_stat());
             katech_pkt_auth_send();
+        }
+        
+        // 잡혔을때..
+        if ( g_cur_gpsdata.active == 1 ) 
+        {
+            LOGT(LOG_TARGET, "[MAIN THREAD] GPS DATA GET OK ..\n");
+            mileage_process(&g_cur_gpsdata);
+            katech_pkt_1_insert_and_send(&g_cur_gpsdata, KATECH_PKT_INTERVAL_SEND);
+        }
+        else // 안잡혔을때..
+        {
+            gpsData_t last_gpsdata = {0,};
+            LOGE(LOG_TARGET, "[MAIN THREAD] GPS DATA GET NOK ..\n");
+            gps_valid_data_get(&last_gpsdata);
+            last_gpsdata.satellite = 0;
+            katech_pkt_1_insert_and_send(&last_gpsdata, KATECH_PKT_INTERVAL_SEND);
         }
         
         calc_tripdata();

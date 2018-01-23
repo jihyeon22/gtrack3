@@ -8,6 +8,7 @@
 #include <base/config.h>
 #include <at/at_util.h>
 #include <board/power.h>
+#include <base/watchdog.h>
 #include <board/led.h>
 #include <util/tools.h>
 #include <util/list.h>
@@ -63,10 +64,10 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 	return res;
 }
 
-int send_packet(char op, unsigned char *packet_buf, int packet_len)
+static int __send_packet(char op, unsigned char *packet_buf, int packet_len)
 {
 	int recv_size = 0;
-	unsigned char rcv_packet[1024] = {0,};
+	//unsigned char rcv_packet[1024] = {0,};
 	
 	int res = 0;
 	
@@ -90,38 +91,49 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 	{
 		case KATECH_PKT_ID_AUTH:
 		{
-			
+            KATCH_PKT_AUTH_RESP rcv_packet;
+            memset(&rcv_packet, 0x00, sizeof(rcv_packet));
+            recv_size = sizeof(KATCH_PKT_AUTH_RESP);
+            rcv_packet.resp_code = -1;
+
 			LOGT(LOG_TARGET, "%s() : KATECH_PKT_ID_AUTH - send and resp. \r\n", __func__);
-			recv_size = sizeof(KATCH_PKT_AUTH_RESP);
-			memset(rcv_packet, 0x00, sizeof(rcv_packet));
+			
 			res = transfer_packet_recv(&network_param, 
 										packet_buf, 
 										packet_len, 
 										(unsigned char *)&rcv_packet, 
 										recv_size);
 			LOGT(LOG_TARGET, "%s() : KATECH_PKT_ID_AUTH - rcv ret is [%d] size is [%d]\r\n", __func__, res, recv_size);
-			res = katech_pkt_auth_parse(res, (KATCH_PKT_AUTH_RESP*) rcv_packet);
+			res = katech_pkt_auth_parse(res, &rcv_packet);
 			break;
 		}
 		case KATECH_PKT_ID_FW_CHK:
 		{
-			LOGT(LOG_TARGET, "%s() : KATECH_PKT_ID_FW_CHK - send and resp. \r\n", __func__);
+            KATCH_PKT_FW_RESP rcv_packet;
 			recv_size = sizeof(KATCH_PKT_FW_RESP);
-			memset(rcv_packet, 0x00, sizeof(rcv_packet));
+			memset(&rcv_packet, 0x00, sizeof(rcv_packet));
+            rcv_packet.resp_code = -1;
+
+			LOGT(LOG_TARGET, "%s() : KATECH_PKT_ID_FW_CHK - send and resp. \r\n", __func__);
+
 			res = transfer_packet_recv(&network_param, 
 										packet_buf, 
 										packet_len, 
 										(unsigned char *)&rcv_packet, 
 										recv_size);
 			LOGT(LOG_TARGET, "%s() : KATECH_PKT_ID_FW_CHK - rcv ret is [%d] size is [%d]\r\n", __func__, res, recv_size);
-			res = katech_pkt_fw_parse(res, (KATCH_PKT_FW_RESP*) rcv_packet);
+			res = katech_pkt_fw_parse(res, &rcv_packet);
 			break;
 		}
 		case KATECH_PKT_ID_REPORT_1:
 		{
-			LOGT(LOG_TARGET, "%s() : KATECH_PKT_ID_REPORT_1 - send and resp. \r\n", __func__);
+            KATCH_PKT_REPORT_DATA_1_RESP rcv_packet;
 			recv_size = sizeof(KATCH_PKT_REPORT_DATA_1_RESP);
-			memset(rcv_packet, 0x00, sizeof(rcv_packet));
+			memset(&rcv_packet, 0x00, sizeof(rcv_packet));
+			rcv_packet.resp_code = -1;
+
+			LOGT(LOG_TARGET, "%s() : KATECH_PKT_ID_REPORT_1 - send and resp. \r\n", __func__);
+
 			res = transfer_packet_recv(&network_param, 
 										packet_buf, 
 										packet_len, 
@@ -129,21 +141,25 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 										recv_size);
 			
 			LOGT(LOG_TARGET, "%s() : KATECH_PKT_ID_REPORT_1 - rcv ret is [%d] size is [%d]\r\n", __func__, res, recv_size);
-			res = katech_pkt_report_data_1_resp(res, (KATCH_PKT_REPORT_DATA_1_RESP*) rcv_packet);
+			res = katech_pkt_report_data_1_resp(res, &rcv_packet);
 			break;
 		}
 		case KATECH_PKT_ID_REPORT_2:
 		{
+            KATCH_PKT_REPORT_DATA_2_RESP rcv_packet;
+            recv_size = sizeof(KATCH_PKT_REPORT_DATA_2_RESP);
+			memset(&rcv_packet, 0x00, sizeof(rcv_packet));
+			rcv_packet.resp_code = -1;
+
 			LOGT(LOG_TARGET, "%s() : KATECH_PKT_ID_REPORT_2 - send and resp. \r\n", __func__);
-			recv_size = sizeof(KATCH_PKT_REPORT_DATA_2_RESP);
-			memset(rcv_packet, 0x00, sizeof(rcv_packet));
+
 			res = transfer_packet_recv(&network_param, 
 										packet_buf, 
 										packet_len, 
 										(unsigned char *)&rcv_packet, 
 										recv_size);
-            LOGT(LOG_TARGET, "%s() : KATECH_PKT_ID_REPORT_2 - rcv ret is [%d] size is [%d]\r\n", __func__, res, recv_size);
-			res = katech_pkt_report_data_2_resp(res, (KATCH_PKT_REPORT_DATA_2_RESP*) rcv_packet);
+			LOGT(LOG_TARGET, "%s() : KATECH_PKT_ID_REPORT_2 - rcv ret is [%d] size is [%d]\r\n", __func__, res, recv_size);
+			res = katech_pkt_report_data_2_resp(res, &rcv_packet);
 			break;
 		}
 		default:
@@ -154,6 +170,24 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 		}
 	}
 	return res;
+}
+
+int send_packet(char op, unsigned char *packet_buf, int packet_len)
+{
+    int send_res = -1;
+    int max_send_retry = 10;
+    
+    while(max_send_retry--)
+    {
+        send_res = __send_packet(op, packet_buf, packet_len);
+        if (send_res == 0)
+            break;
+        watchdog_set_cur_ktime(eWdNet1);
+        watchdog_set_cur_ktime(eWdNet2);
+        sleep(10);
+    }
+
+    return send_res;
 }
 
 int free_packet(void *packet)
