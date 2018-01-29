@@ -271,7 +271,25 @@ int kjtec_rfid_mgr__write_user_info()
         fail_cnt++;
         return KJTEC_RFID_RET_FAIL;
     }
+/*
+    if ( ( rfid_tool__env_get_all_clear() == 1 ) && ( rfid_tool__user_info_total_cnt() == 0 ))
+    {
+        RIFD_DATA_ALL_CLR_T all_clr_result;
+        memset(&all_clr_result, 0x00, sizeof(all_clr_result));
+        if ( kjtec_rfid__dev_rfid_all_clear(&all_clr_result) == KJTEC_RFID_RET_SUCCESS )
+        {
+            LOGI(LOG_TARGET, "[KJTEC-RFID TOOL] WRITE USER INFO : ALL ERASE SUCCESS \r\n");
+        }
+        else
+        {
+            // 모두지우는데 실패. 그러므로 다시 시도하기 위해서 리턴
+            LOGI(LOG_TARGET, "[KJTEC-RFID TOOL] WRITE USER INFO : ALL ERASE FAIL RETURN \r\n");
+        }
 
+        rfid_tool__set_senario_stat(e_NEED_TO_RFID_USER_CHK);
+        return KJTEC_RFID_RET_SUCCESS;
+    }
+*/
     if ( rfid_tool__user_info_total_cnt() == 0 )
     {
         rfid_tool__set_senario_stat(e_RFID_USER_INFO_WRITE_TO_DEV_SUCCESS);
