@@ -963,19 +963,30 @@ static int std_parsing(TACOM *tm, int request_num, int file_save_flag)
 	dest_idx += sizeof(tacom_std_hdr_t);
 
 	if (request_num == 1){
+DTG_LOGD("DTG Debug #1");
 		std_data = (tacom_std_data_t *)&tm->tm_strm.stream[dest_idx];
 		inno_data = &read_curr_buf;
+DTG_LOGD("DTG Debug #2");
 		ret = data_convert(std_data, (unsigned char *)inno_data, 0);
-		if (ret < 0)
+DTG_LOGD("DTG Debug #3");
+		if (ret < 0) {
+DTG_LOGD("DTG Debug #4");
 			return ret;
+		}
 		dest_idx += sizeof(tacom_std_data_t);
 		r_num++;
 	} else {
+DTG_LOGD("DTG Debug #5");
 			dest_idx = get_dtg_data(tm, dest_idx);
 	}
 	DTG_LOGD("Stream Size HDR[%d] + DATA[%d] : [%d]", 
 			sizeof(tacom_std_hdr_t), sizeof(tacom_std_data_t) * request_num, dest_idx);
 	DTG_LOGD("Size : [%d]", dest_idx);
+
+	if(dest_idx <=sizeof(tacom_std_hdr_t)) {
+		DTG_LOGD("DTG Error Detection !!!!");
+		return -1;
+	}
 
 	return dest_idx;
 }

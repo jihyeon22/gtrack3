@@ -373,6 +373,7 @@ void main_loop_callback(void)
 	{
 		int condition_send = 0;
 		
+		chk_runtime_network_chk();
 
 		if(at_recov_cnt-- < 0) {
 			//at_channel_recovery();
@@ -519,5 +520,11 @@ static int _process_poweroff(int now_poweroff_flag, char *log)
 //	}
 
 	return 0;
+}
+
+
+void network_fail_emergency_reset_callback(void)
+{
+    _process_poweroff(1, "network_fail_reset");
 }
 

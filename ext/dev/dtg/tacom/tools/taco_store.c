@@ -76,9 +76,18 @@ void store_recv_bank(unsigned char *buf, int size, unsigned char *read_curr_buf)
 		data_recv_buf = (tacom_dtg_data_type_t *)&g_dtg_recv_bank[g_dtg_end].buf[g_dtg_recv_bank[g_dtg_end].count];
 		memcpy((char *)data_recv_buf, buf, size);
 		memcpy(read_curr_buf, buf, size);
+
+//packet
+printf("insert end[%d] : [%02x][%02x][%02x][%02x][%02x][%02x][%02x][%02x][%02x][%02x][%02x][%02x]\n", g_dtg_end,
+data_recv_buf->packet[0], data_recv_buf->packet[1], data_recv_buf->packet[2], data_recv_buf->packet[3],
+data_recv_buf->packet[4], data_recv_buf->packet[5],
+data_recv_buf->packet[6], data_recv_buf->packet[7],data_recv_buf->packet[8],
+data_recv_buf->packet[9], data_recv_buf->packet[10],data_recv_buf->packet[11]);
+
 		g_dtg_recv_bank[g_dtg_end].count++;
 		if (g_dtg_recv_bank[g_dtg_end].count >= MAX_ONE_DATA_COUNT) {
 			g_dtg_recv_bank[g_dtg_end].status = DATA_PACK_FULL;
+printf("insert end[%d] : status DATA_PACK_FULL\n", g_dtg_end);
 			g_dtg_recv_avail_cnt--;
 			if (g_dtg_recv_avail_cnt > 0) {
 				g_dtg_end++;
@@ -92,6 +101,9 @@ void store_recv_bank(unsigned char *buf, int size, unsigned char *read_curr_buf)
 				g_dtg_end = g_dtg_curr;
 				memset(&g_dtg_recv_bank[g_dtg_curr], 0x00, sizeof(data_store_pack_t));
 				g_dtg_curr += 1;
+printf("============================================================================\n");
+printf("store_recv_bank> g_dtg_end[%d], g_dtg_curr[%d]\n", g_dtg_end, g_dtg_curr);
+printf("============================================================================\n");
 				g_dtg_recv_avail_cnt += 1;
 				if  (g_dtg_curr == g_dtg_max_pack_size)
 					g_dtg_curr = 0;
@@ -196,13 +208,18 @@ int dtg_data_clear()
 
 	if (g_dtg_curr_idx == g_dtg_curr) {
 		DTG_LOGE("Bank full flush. end[%d], curr_idx[%d], curr[%d]", g_dtg_end, g_dtg_curr_idx, g_dtg_curr);
+printf("dtg_data_clear> full flush. end[%d], curr_idx[%d], curr[%d]\n", g_dtg_end, g_dtg_curr_idx, g_dtg_curr);
 		g_dtg_end = g_dtg_curr_idx = g_dtg_curr;
-	} else if (g_dtg_curr_idx < g_dtg_curr) {
+	} else if (g_dtg_curr_idx < g_dtg_curr) { //Reverse caase
+printf("dtg_data_clear-reverse> end[%d], curr_idx[%d], curr[%d] patch[%d]\n", g_dtg_end, g_dtg_curr_idx, g_dtg_curr);
 		memset(&g_dtg_recv_bank[g_dtg_curr], 0, (g_dtg_max_pack_size  - g_dtg_curr) * sizeof(data_store_pack_t));
-		memset(g_dtg_recv_bank, 0, g_dtg_curr * sizeof(data_store_pack_t));
+		//memset(g_dtg_recv_bank, 0, (g_dtg_curr) * sizeof(data_store_pack_t));
+		//memset(g_dtg_recv_bank, 0, (g_dtg_curr_idx-) * sizeof(data_store_pack_t));
+		memset(g_dtg_recv_bank, 0, (g_dtg_curr_idx) * sizeof(data_store_pack_t));
 		g_dtg_recv_avail_cnt += (num / MAX_ONE_DATA_COUNT);
 		g_dtg_curr = g_dtg_curr_idx;
-	} else {
+	} else { //Normal Case
+printf("dtg_data_clear-normal> end[%d], curr_idx[%d], curr[%d]\n", g_dtg_end, g_dtg_curr_idx, g_dtg_curr);
 		memset(&g_dtg_recv_bank[g_dtg_curr], 0, (g_dtg_curr_idx - g_dtg_curr) * sizeof(data_store_pack_t));
 		g_dtg_recv_avail_cnt += (num / MAX_ONE_DATA_COUNT);
 		g_dtg_curr = g_dtg_curr_idx;
@@ -225,37 +242,68 @@ int dtg_data_clear()
 }
 int get_dtg_data(TACOM *tm, int dest_idx)
 {
+	int j;
 	int i;
 	int num = 0;
 	int ret = 0;
 	tacom_std_data_t		*std_data;
 	tacom_dtg_data_type_t	*dtg_data;
 
+	int old_g_dtg_curr_idx;
 
+	old_g_dtg_curr_idx = g_dtg_curr_idx;
 	num = 0;
 	g_dtg_curr_idx = g_dtg_curr;
+
+
 	while(1) 
 	{
 		if(g_dtg_recv_bank[g_dtg_curr_idx].status != DATA_PACK_FULL)
 		{
 			DTG_LOGE("bank status is not full pack...r_num[%d]\n", num);
+
+			if(num == 0) {
+				printf("====================================> @@@@@@@@@@@@@@@@@@\n");
+				printf("patch===============================> zero number\n");
+				printf("====================================> @@@@@@@@@@@@@@@@@@\n");
+				if(g_dtg_recv_bank[g_dtg_curr_idx + 1].status == DATA_PACK_FULL) {
+					g_dtg_curr_idx += 1;
+					continue;
+				}
+			}
+
 			if(num <= 0) {
 				dtg_data_clear();
 			}
+
+			printf("====================================> @@@@@@@@@@@@@@@@@@\n");
+			for(j = 0; j < g_dtg_max_pack_size ; j++) {
+				if(g_dtg_recv_bank[j].status == DATA_PACK_FULL) {
+					printf("[%03d] ", j);
+				}
+			}
+			printf("\n====================================> @@@@@@@@@@@@@@@@@@\n");
+
+DTG_LOGD("DTG Debug @1 : num[%d],  dtg count[%d], g_dtg_curr_idx[%d], old_g_dtg_curr_idx[%d]", num, get_dtg_current_count(), g_dtg_curr_idx, old_g_dtg_curr_idx);
 			break;
 		}
 		if(num > tm->tm_setup->max_records_per_once)
 		{
 			DTG_LOGE("once max data count over[%d].\n", tm->tm_setup->max_records_per_once);
+DTG_LOGD("DTG Debug @2 : num[%d], [%d]", num, tm->tm_setup->max_records_per_once);
 			break;
 		}
 
+DTG_LOGD("DTG Debug @4 : count[%d], [%d]", g_dtg_recv_bank[g_dtg_curr_idx].count, g_dtg_curr_idx);
 		for (i = 0; i < g_dtg_recv_bank[g_dtg_curr_idx].count; i++) {
 			std_data = (tacom_std_data_t *)&tm->tm_strm.stream[dest_idx];
 			dtg_data = (tacom_dtg_data_type_t *)&g_dtg_recv_bank[g_dtg_curr_idx].buf[i];
+DTG_LOGD("DTG Debug @5 : num[%d]", num);
 			ret = data_convert(std_data, (unsigned char *)dtg_data, num);
-			if (ret < 0)
+			if (ret < 0) {
+				DTG_LOGD("DTG Debug @5 : data_convert[%d]", ret);
 				continue;//return ret;
+			}
 			dest_idx += sizeof(tacom_std_data_t);
 			num++;
 		}
