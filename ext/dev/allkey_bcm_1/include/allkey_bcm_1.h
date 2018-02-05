@@ -10,7 +10,7 @@
 
 #define ALLKEY_BCM_UART_DEVNAME         "/dev/ttyHSL2"
 #define ALLKEY_BCM_UART_BAUDRATE        4800
-#define ALLKEY_BCM_UART_READ_TIMEOUT    4
+#define ALLKEY_BCM_UART_READ_TIMEOUT    2
 #define ALLKEY_BCM_UART_READ_RETRY_CNT  2
 
 #define ALLKEY_BCM_READ_THREAD_TIMEOUT  1
@@ -38,6 +38,17 @@ int allkey_bcm_ctr__door_evt_on(int stat);
 int allkey_bcm_ctr__door_lock(int stat); // 1 :lock ,0 : nulock
 int allkey_bcm_cmd__get_stat();
 
+int allkey_bcm_ctr__knocksensor_set_id(unsigned short id);
+int allkey_bcm_ctr__knocksensor_set_passwd(unsigned short passwd);
+int allkey_bcm_ctr__knocksensor_set_modemtime();
+
+// FOR USE BCM EVT PROC
+// mutex unlock api..
+int allkey_bcm_ctr__knocksensor_set_id_evt_proc(unsigned short id);
+int allkey_bcm_ctr__knocksensor_set_passwd_evt_proc(unsigned short passwd);
+int allkey_bcm_ctr__knocksensor_set_modemtime_evt_proc(); // for not use mutex
+
+
 //int (*p_mdm_evt_proc)(const int evt_code, const unsigned char stat_1, const unsigned char stat_2, const unsigned char err_list);
 
 typedef enum
@@ -45,11 +56,15 @@ typedef enum
     e_bcm_evt_driver_call, // 차주호출
     e_bcm_evt_monitor_off_door_open, // 경계 해제시 도어 잠김
     e_bcm_evt_monitor_off_door_close, // 경계 해제시 도어 잠김
+    e_bcm_evt_monitor_off_trunk_open, // 경계 해제시 도어 잠김
+    e_bcm_evt_monitor_off_trunk_close, // 경계 해제시 도어 잠김
     e_bcm_evt_small_shock,  // 약한 충격감지
     e_bcm_evt_big_shock,  // 강한 충격감지
     e_bcm_evt_monitor_on_door_stat, // 침입감지 (도어)
     e_bcm_evt_monitor_on_trunk_stat, // 침입감지 (트렁크)
     e_bcm_evt_monitor_on_hood_stat, // 침입감지 (후드)
+    e_bcm_evt_knocksensor_set_id_req, //  노크센서 ID 요청
+    e_bcm_evt_knocksensor_set_timestamp_req, //  노크센서  TimeStamp 요청	    
     e_bcm_evt_monitor_none,
 }e_allkey_bcm_1_evt_code;
 
@@ -75,7 +90,6 @@ typedef enum
     e_bcm_stat2_valet_on = 0x40,
     e_bcm_stat2_alam_on = 0x80,
 }e_allkey_bcm_1_stat_code;
-
 
 
 

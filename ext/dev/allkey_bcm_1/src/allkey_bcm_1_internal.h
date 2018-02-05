@@ -20,7 +20,8 @@ typedef enum
     e_cmd_horn_ctr = 'P',
     e_cmd_twingkle_light_ctr = 'A',
     e_cmd_theft_sensor = 'L',
-    e_cmd_unknown_R = 'R',
+    //e_cmd_unknown_R = 'R',
+    e_cmd_knocksensor = 'R',
     e_cmd_unknown_H = 'H',
     e_cmd_unknown_I = 'I',
     e_cmd_unknown_C = 'C',
@@ -28,4 +29,10 @@ typedef enum
 }e_CMD_LIST;
 
 
+typedef enum
+{
+    e_knock_cmd_passwd    = 0x50, //'P',
+    e_knock_cmd_id        = 0x73, //'s',
+    e_knock_cmd_timedate  = 0x54, //'T',
+}e_KNOCKSENSOR_CMD_LIST;
 #endif

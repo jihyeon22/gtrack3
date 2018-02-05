@@ -130,8 +130,15 @@ int parse_pkt__mdm_setting_val(ALLOC_PKT_RECV__MDM_SETTING_VAL* recv_buff, char*
 {
     int changed_server = 0;
 
-/*
+
     LOGT(eSVC_MODEL, "%s() START\r\n", __func__);
+
+
+
+    int pkt_ret_code = 0;
+    pkt_ret_code = recv_buff->reserved ;
+
+    LOGT(eSVC_MODEL, "%s() PARSE RET [%d]\r\n", __func__, pkt_ret_code);
 
     printf("parse_pkt__mdm_setting_val ----------------------------------------------------------\r\n");
     
@@ -156,16 +163,12 @@ int parse_pkt__mdm_setting_val(ALLOC_PKT_RECV__MDM_SETTING_VAL* recv_buff, char*
     printf("recv_buff->use_zone_function => [%d]\r\n", recv_buff->use_zone_function);
     printf("recv_buff->use_bcm => [%d]\r\n", recv_buff->use_bcm);
     printf("recv_buff->use_knock_sensor => [%d]\r\n", recv_buff->use_knock_sensor);
+#ifdef PKT_VER_V_1_6   
+    printf("recv_buff->door_lock_time => [%d]\r\n", recv_buff->door_lock_time);
+#endif
     printf("recv_buff->reserved => [0x%d]\r\n", recv_buff->reserved);
 
-    printf("parse_pkt__mdm_setting_val ----------------------------------------------------------\r\n");
-*/
-    int pkt_ret_code = 0;
-    pkt_ret_code = recv_buff->reserved ;
-
-    LOGT(eSVC_MODEL, "%s() PARSE RET [%d]\r\n", __func__, pkt_ret_code);
-    
-    
+    printf("parse_pkt__mdm_setting_val ----------------------------------------------------------\r\n"); 
     // valid check..
     // TODO: 각종 데이터에 대해서 체크후에 setting 값을 체크한다.
 
@@ -1070,3 +1073,82 @@ int parse_pkt__firm_info(ALLOC_PKT_SEND__FIRMWARE_INFO* recv_buff)
 }
 
 
+// ============================================================================================
+// e_bcm_knocksensor_setting_val = 0x51, // 0x51 : 노크센서 설정 정보
+// ============================================================================================
+int make_pkt__bcm_knocksensor_setting_val(unsigned char **pbuf, unsigned short *packet_len)
+{
+    ALLOC_PKT_SEND__KNOCK_SENSOR_INFO_REQ target_pkt;
+
+    int pkt_total_len = sizeof(target_pkt);
+    int pkt_id_code = e_bcm_knocksensor_setting_val;
+
+    unsigned char *packet_buf;
+    memset(&target_pkt, 0x00, pkt_total_len);
+
+    LOGT(eSVC_MODEL, "%s() START\r\n", __func__);
+
+    // make header
+    _make_common_header(&target_pkt.header, pkt_total_len, pkt_id_code);
+
+    // make body..
+    // nothing...
+
+    // alloc memory .. ---------------------------------------
+    *packet_len = pkt_total_len;
+    packet_buf = (unsigned char *)malloc(*packet_len);
+
+    if(packet_buf == NULL)
+	{
+		printf("malloc fail\n");
+		return -1;
+	}
+
+    memset(packet_buf, 0, pkt_total_len);
+	*pbuf = packet_buf;
+
+    memcpy(packet_buf, &target_pkt, pkt_total_len);
+
+   // printf("%s() => evt [%d] dump pkt -------------------------------------------------\r\n", __func__, pkt_id_code);    mds_api_debug_hexdump_buff(packet_buf, pkt_total_len);
+   // mds_api_debug_hexdump_buff(packet_buf, pkt_total_len);
+   // printf("------------------------------------------------------\r\n");
+
+    return 0;
+
+}
+
+
+int parse_pkt__bcm_knocksensor_setting_val(ALLOC_PKT_RECV__KNOCK_SENSOR_INFO_REQ* recv_buff)
+{
+    int pkt_ret_code = 0;
+    pkt_ret_code = recv_buff->reserved[0];
+    
+    LOGT(eSVC_MODEL, "%s() PARSE RET [%d]\r\n", __func__, pkt_ret_code);
+    
+    printf("parse_pkt__bcm_knocksensor_setting_val ----------------------------------------------------------\r\n");
+    printf("recv_buff->id => [0x%x]\r\n", recv_buff->id);
+    printf("recv_buff->master_number => [0x%x]\r\n", recv_buff->master_number);
+    printf("recv_buff->reserved => [0x%x]\r\n", recv_buff->reserved);
+    printf("parse_pkt__bcm_knocksensor_setting_val ----------------------------------------------------------\r\n");
+    
+    if ( pkt_ret_code == 0 )
+    {
+        set_bcm_knocksensor_val_id_pass(recv_buff->id, recv_buff->master_number);
+        return 0;
+    }
+    else
+        return -1;
+    /*
+    printf("parse_pkt__firm_info ----------------------------------------------------------\r\n");
+    printf("recv_buff->header.pkt_total_len => [%d]\r\n", recv_buff->header.pkt_total_len);
+    printf("recv_buff->header.mdm_phonenum => [%d]\r\n", recv_buff->header.mdm_phonenum);
+    printf("recv_buff->header.time_stamp => [%d]\r\n", recv_buff->header.time_stamp);
+    printf("recv_buff->header.msg_type => [%d]\r\n", recv_buff->header.msg_type);
+    printf("recv_buff->header.reserved => [0x%x]\r\n", recv_buff->header.reserved);
+
+    printf("recv_buff->reserved => [0x%s]\r\n", recv_buff->reserved);
+
+    printf("parse_pkt__firm_info ----------------------------------------------------------\r\n");
+    */
+
+}

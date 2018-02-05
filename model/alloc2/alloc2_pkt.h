@@ -1,6 +1,8 @@
 #ifndef __ALLOC2_PKT_H__
 #define __ALLOC2_PKT_H__
 
+#define PKT_VER_V_1_6
+
 // --------------------------------------------------------------------------
 // pkt header idx
 typedef enum {
@@ -67,6 +69,9 @@ typedef struct {
     unsigned char   use_zone_function;  //(b-1) zone 입출입가능여부 : 1 사용 / 0 사용않함
     unsigned char   use_bcm;   // (b-1) all key 사용여부 : 1 사용 / 0 사용않함
     unsigned char   use_knock_sensor;  // (b-1) 노크센서 사용여부 : 1 사용 / 0 사용않함
+#ifdef PKT_VER_V_1_6   
+    unsigned short  door_lock_time; // (b-2) Door 자동잠금시간 : 0 : 사용안함 / 1이상 초단위
+#endif
     unsigned char   reserved;   // (b-1) reserved
 }__attribute__((packed))ALLOC_PKT_RECV__MDM_SETTING_VAL;
 
@@ -442,6 +447,9 @@ typedef struct {
 }__attribute__((packed))ALLOC_PKT_RECV__BCM_ALLKEY_DATA;
 
 
+
+
+
 // ===============================================================================================
 // ===============================================================================================
 
@@ -508,7 +516,7 @@ typedef struct {
 
 // ===============================================================================================
 // ===============================================================================================
-
+// e_bcm_knocksensor_setting_val = 0x51
 // 18.	노크센서 설정 정보
 // 18.1.	단말 -> 중계서버
 typedef struct {
@@ -519,9 +527,9 @@ typedef struct {
 // 18.2.	중계서버 -> 단말
 typedef struct {
     ALLOC_PKT_COMMON_HEADER header; // msesage header 공통
-    unsigned char   seed[16]; // (a-16) seed
-    unsigned short  master_number; // (b-2) master number
-    unsigned char   reserved[2]; // (b-2) reserved
+    unsigned short  id; // (B-2) id
+    unsigned short  master_number; // (B-2) master number
+    unsigned char   reserved[1]; // (b-1) reserved
 }__attribute__((packed))ALLOC_PKT_RECV__KNOCK_SENSOR_INFO_REQ;
 
 

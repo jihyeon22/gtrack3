@@ -337,3 +337,220 @@ int chk_car_batt_level(int low_batt, int chk_flag)
 
     return 0;
 }
+
+
+// ---------------------------------------------------------------------
+static int knocksensor_setting_result=KNOCKSENSOR_SETTING__INIT;
+
+int chk_bcm_knocksensor_setting()
+{
+    switch(knocksensor_setting_result)
+    {
+        case KNOCKSENSOR_SETTING__INIT:
+        {
+            sender_add_data_to_buffer(e_bcm_knocksensor_setting_val, NULL, get_pkt_pipe_type(e_bcm_knocksensor_setting_val,0));
+            knocksensor_setting_result = KNOCKSENSOR_SETTING__SETTING_VAL_CHECKING;
+            break;
+        }
+        case KNOCKSENSOR_SETTING__SETTING_VAL_CHECKING:
+        {
+            break;
+        }
+        case KNOCKSENSOR_SETTING__SETTING_VAL_CHECK_DONE:
+        {
+            unsigned short knock_sensor_id = 0;
+            unsigned short knock_sensor_pass = 0;
+            
+            LOGT(eSVC_MODEL, "[BCM KNOCK SENSOR] SETTING_VAL_CHECK_DONE\r\n");      
+
+            if ( get_bcm_knocksensor_val_id_pass(&knock_sensor_id, &knock_sensor_pass) == KNOCKSENSOR_RET_SUCCESS )            
+            {
+                LOGT(eSVC_MODEL, " [BCM KNOCK SENSOR] SETTING_VAL_CHECK_DONE ok => id[0x%x], pass[0x%x]  \r\n", knock_sensor_id, knock_sensor_pass);
+            
+                allkey_bcm_ctr__knocksensor_set_passwd(knock_sensor_pass);
+                allkey_bcm_ctr__knocksensor_set_id(knock_sensor_id);
+                allkey_bcm_ctr__knocksensor_set_modemtime();
+            }
+            else
+                LOGE(eSVC_MODEL, " [BCM KNOCK SENSOR] SETTING_VAL_CHECK_DONE nok => id[0x%x], pass[0x%x]  \r\n", knock_sensor_id, knock_sensor_pass);
+
+            knocksensor_setting_result = KNOCKSENSOR_SETTING__BCM_DO_SETTING;
+
+            break;
+        }
+        case KNOCKSENSOR_SETTING__SETTING_VAL_ID:
+        {
+            unsigned short knock_sensor_id = 0;
+
+            if ( get_bcm_knocksensor_val_id(&knock_sensor_id) == KNOCKSENSOR_RET_SUCCESS )
+            {
+                allkey_bcm_ctr__knocksensor_set_id(knock_sensor_id);
+                LOGE(eSVC_MODEL, " [BCM KNOCK SENSOR] KNOCKSENSOR_SETTING__SETTING_VAL_ID ok => id[0x%x], pass[0x%x]  \r\n", knock_sensor_id, 0);                
+            }
+            else
+            {
+                LOGE(eSVC_MODEL, " [BCM KNOCK SENSOR] KNOCKSENSOR_SETTING__SETTING_VAL_ID nok => id[0x%x], pass[0x%x]  \r\n", knock_sensor_id, 0);                
+            }
+            
+            knocksensor_setting_result = KNOCKSENSOR_SETTING__BCM_DONE;
+
+            break;
+        }
+        case KNOCKSENSOR_SETTING__SETTING_VAL_PASS:
+        {
+            unsigned short knock_sensor_pass = 0;            
+
+            if ( get_bcm_knocksensor_val_pass(&knock_sensor_pass) == KNOCKSENSOR_RET_SUCCESS )
+            {
+                allkey_bcm_ctr__knocksensor_set_passwd(knock_sensor_pass);
+                LOGT(eSVC_MODEL, " [BCM KNOCK SENSOR] KNOCKSENSOR_SETTING__SETTING_VAL_PASS ok => id[0x%x], pass[0x%x]  \r\n", 0, knock_sensor_pass);                
+            }
+            else
+            {
+                LOGE(eSVC_MODEL, " [BCM KNOCK SENSOR] KNOCKSENSOR_SETTING__SETTING_VAL_PASS nok => id[0x%x], pass[0x%x]  \r\n", 0, knock_sensor_pass);                
+            }
+            knocksensor_setting_result = KNOCKSENSOR_SETTING__BCM_DONE;
+
+            break;
+        }
+        case KNOCKSENSOR_SETTING__BCM_DO_SETTING:
+        {
+            knocksensor_setting_result = KNOCKSENSOR_SETTING__BCM_DONE;
+            break;
+        }
+        case KNOCKSENSOR_SETTING__BCM_DONE:
+        {
+            LOGT(eSVC_MODEL, "[BCM KNOCK SENSOR] KNOCK SENSOR DONE\r\n");            
+            break;
+        }
+        default : 
+            break;
+    }
+    return knocksensor_setting_result;
+}
+
+int set_bcm_knocksensor_setting(int flag)
+{
+    knocksensor_setting_result = flag;
+    return knocksensor_setting_result;
+}
+
+static unsigned short knock_sensor_id = -1;
+static unsigned short knock_sensor_master_number = -1;
+
+int set_bcm_knocksensor_val_id_pass(unsigned short id, unsigned short master_number)
+{
+    int ret = KNOCKSENSOR_RET_SUCCESS;
+
+    if ( id >= 0 )
+        knock_sensor_id = id;
+    else
+        ret = KNOCKSENSOR_RET_FAIL;
+
+    if ( master_number >= 0 )
+        knock_sensor_master_number = master_number;
+    else
+        ret = KNOCKSENSOR_RET_FAIL;
+
+    if ( ret == KNOCKSENSOR_RET_SUCCESS )
+        set_bcm_knocksensor_setting(KNOCKSENSOR_SETTING__SETTING_VAL_CHECK_DONE);
+    else
+        devel_webdm_send_log("%s():%d fail [%d],[%d]", __func__, __LINE__, id, master_number);
+
+    return ret;
+}
+
+int get_bcm_knocksensor_val_id_pass(unsigned short* id, unsigned short* master_number)
+{
+    int ret_val = KNOCKSENSOR_RET_SUCCESS;
+
+    if (( knock_sensor_id >= 0 ) && ( knock_sensor_master_number >= 0 ))
+    {
+        *id = knock_sensor_id;
+        *master_number = knock_sensor_master_number;
+        ret_val = KNOCKSENSOR_RET_SUCCESS;
+    }
+    else
+    {
+        *id = -1;
+        *master_number = KNOCKSENSOR_RET_FAIL;
+        devel_webdm_send_log("%s():%d fail [%d],[%d]", __func__, __LINE__, knock_sensor_id, knock_sensor_master_number);
+    }
+    return ret_val;
+}
+
+
+int set_bcm_knocksensor_val_id(unsigned short id)
+{
+    int ret = KNOCKSENSOR_RET_SUCCESS;
+
+    if ( id >= 0 )
+    {
+        knock_sensor_id = id;
+        set_bcm_knocksensor_setting(KNOCKSENSOR_SETTING__SETTING_VAL_ID);
+        ret = KNOCKSENSOR_RET_SUCCESS;
+    }
+    else
+    {
+        devel_webdm_send_log("%s():%d fail [%d],[%d]", __func__, __LINE__, id, 0);
+        ret = KNOCKSENSOR_RET_FAIL;
+    }
+    
+    return ret;
+}
+
+int get_bcm_knocksensor_val_id(unsigned short* id)
+{
+    int ret_val = KNOCKSENSOR_RET_SUCCESS;
+
+    if ( knock_sensor_id >= 0 )
+    {
+        *id = knock_sensor_id;
+        ret_val = KNOCKSENSOR_RET_SUCCESS;
+    }
+    else
+    {
+        *id = -1;
+        ret_val = KNOCKSENSOR_RET_FAIL;
+        devel_webdm_send_log("%s():%d fail [%d],[%d]", __func__, __LINE__, knock_sensor_id, 0);
+    }
+    return ret_val;
+}
+
+int set_bcm_knocksensor_val_pass(unsigned short master_number)
+{
+    int ret = KNOCKSENSOR_RET_SUCCESS;
+
+    if ( master_number >= 0 )
+    {
+        knock_sensor_master_number = master_number;
+        set_bcm_knocksensor_setting(KNOCKSENSOR_SETTING__SETTING_VAL_PASS);
+        ret = KNOCKSENSOR_RET_SUCCESS;
+    }
+    else
+    {
+        devel_webdm_send_log("%s():%d fail [%d],[%d]", __func__, __LINE__, 0, master_number);
+        ret = KNOCKSENSOR_RET_FAIL;
+    }
+    
+    return ret;
+}
+
+int get_bcm_knocksensor_val_pass(unsigned short* master_number)
+{
+    int ret_val = KNOCKSENSOR_RET_SUCCESS;
+    
+    if ( knock_sensor_master_number >= 0 )
+    {
+        *master_number = knock_sensor_master_number;
+        ret_val = KNOCKSENSOR_RET_SUCCESS;
+    }
+    else
+    {
+        *master_number = -1;
+        ret_val = KNOCKSENSOR_RET_FAIL;
+        devel_webdm_send_log("%s():%d fail [%d],[%d]", __func__, __LINE__,  0, knock_sensor_master_number);
+    }
+
+    return ret_val;
+}

@@ -54,8 +54,8 @@ void init_model_callback(void)
 #ifdef USE_ALLKEY_BCM_1
 	allkey_bcm_1_init(&mdm_bcm_evt_proc);
 	//allkey_bcm_ctr__theft_on(0);
-	allkey_bcm_ctr__door_evt_on(1);
-	//allkey_bcm_ctr__get_info(&g_allkey_bcm_info);
+	//allkey_bcm_ctr__door_evt_on(1);
+	allkey_bcm_ctr__get_info(&g_allkey_bcm_info);
 	printf("--------------------------------------------------\r\n");
 	printf("g_allkey_bcm_info->init_stat [%x] \r\n", g_allkey_bcm_info.init_stat );
 	printf("g_allkey_bcm_info->horn_cnt [%d]\r\n", g_allkey_bcm_info.horn_cnt );
@@ -86,7 +86,11 @@ void network_on_callback(void)
 void button1_callback(void)
 {
 	//allkey_bcm_ctr__door_lock(1);
-	printf("gtrack calback ::: button1_callback !!!\r\n");
+    printf("gtrack calback ::: button1_callback !!!\r\n");
+    //allkey_bcm_ctr__knocksensor_set_modemtime();
+    //allkey_bcm_ctr__knocksensor_set_id(1234);
+    //allkey_bcm_ctr__knocksensor_set_passwd(1234);
+    
 	//test_code = 0; 
 	//set_no_send_pwr_evt_reboot();
 }
@@ -94,8 +98,11 @@ void button1_callback(void)
 void button2_callback(void)
 {
 	//allkey_bcm_ctr__door_lock(0);
-	printf("gtrack calback ::: button2_callback !!!\r\n");
-	//test_code = 2;
+    printf("gtrack calback ::: button2_callback !!!\r\n");
+    //allkey_bcm_ctr__knocksensor_set_modemtime();
+    //allkey_bcm_ctr__knocksensor_set_id(1234);
+    //allkey_bcm_ctr__knocksensor_set_passwd(1234);
+    
 
 }
 
@@ -351,8 +358,10 @@ void main_loop_callback(void)
 		// -----------------------------------------------------------
 		// hw check
 		// -----------------------------------------------------------
-		chk_allkey_bcm();
-		
+		//chk_allkey_bcm();
+        
+        if ( p_mdm_setting_val->use_knock_sensor == 1 )
+            chk_bcm_knocksensor_setting();
 		// ---------------------------------------------------------------------
 		// batt chk 
 		// ---------------------------------------------------------------------
@@ -412,7 +421,7 @@ void main_loop_callback(void)
 		{
 			int evt_code = e_evt_code_normal;
 			sender_add_data_to_buffer(e_obd_data, NULL, get_pkt_pipe_type(e_obd_data,0));
-			sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt,evt_code));
+			// sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt,evt_code)); // 삭제요청 : 180126
 			main_loop_cnt = 0;
 		}
 
@@ -447,3 +456,8 @@ void exit_main_loop(void)
 	flag_run_thread_main = 0;
 }
 
+
+void network_fail_emergency_reset_callback(void)
+{
+	alloc2_poweroff_proc("poweroff callback");
+}

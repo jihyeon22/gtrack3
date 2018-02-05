@@ -17,8 +17,8 @@ typedef enum
     eSMS_CMD_SET__OBD_OVERSPEED_TIME, // &23 // 과속기준 시간 설정	secs
     eSMS_CMD_SET__CAR_ENGINE_OFF, // &30 // 시동 차단 설정 명령	0 : 시동차단 설정 1 : 시동차단 해제
     eSMS_CMD_SET__MDM_STAT_REQ, // &40 // 단말기 상태 요청	0
-    eSMS_CMD_SET__BCM_KNOCK_REGI_REQ, // &45 // 마스터 키 등록 요청	0
-    eSMS_CMD_SET__BCM_MASTERKEY_REGI_REQ, // &46 // 마스터 카드 등록 요청	0
+    eSMS_CMD_SET__BCM_KNOCK_PASS_REQ, // &45 // 마스터 번호 등록 4자리
+    eSMS_CMD_SET__BCM_KNOCK_ID_REQ, // &46 // ID 등록 4자리	0
     eSMS_CMD_SET__BCM_RESERVATION_INFO_REQ, // &47 // 예약정보 요청	0
     eSMS_CMD_SET__MDM_REINIT, // &50 // 단말기 초기화 명령	0
     eSMS_CMD_SET__MDM_RESET, // &60 // 단말기 재부팅 명령	0

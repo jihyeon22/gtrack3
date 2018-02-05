@@ -34,7 +34,7 @@ void load_config_base_default(void);
 void load_config_model_default(void);
 void load_config_user_default(void);
 
-#define DEFAULT_USER_CFG_SERVER_IP 		"218.153.6.218"
+#define DEFAULT_USER_CFG_SERVER_IP 		"121.126.218.207"
 #define DEFAULT_USER_CFG_SERVER_PORT	9001
 
 #define DEFAULT_USER_CFG_KEY_ON_COLLECT_INTERVAL	60
