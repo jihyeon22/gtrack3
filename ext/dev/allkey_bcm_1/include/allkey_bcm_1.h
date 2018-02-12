@@ -5,8 +5,14 @@
 #define ALLKEY_BCM_RET_FAIL     -1
 #define ALLKEY_BCM_RET_SUCCESS  0
 
-#define ALLKEY_BCM_MAX_CHK_DEV_CNT  3
+//#define BCM_EVT_DEGUG_LOG
 
+//#ifdef BCM_EVT_DEGUG_LOG
+#define BCM_EVT_DBG_LOG_PATH        "/data/mds/bcm_evt.log"
+#define BCM_EVT_DBG_LOG_MAX_SIZE    10240
+//#endif
+
+#define ALLKEY_BCM_MAX_CHK_DEV_CNT  3
 
 #define ALLKEY_BCM_UART_DEVNAME         "/dev/ttyHSL2"
 #define ALLKEY_BCM_UART_BAUDRATE        4800
@@ -16,7 +22,28 @@
 #define ALLKEY_BCM_READ_THREAD_TIMEOUT  1
 
 
-typedef struct allkey_bcm_1_info_t
+typedef struct allkey_bcm_1_dev_t
+{
+    int door_open_stat; // close : 0, open : 1
+    int door_lock_stat; // open : 0, lock : 1
+    int engine_stat;    // off : 0 , on : 1
+    int remote_start_stat;  // off : 0, on : 1
+    int hood_stat;  // close : 0, open : 1
+    int turbo_stat; // off : 0, on : 1
+    int timer_stat; // off : 0, on : 1
+    int mute_stat; // off : 0, on : 1
+    int shock_stat; // on : 0, off : 1
+    int acc_stat; // off : 0, on : 1
+    int trunk_stat; // close : 0, open : 1
+    int always_evt_stat; // on : 0 , off : 1
+    int ig_stat; // off :0, on : 1
+    int theif_sensor_stat; // on : 0, off : 1
+    int valet_stat; // off : 0 , on 1
+    int alert_stat; // off:0, on : 1
+}ALLKEY_BCM_1_DEV_T;
+
+
+typedef struct allkey_bcm_1_stat_t
 {
     int init_stat;
     unsigned char horn_cnt;
@@ -36,7 +63,7 @@ int allkey_bcm_ctr__theft_on(int stat);
 int allkey_bcm_ctr__horn_on(int stat); // 1 : on ,0 : off
 int allkey_bcm_ctr__door_evt_on(int stat);
 int allkey_bcm_ctr__door_lock(int stat); // 1 :lock ,0 : nulock
-int allkey_bcm_cmd__get_stat();
+int allkey_bcm_cmd__get_stat(ALLKEY_BCM_1_DEV_T* dev_stat);
 
 int allkey_bcm_ctr__knocksensor_set_id(unsigned short id);
 int allkey_bcm_ctr__knocksensor_set_passwd(unsigned short passwd);

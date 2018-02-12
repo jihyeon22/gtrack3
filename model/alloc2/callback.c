@@ -90,7 +90,6 @@ void button1_callback(void)
     //allkey_bcm_ctr__knocksensor_set_modemtime();
     //allkey_bcm_ctr__knocksensor_set_id(1234);
     //allkey_bcm_ctr__knocksensor_set_passwd(1234);
-    
 	//test_code = 0; 
 	//set_no_send_pwr_evt_reboot();
 }
@@ -355,10 +354,11 @@ void main_loop_callback(void)
 		main_loop_cnt ++;
 		no_send_pwr_evt_flag_clr ++;
 		sms_chk_interval++;
+
 		// -----------------------------------------------------------
 		// hw check
 		// -----------------------------------------------------------
-		//chk_allkey_bcm();
+		chk_allkey_bcm();
         
         if ( p_mdm_setting_val->use_knock_sensor == 1 )
             chk_bcm_knocksensor_setting();

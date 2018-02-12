@@ -149,6 +149,9 @@ int mdm_bcm_evt_proc(const int evt_code, const unsigned char stat_1, const unsig
             break;
         }
         default :
+        //#ifdef BCM_EVT_DEGUG_LOG
+        //    mds_api_write_time_and_log_maxsize(BCM_EVT_DBG_LOG_PATH, "evt proc fail", BCM_EVT_DBG_LOG_MAX_SIZE);
+        //#endif
             LOGE(eSVC_MODEL, " +++ [BCM EVT] - code [%d] ==> pkt evt code [%d] :: invalid\r\n", evt_code, pkt_evt_code);
             break;
 	}
@@ -165,7 +168,10 @@ void chk_allkey_bcm()
 	static int chk_cnt = 0;
 	static int fail_cnt = 0;
 
+    static int last_door_lock = -1;
+
 	int cmd_ret = ALLKEY_BCM_RET_FAIL;
+    int pkt_evt_code = 0;
 //	ALLKEY_BCM_1_INFO_T cur_allkey_bcm_info;
 
 //	memset( &cur_allkey_bcm_info, 0x00, sizeof(ALLKEY_BCM_1_INFO_T) );
@@ -174,7 +180,24 @@ void chk_allkey_bcm()
 	if ( chk_cnt++ > CHK_ALLKEY_BCM_INTERVAL)
 	{
 		//allkey_bcm_cmd__get_stat(&cur_allkey_bcm_info);
-		cmd_ret = allkey_bcm_cmd__get_stat();
+        ALLKEY_BCM_1_DEV_T dev_stat = {0,};
+		cmd_ret = allkey_bcm_cmd__get_stat(&dev_stat);
+
+        if ( last_door_lock == -1 )
+            last_door_lock = dev_stat.door_lock_stat;
+
+        if ( last_door_lock != dev_stat.door_lock_stat)
+        {
+            if ( dev_stat.door_lock_stat == 1 )
+                pkt_evt_code = e_evt_code_door_lock;
+            else
+                pkt_evt_code = e_evt_code_door_unlock;
+            
+            sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &pkt_evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,pkt_evt_code));
+
+            last_door_lock = dev_stat.door_lock_stat;
+        }
+
 		chk_cnt = 0;
 	}
 	else
