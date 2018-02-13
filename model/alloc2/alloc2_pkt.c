@@ -193,8 +193,9 @@ int parse_pkt__mdm_setting_val(ALLOC_PKT_RECV__MDM_SETTING_VAL* recv_buff, char*
     if ( recv_buff->use_obd == 1 )
         set_cur_status(e_SEND_TO_OBD_INFO);
 
+#ifdef SERVER_ABBR_ALM1
     allkey_bcm_ctr__set_horn_light(recv_buff->warnning_horn_cnt, recv_buff->warnning_light_cnt);
-
+#endif
     if ( pkt_ret_code == 0 )
         return 0;
     else 
@@ -429,6 +430,7 @@ int make_pkt__mdm_gps_info(unsigned char **pbuf, unsigned short *packet_len)
     target_pkt.section_distance = chk_keyon_section_distance(cur_total_distance); // (b-4) 구간운행거리 : ig1 on ~ ig1 off 누적거리
     target_pkt.gps_vector = get_diff_distance_prev(cur_total_distance); // (b-4) 이동거리 : 이전좌표와 현재 좌표와의 거리
 //    target_pkt.reserved[2]; // reserved
+    target_pkt.car_batt = get_car_batt_level();
 
     if (!( send_dm_log % 30 ))
     {

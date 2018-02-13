@@ -96,7 +96,9 @@ typedef enum {
     e_evt_code_door_lock = 13, //  13 : Door lock
     e_evt_code_door_unlock = 14, // 14 : Door unlock
     e_evt_code_dev_bcm_err = 20,// 20 : BCM 이상
-    e_evt_code_dev_obd_err = 21 // 21 : OBD 이상
+    e_evt_code_dev_obd_err = 21, // 21 : OBD 이상
+    e_evt_code_sensor_1_on = 98, // 98 : 근접센서 장착
+    e_evt_code_sensor_1_off = 99 // 99 : 근접센서 미장착
 } e_ALLOC2_MDM_EVT_CODE;
 
 // 4.	단말 상태 정보(이벤트) 
@@ -165,7 +167,8 @@ typedef struct {
     unsigned int   day_distance; // (b-4) 일일 운행거리 meter
     unsigned int   section_distance; // (b-4) 구간운행거리 : ig1 on ~ ig1 off 누적거리
     unsigned int   gps_vector; // (b-4) 이동거리 : 이전좌표와 현재 좌표와의 거리
-    unsigned char  reserved[2]; // reserved
+    // unsigned char  reserved[2]; // reserved // spec 1.8 에서 변경 : 차량배터리로
+    unsigned short car_batt; // spec 1.8 에서 변경 : 차량배터리로
 }__attribute__((packed))ALLOC_PKT_SEND__MDM_GPS_INFO;
 
 // 5.2.	중계서버 -> 단말

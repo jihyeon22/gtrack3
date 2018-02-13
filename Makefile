@@ -221,6 +221,10 @@ else ifeq ($(SUB),clr0)
 SERVER_ABBR   :=      CLR0
 else ifeq ($(SUB),clr1)
 SERVER_ABBR   :=      CLR1
+else ifeq ($(SUB),alm1)
+SERVER_ABBR   :=      ALM1
+else ifeq ($(SUB),alm2)
+SERVER_ABBR   :=      ALM2
 else ifeq ($(SUB),moram0)
 #MDT + DTG + Kepady Service
 SERVER_ABBR   :=      MRM0
