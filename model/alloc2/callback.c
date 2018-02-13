@@ -131,8 +131,9 @@ void ignition_on_callback(void)
 		// load_resume_data();
 		LOGE(eSVC_MODEL, "NEED TO IGI_ON EVT : BUT SKIP\r\n");
 	}
-
+#ifdef SERVER_ABBR_ALM1
 	sender_add_data_to_buffer(e_firm_info, NULL, get_pkt_pipe_type(e_firm_info,0));
+#endif
 }
 
 void ignition_off_callback(void)
@@ -372,6 +373,7 @@ void main_loop_callback(void)
 		{
 			set_cur_status(e_SEND_TO_SETTING_INFO_ING);
 			sender_add_data_to_buffer(e_mdm_setting_val, NULL, get_pkt_pipe_type(e_mdm_setting_val,0));
+            sleep(20);
 		}
 
 		// -----------------------------------------------------------

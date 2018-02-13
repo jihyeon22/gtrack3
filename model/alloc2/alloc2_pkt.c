@@ -189,6 +189,7 @@ int parse_pkt__mdm_setting_val(ALLOC_PKT_RECV__MDM_SETTING_VAL* recv_buff, char*
     // 기본적으로 서버정책을 gps data only 로 했다.
     set_cur_status(e_SEND_TO_SETTING_INFO_COMPLETE);
 
+
     // 만약에 obd 를 사용하겠다고 설정하면 obd 설정 시퀀스로간다.
     if ( recv_buff->use_obd == 1 )
         set_cur_status(e_SEND_TO_OBD_INFO);
@@ -196,6 +197,12 @@ int parse_pkt__mdm_setting_val(ALLOC_PKT_RECV__MDM_SETTING_VAL* recv_buff, char*
 #ifdef SERVER_ABBR_ALM1
     allkey_bcm_ctr__set_horn_light(recv_buff->warnning_horn_cnt, recv_buff->warnning_light_cnt);
 #endif
+
+#ifdef SERVER_ABBR_ALM2
+    set_cur_status(e_SEND_REPORT_RUN);
+    pkt_ret_code = 0; // 강제 성공하게 ㅋㅋ
+#endif
+    
     if ( pkt_ret_code == 0 )
         return 0;
     else 

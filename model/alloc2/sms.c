@@ -697,6 +697,10 @@ int parse_model_sms(const char *time, const char *phonenum, const char *sms)
 	int need_to_reset_flag = 0;
 	int need_to_init_flag = 0;
 
+#ifdef SERVER_ABBR_ALM2
+    // do not support sms for alm2 model
+    return 0;
+#endif
 	// cr / lr 은 제거한다.
 	remove_cr_sms_len = mds_api_remove_cr(sms, remove_cr_sms, 80);
 	strcpy(original_sms_backup, remove_cr_sms);
