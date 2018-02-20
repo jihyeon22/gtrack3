@@ -248,21 +248,43 @@ void gps_parse_one_context_callback(void)
 	gps_condition_t ret = eUNKNOWN_GPS_DATA;
 	gpsData_t cur_gpsdata;
 	gpsData_t gpsdata;
+    gpsData_t last_gpsdata;
+    
 	lotte_packet_t *p_packet;
 	time_t modem_time; //jwrho 2016.01.04 (gsp time jump up patch)
+
+    static int gps_fail_cnt = 0;
 
 	////////////////////////////////////////////////////////////////////////
 	// 1. gps packet gathering and filtering
 	////////////////////////////////////////////////////////////////////////
 	gps_get_curr_data(&cur_gpsdata);
-		
+	
+    if ( is_run_ignition_off == 1 )
+        gps_fail_cnt = 0;
+    
 	switch(cur_gpsdata.active)
 	{
 		case eINACTIVE:
+            
+            gps_valid_data_get(&last_gpsdata);
+
+            cur_gpsdata.lat = last_gpsdata.lat;
+		    cur_gpsdata.lon = last_gpsdata.lon;
+
 			ret = inactive_gps_process(cur_gpsdata, &gpsdata);
+            // gps deactivate 10 min ==> cold reset..
+            if ( gps_fail_cnt++ > 600 )
+            {
+                devel_webdm_send_log("gps active fail.. cold boot");
+                gps_reset_immediately(GPS_BOOT_COLD);
+                gps_fail_cnt = 0;
+            }
 			break;
 		case eACTIVE:
+            gps_fail_cnt = 0;
 			modem_time = get_modem_time_utc_sec();
+
 			if(is_gps_time_jump_up(modem_time, cur_gpsdata.utc_sec) == 1) {
 				LOGE(LOG_TARGET, "GPS TIME JUMP ERR\n");
 				return;
