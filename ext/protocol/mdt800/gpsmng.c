@@ -281,6 +281,15 @@ void recovery_gps_data(gpsData_t *pData)
 		pData->angle     = lgm.fixed_gpsdata.angle;
 		pData->satellite = lgm.fixed_gpsdata.satellite; //keep satellite status
 		pData->hdop      = lgm.fixed_gpsdata.hdop; //keep HDOP status
+
+        // recovery fix : workaround poweroff and gps no fix
+        if ( ( pData->lat == 0 ) || ( pData->lon ) )
+        {
+            gpsData_t last_gpsdata;
+            gps_valid_data_get(&last_gpsdata);
+            pData->lat = last_gpsdata.lat;
+            pData->lon = last_gpsdata.lon;
+        }
 	}
 	else
 	{
