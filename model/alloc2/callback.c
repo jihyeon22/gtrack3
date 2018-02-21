@@ -307,8 +307,10 @@ void gps_parse_one_context_callback(void)
 		//if ( current_senario == e_SEND_TO_ONLY_GPS_DATA )
 		LOGT(eSVC_MODEL, "[GPS THREAD] send gps info!!!! [%d]/[%d]\r\n", gps_run_cnt, report_interval);
 		sender_add_data_to_buffer(e_mdm_gps_info, NULL, get_pkt_pipe_type(e_mdm_gps_info,0));
-		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt,evt_code));
 
+#ifdef SERVER_ABBR_ALM1 // 중고차모델에서는 보내지말것 : 180121
+		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt,evt_code));
+#endif
 		gps_run_cnt = 0;
 	}
 
@@ -455,7 +457,7 @@ void main_loop_callback(void)
             if ( cur_gpio_sensor_val == 1 ) // 98
                 evt_code = e_evt_code_sensor_1_on;
 
-            sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
+            // sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0)); // 삭제요청 : 180221
             sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
 
             last_gpio_sensor_val = cur_gpio_sensor_val;

@@ -293,7 +293,7 @@ int chk_car_batt_level(int low_batt, int chk_flag)
     // 최초 실행시 유효값 얻는다.
     if ( ( _g_car_batt_level <= 0 ) || ( _g_car_batt_level > 420 ) )
     {
-        at_get_adc_main_pwr(&car_voltage);
+        get_adc_main_pwr2_tl500(&car_voltage);
         // check batt valid range..
         if ( ( car_voltage <= 0 ) || ( car_voltage > 420 ) )
             return 0;
@@ -303,8 +303,8 @@ int chk_car_batt_level(int low_batt, int chk_flag)
 
     if ( batt_chk_interval++ >= BATT_CHK_INTERVAL_SEC )
     {
-        at_get_adc_main_pwr(&car_voltage);
-        car_voltage = car_voltage * 10;
+        get_adc_main_pwr2_tl500(&car_voltage);
+        //car_voltage = car_voltage * 10;
         batt_chk_interval = 0;
     }
 
