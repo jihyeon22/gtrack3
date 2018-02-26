@@ -221,6 +221,12 @@ else ifeq ($(SUB),clr0)
 SERVER_ABBR   :=      CLR0
 else ifeq ($(SUB),clr1)
 SERVER_ABBR   :=      CLR1
+else ifeq ($(SUB),clra0)
+SERVER_ABBR   :=      CLRA0
+USE_MOVON_ADAS=y
+else ifeq ($(SUB),clra1)
+SERVER_ABBR   :=      CLRA1
+USE_MOVON_ADAS=y
 else ifeq ($(SUB),alm1)
 SERVER_ABBR   :=      ALM1
 else ifeq ($(SUB),alm2)
@@ -358,6 +364,12 @@ OBJS	+= $(OBJ_SECO_OBD_1)
 CFLAGS  += $(SECO_OBD_1_CFLAGS)
 endif
 
+ifeq ($(USE_MOVON_ADAS),y)
+-include ext/dev/adas/movon_adas/movon_adas.mk
+CFLAGS  += -DUSE_MOVON_ADAS
+OBJS	+= $(OBJ_MOVON_ADAS)
+CFLAGS  += $(MOVON_ADAS_CFLAGS)
+endif
 
 ifeq ($(USE_RDATE_TIME_SYNC),y)
 CFLAGS  += -DRDATE_TIME_SYNC_ENABLE

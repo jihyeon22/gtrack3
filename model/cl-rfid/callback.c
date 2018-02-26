@@ -39,6 +39,8 @@
 #include "kjtec_rfid_tools.h"
 #include "cl_rfid_tools.h"
 
+#include "cl_adas_mgr.h"
+
 // ----------------------------------------
 //  LOGD(LOG_TARGET, LOG_TARGET,  Target
 // ----------------------------------------
@@ -104,7 +106,7 @@ void init_model_callback(void)
 	therm_set_dev(THERMAL_DEVICE, strlen(THERMAL_DEVICE));
 #endif
 
-
+    cl_adas_mgr__init();
 	//rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_START);
 }
 
@@ -573,6 +575,9 @@ static int _send_location_data(void)
 	sender_add_data_to_buffer(PACKET_TYPE_REPORT, &pkt_type, ePIPE_1);
 #endif
 	
+#ifdef USE_MOVON_ADAS
+    cl_adas_ttc_sendpkt(PACKET_TYPE_REPORT);
+#endif
 	return 0;
 }
 

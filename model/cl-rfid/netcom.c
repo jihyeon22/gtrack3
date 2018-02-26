@@ -131,6 +131,18 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 			res = make_clrfid_pkt__set_boarding(packet_buf, packet_len, (RFID_BOARDING_MGR_T *)param);
 			break;
 		}
+        case PACKET_TYPE_ADAS_EVENT:
+        {
+            gpsData_t gpsdata;
+            int adas_evt = 0;
+            char adas_opt[128] = {0,};
+            
+            gps_get_curr_data(&gpsdata);
+			LOGD(LOG_TARGET, "[MAKE PKT] PACKET_TYPE_ADAS_EVENT\r\n");
+            
+			res = make_mpa_packet(packet_buf, packet_len, &gpsdata, (clAdasData_t *)param);
+			break;
+		}
 
 		default:
 			res = -1;

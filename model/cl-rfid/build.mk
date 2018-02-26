@@ -18,3 +18,4 @@ OBJS_MODEL	+= $(MODEL_PATH)/cl_rfid_pkt.o
 OBJS_MODEL	+= $(MODEL_PATH)/kjtec_rfid_cmd.o
 OBJS_MODEL	+= $(MODEL_PATH)/kjtec_rfid_tools.o
 OBJS_MODEL	+= $(MODEL_PATH)/cl_rfid_senario.o
+OBJS_MODEL	+= $(MODEL_PATH)/cl_adas_mgr.o

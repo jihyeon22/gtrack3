@@ -31,6 +31,7 @@ enum PACKET_TYPE
 	PACKET_TYPE_RAW,
 	PACKET_TYPE_HTTP_GET_PASSENGER_LIST,
 	PACKET_TYPE_HTTP_SET_BOARDING_LIST,
+	PACKET_TYPE_ADAS_EVENT,
 };
 
 int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len, const void *param);
