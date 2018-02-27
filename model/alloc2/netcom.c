@@ -28,113 +28,158 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 {
     int res = 0;
 
+    // filter pkt type
+    #ifdef SERVER_ABBR_ALM2
     switch (op)
     {
-    case e_mdm_setting_val: // 0x01 : 단말 기본 설정 정보
-    {
-        LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_mdm_setting_val \r\n", e_mdm_setting_val);
-        res = make_pkt__mdm_setting_val(packet_buf, packet_len);
-        break;
+        case e_mdm_setting_val: // 0x01 : 단말 기본 설정 정보
+        case e_mdm_stat_evt_fifo:
+        case e_mdm_stat_evt: // 0x02 : 단말 상태 정보 (이벤트)
+        case e_mdm_gps_info_fifo:
+        case e_mdm_gps_info: // 0x03 : GPS 정보
+        {
+            break;
+        }
+        default:
+            LOGE(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - No suport PKT TYPE\r\n", op);
+            return -1;
     }
-    case e_mdm_stat_evt_fifo:
-    case e_mdm_stat_evt: // 0x02 : 단말 상태 정보 (이벤트)
-    {
-        LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_mdm_stat_evt / evt code [%d]\r\n", e_mdm_stat_evt, *((int *)param));
-        res = make_pkt__mdm_stat_evt(packet_buf, packet_len, *((int *)param));
-        break;
-    }
-    case e_mdm_gps_info_fifo:
-    case e_mdm_gps_info: // 0x03 : GPS 정보
-    {
-        LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_mdm_gps_info \r\n", e_mdm_gps_info);
-        res = make_pkt__mdm_gps_info(packet_buf, packet_len);
-        break;
-    }
-    case e_obd_dev_info: // 0x11 : OBD 기본 설정 정보
-    {
-        LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_obd_dev_info \r\n", e_obd_dev_info);
-        res = make_pkt__obd_dev_info(packet_buf, packet_len);
-        break;
-    }
-    case e_obd_stat: // 0x12 : OBD 상태 정보 (이벤트)
-    {
-        LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_obd_stat \r\n", e_obd_stat);
-        res = make_pkt__obd_stat(packet_buf, packet_len, *((ALLOC_PKT_SEND__OBD_STAT_ARG *)param));
-        break;
-    }
-    case e_obd_data: // 0x13 : OBD 수집 정보
-    {
-        LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_obd_data \r\n", e_obd_data);
-        res = make_pkt__obd_data(packet_buf, packet_len);
-        break;
-    }
-    case e_obd_chk_code: // 0x14 : OBD 차량 진단코드
-    {
-        break;
-    }
-    case e_dtg_setting_val: // 0x21 : DTG 기본 정보
-    {
-        break;
-    }
-    case e_dtg_data: // 0x22 : DTG 수집 정보
-    {
-        break;
-    }
-    case e_mdm_geofence_setting_val: // 0x31 : zone 설정 정보
-    {
-        break;
-    }
-    case e_mdm_geofence_evt: // 0x32 : zone 입출 정보
-    {
-        break;
-    }
-    case e_bcm_stat_evt: // 0x41 : All key 상태 정보 (이벤트)
-    {
-        break;
-    }
-    case e_bcm_statting_val: // 0x42 : All key 설정 정보
-    {
-        break;
-    }
-    case e_bcm_mastercard_regi: // 0x45 : 마스터카드 등록
-    {
-        break;
-    }
-    case e_bcm_reserv_val: // 0x47 : 예약정보
-    {
-        break;
-    }
-    case e_bcm_knocksensor_setting_val: // 0x51 : 노크센서 설정 정보
-    {
-        LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_bcm_knocksensor_setting_val \r\n", e_firm_info);
-        res = make_pkt__bcm_knocksensor_setting_val(packet_buf, packet_len);
-        break;
-    }
-    case e_firm_info: // 0x71 : 펌웨어 정보
-    {
-        LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_firm_info \r\n", e_firm_info);
-        res = make_pkt__firmware_info(packet_buf, packet_len);
-        break;
-    }
-    case e_firm_update: // 0x72 : 펌웨어 업데이트
-    {
-        break;
-    }
-    case e_firm_complete: // 0x79 : 펌웨어 업데이트 완료
-    {
-        break;
-    }
-    case e_sms_recv_info: // 0xF0 : SMS 수신 정보
-    {
-        //LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] send sms recv code [%d]\r\n", *((int *)param));
-        LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_sms_recv_info \r\n", e_sms_recv_info);
-        res = make_pkt__sms_recv_info(packet_buf, packet_len, *((ALLOC_PKT_SEND__SMS_PKT_ARG *)param));
+    #endif
 
-        break;
-    }
+    switch (op)
+    {
+        case e_mdm_setting_val: // 0x01 : 단말 기본 설정 정보
+        {
+            LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_mdm_setting_val \r\n", e_mdm_setting_val);
+            res = make_pkt__mdm_setting_val(packet_buf, packet_len);
+            break;
+        }
+        case e_mdm_stat_evt_fifo:
+        case e_mdm_stat_evt: // 0x02 : 단말 상태 정보 (이벤트)
+        {
+            int evt_code = *((int *)param);
+            LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_mdm_stat_evt / evt code [%d]\r\n", e_mdm_stat_evt, evt_code);
+        #ifdef SERVER_ABBR_ALM1
+            res = make_pkt__mdm_stat_evt(packet_buf, packet_len, evt_code);
+        #endif
+
+        #ifdef SERVER_ABBR_ALM2
+            switch (evt_code) // support evt filter
+            {
+                case e_evt_code_normal:
+                case e_evt_code_poweroff:
+                case e_evt_code_car_low_batt:
+                case e_evt_code_mdm_reset:
+                case e_evt_code_sensor_1_on:
+                case e_evt_code_sensor_1_off:
+                {
+                    res = make_pkt__mdm_stat_evt(packet_buf, packet_len, evt_code);
+                    break;
+                }
+                default:
+                {
+                    LOGE(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_mdm_stat_evt / evt code [%d] No suport EVT\r\n", e_mdm_stat_evt, evt_code);
+
+                    res = -1;
+                    break;
+                }
+            }
+        #endif
+
+            break;
+        }
+        case e_mdm_gps_info_fifo:
+        case e_mdm_gps_info: // 0x03 : GPS 정보
+        {
+            LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_mdm_gps_info \r\n", e_mdm_gps_info);
+            res = make_pkt__mdm_gps_info(packet_buf, packet_len);
+            break;
+        }
+        case e_obd_dev_info: // 0x11 : OBD 기본 설정 정보
+        {
+            LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_obd_dev_info \r\n", e_obd_dev_info);
+            res = make_pkt__obd_dev_info(packet_buf, packet_len);
+            break;
+        }
+        case e_obd_stat: // 0x12 : OBD 상태 정보 (이벤트)
+        {
+            LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_obd_stat \r\n", e_obd_stat);
+            res = make_pkt__obd_stat(packet_buf, packet_len, *((ALLOC_PKT_SEND__OBD_STAT_ARG *)param));
+            break;
+        }
+        case e_obd_data: // 0x13 : OBD 수집 정보
+        {
+            LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_obd_data \r\n", e_obd_data);
+            res = make_pkt__obd_data(packet_buf, packet_len);
+            break;
+        }
+        case e_obd_chk_code: // 0x14 : OBD 차량 진단코드
+        {
+            break;
+        }
+        case e_dtg_setting_val: // 0x21 : DTG 기본 정보
+        {
+            break;
+        }
+        case e_dtg_data: // 0x22 : DTG 수집 정보
+        {
+            break;
+        }
+        case e_mdm_geofence_setting_val: // 0x31 : zone 설정 정보
+        {
+            break;
+        }
+        case e_mdm_geofence_evt: // 0x32 : zone 입출 정보
+        {
+            break;
+        }
+        case e_bcm_stat_evt: // 0x41 : All key 상태 정보 (이벤트)
+        {
+            break;
+        }
+        case e_bcm_statting_val: // 0x42 : All key 설정 정보
+        {
+            break;
+        }
+        case e_bcm_mastercard_regi: // 0x45 : 마스터카드 등록
+        {
+            break;
+        }
+        case e_bcm_reserv_val: // 0x47 : 예약정보
+        {
+            break;
+        }
+        case e_bcm_knocksensor_setting_val: // 0x51 : 노크센서 설정 정보
+        {
+            LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_bcm_knocksensor_setting_val \r\n", e_firm_info);
+            res = make_pkt__bcm_knocksensor_setting_val(packet_buf, packet_len);
+            break;
+        }
+        case e_firm_info: // 0x71 : 펌웨어 정보
+        {
+            LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_firm_info \r\n", e_firm_info);
+            res = make_pkt__firmware_info(packet_buf, packet_len);
+            break;
+        }
+        case e_firm_update: // 0x72 : 펌웨어 업데이트
+        {
+            break;
+        }
+        case e_firm_complete: // 0x79 : 펌웨어 업데이트 완료
+        {
+            break;
+        }
+        case e_sms_recv_info: // 0xF0 : SMS 수신 정보
+        {
+            //LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] send sms recv code [%d]\r\n", *((int *)param));
+            LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - e_sms_recv_info \r\n", e_sms_recv_info);
+            res = make_pkt__sms_recv_info(packet_buf, packet_len, *((ALLOC_PKT_SEND__SMS_PKT_ARG *)param));
+
+            break;
+        }
     }
 
-    return 0;
+    return res;
 }
 
 extern int test_code;

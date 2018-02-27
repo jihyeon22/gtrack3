@@ -284,7 +284,7 @@ int chk_car_batt_level(int low_batt, int chk_flag)
 
     batt_chk_interval ++;
 
-    printf(" ----------> batt level is [%d] / [%d]\r\n", _g_car_batt_level, batt_chk_interval);
+    //printf(" ----------> batt level is [%d] / [%d]\r\n", _g_car_batt_level, batt_chk_interval);
 
     // batt 값을 강제로 업데이트 할 경우다.
     if ( chk_flag == 1 )
