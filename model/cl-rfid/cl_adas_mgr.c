@@ -11,20 +11,31 @@
 #include "netcom.h"
 
 
-#define USE_MOVON_ADAS // temp code : for code highligh
-
-
+// #define USE_MOVON_ADAS // temp code : for code highligh
 
 #ifdef USE_MOVON_ADAS
 #include <movon_adas.h>
 #define LOG_TARGET eSVC_MODEL
 
-#define MOVON_ADAS_DEV_FAIL_CHK_CNT     10
-
-
+#define ADAS_DEV_FAIL_CHK_CNT       10
+#define ADAS_DEV_NON_EVT_CLR_CNT    30
 #endif
 
-#ifdef SERVER_ABBR_CLRA1
+
+#ifdef USE_MOBILEYE_ADAS
+#include <mobileye_adas.h>
+#define LOG_TARGET eSVC_MODEL
+
+#define ADAS_DEV_FAIL_CHK_CNT     60
+#define ADAS_DEV_NON_EVT_CLR_CNT    1
+#endif
+
+#if defined (SERVER_ABBR_CLRA0) || defined (SERVER_ABBR_CLRA1) || defined (SERVER_ABBR_CLRA9)
+#define ADAS_DEV_PATH       "/dev/ttyHSL2"
+#define ADAS_DEV_BAUDRATE   9600
+#endif
+
+#if defined (SERVER_ABBR_CLRB0) || defined (SERVER_ABBR_CLRB1) || defined (SERVER_ABBR_CLRB9)
 #define ADAS_DEV_PATH       "/dev/ttyHSL2"
 #define ADAS_DEV_BAUDRATE   9600
 #endif
@@ -64,8 +75,9 @@ int cl_adas_ttc_sendpkt(int evt_code)
 
     return 0;
 }
+#endif
 
-int p_movon_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
+int p_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
 {
     static int err_code_last = -1;
 
@@ -74,7 +86,7 @@ int p_movon_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
 
     static int evt_none_cnt = 0;
     
-    int movon_adas_evt_stat = 0;
+    int adas_evt_stat = 0;
 
     char option_str[32] = {0,};
     int option_str_len = 0;
@@ -112,7 +124,7 @@ int p_movon_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
             read_fail_cnt = 0;
             evt_none_cnt = 0;
 
-            movon_adas_evt_stat = 1;
+            adas_evt_stat = 1;
             break;
         }
         case eADAS_EVT__PCW:
@@ -133,7 +145,7 @@ int p_movon_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
             read_fail_cnt = 0;
             evt_none_cnt = 0;
 
-            movon_adas_evt_stat = 1;
+            adas_evt_stat = 1;
             break;
         }
         case eADAS_EVT__LDW:
@@ -158,7 +170,7 @@ int p_movon_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
             read_fail_cnt = 0;
             evt_none_cnt = 0;
 
-            movon_adas_evt_stat = 1;
+            adas_evt_stat = 1;
             break;
         }
         case eADAS_EVT__HMW:
@@ -179,7 +191,7 @@ int p_movon_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
             read_fail_cnt = 0;
             evt_none_cnt = 0;
 
-            movon_adas_evt_stat = 1;
+            adas_evt_stat = 1;
             break;
         }
         case eADAS_EVT__SLI:
@@ -200,7 +212,7 @@ int p_movon_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
             read_fail_cnt = 0;
             evt_none_cnt = 0;
 
-            movon_adas_evt_stat = 1;
+            adas_evt_stat = 1;
             break;
         }
         case eADAS_EVT__ERR:
@@ -236,7 +248,7 @@ int p_movon_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
             read_fail_cnt = 0;
             evt_none_cnt = 0;
 
-            movon_adas_evt_stat = 1;
+            adas_evt_stat = 1;
 
             break;
         }
@@ -251,15 +263,15 @@ int p_movon_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
 
             // printf("p_bmsg_proc(eADAS_EVT__NONE) :: evt_none_cnt [%d]\r\n", evt_none_cnt);
 
-            if ( evt_none_cnt > 30 )
+            if ( evt_none_cnt > ADAS_DEV_NON_EVT_CLR_CNT )
             {
-                // printf("p_bmsg_proc(eADAS_EVT__NONE) :: evt clear [%d]\r\n", evt_none_cnt);
+                LOGI(LOG_TARGET, "p_bmsg_proc(eADAS_EVT__NONE) :: evt clear [%d]\r\n", evt_none_cnt);
 
                 err_code_last = -1;
 
                 read_fail_cnt = 0;
 
-                movon_adas_evt_stat = 1;
+                adas_evt_stat = 1;
             }
 
             break;
@@ -269,13 +281,13 @@ int p_movon_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
             read_fail_cnt++;
 
             LOGI(LOG_TARGET, "p_bmsg_proc(eADAS_EVT__INVALID) :: evt_data->evt_code [%d] / [%d]\r\n", evt_data->evt_code, read_fail_cnt);
-
+/*
             printf("p_bmsg_proc(eADAS_EVT__INVALID) :: evt_data->evt_code [%d]\r\n", evt_data->evt_code);
             printf("p_bmsg_proc(eADAS_EVT__INVALID) :: evt_data->evt_data_1 >> speed [%d]\r\n", evt_data->evt_data_1);
             printf("p_bmsg_proc(eADAS_EVT__INVALID) :: evt_data->evt_data_2 >> break sig [%d]\r\n", evt_data->evt_data_2);
             printf("p_bmsg_proc(eADAS_EVT__INVALID) :: evt_data->evt_data_3 >> ttc sec [%d]\r\n", evt_data->evt_data_3);
             printf("p_bmsg_proc(eADAS_EVT__INVALID) :: evt_data->evt_data_4 >> ext data [%d]\r\n", evt_data->evt_data_4);
-
+*/
             break;
         }
         default:
@@ -290,34 +302,38 @@ FINISH:
         printf("read_fail_cnt is [%d]\r\n", read_fail_cnt);
     }
 
-    if ( read_fail_cnt > MOVON_ADAS_DEV_FAIL_CHK_CNT)
+    if ( read_fail_cnt > ADAS_DEV_FAIL_CHK_CNT)
     {
         if (( adas_stat_send_evt == 0 ) || ( adas_stat_send_evt == -1 ) )
         {
-            devel_webdm_send_log("[MOVON ADAS] DEV DISCONN : CANNOT COMM");
+            devel_webdm_send_log("[ADAS] DEV DISCONN : CANNOT COMM");
             option_str_len += sprintf(option_str + option_str_len, "%d" , 89);
             cl_adas_mgr_sendpkt(CL_ADAS_ERR_EVENT_CODE, evt_data->evt_data_1, option_str);
             adas_stat_send_evt = 1;
-            movon_adas_evt_stat = 0; 
+            adas_evt_stat = 0; 
         }
     }
 
-    if ( ((adas_stat_send_evt==1) && (movon_adas_evt_stat == 1) ) || ((adas_stat_send_evt==-1) && (movon_adas_evt_stat==1)))
+    if ( ((adas_stat_send_evt==1) && (adas_evt_stat == 1) ) || ((adas_stat_send_evt==-1) && (adas_evt_stat==1)))
     {
-        devel_webdm_send_log("[MOVON ADAS] DEV CONN : SUCCESS");
+        devel_webdm_send_log("[ADAS] DEV CONN : SUCCESS");
         adas_stat_send_evt = 0;
     }
 
     return 0;
 }
-#endif
+
 
 int cl_adas_mgr__init()
 {
-#if defined (SERVER_ABBR_CLRA1) && defined (USE_MOVON_ADAS)
-    movon_adas__mgr_init(ADAS_DEV_PATH, ADAS_DEV_BAUDRATE, p_movon_adas_bmsg_proc);
-    return 0;
-#else
-    return -1;
+#if defined (USE_MOVON_ADAS)
+    movon_adas__mgr_init(ADAS_DEV_PATH, ADAS_DEV_BAUDRATE, p_adas_bmsg_proc);
 #endif
+
+#if defined (USE_MOBILEYE_ADAS)
+    mobileye_adas__mgr_init(ADAS_DEV_PATH, ADAS_DEV_BAUDRATE, p_adas_bmsg_proc);
+#endif
+
+    return 0;
+
 }

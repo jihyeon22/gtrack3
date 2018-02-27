@@ -231,7 +231,9 @@ server_input() {
 	echo -e "               (cs, etr, etrg, etrf, neognp, moram, moram0, moram1, cip-rmc, gtnb-mdt, netio, uppp, gtrs, ds-thermal, kt-thermal ...)"
 	echo -e "               (katech-obd, ...)"
 	echo -e "               (ktfms0, ktfms1, ...)"
-	echo -e "               (cl-rfid0, cl-rfid1, cl-rfid-movon0, cl-rfid-movon1, ...)"
+	echo -e "               (cl-rfid0, cl-rfid1, ...)"
+	echo -e "               (cl-rfid-movon0, cl-rfid-movon1, cl-rfid-movon9,...)"
+	echo -e "               (cl-rfid-mobileye0, cl-rfid-mobileye1, cl-rfid-mobileye9,...)"
 	echo -e "               (dsme, dsme-mdt, ...)"
 	echo -e "               (alm1, alm2, ...)"
 	echo -e "               (dtg-skel)"
@@ -273,6 +275,22 @@ server_input() {
 		cl-rfid-movon1)
 			SRVMODEL="clra1"
 			SERVABBR="CLRA1"
+		;;
+		cl-rfid-movon9)
+			SRVMODEL="clra9"
+			SERVABBR="CLRA9"
+		;;
+		cl-rfid-mobileye0)
+			SRVMODEL="clrb0"
+			SERVABBR="CLRB0"
+		;;
+		cl-rfid-mobileye1)
+			SRVMODEL="clrb1"
+			SERVABBR="CLRB1"
+		;;
+		cl-rfid-mobileye9)
+			SRVMODEL="clrb9"
+			SERVABBR="CLRB9"
 		;;
 		gtnb-mdt)
 			SRVMODEL="gtm"
