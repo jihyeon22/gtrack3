@@ -909,6 +909,119 @@ int make_raw_packet(unsigned char **pbuf, unsigned short *packet_len, bufData_t 
 	return 0;
 }
 
+
+int make_mpa_packet(unsigned char **pbuf, unsigned short *packet_len, gpsData_t *gpsdata, clAdasData_t *param)
+{
+	int res = 0;
+	int i = 0;
+
+	CL_PACKET_HEAD *phead;
+	CL_ADAS_BODY *pbody;
+	CL_PACKET_TAIL *ptail;
+
+	int data_len = sizeof(CL_ADAS_BODY);
+	int data_count = 1;
+
+	unsigned short checksum_len = data_len;
+	*packet_len = sizeof(CL_PACKET_HEAD) + data_len + sizeof(CL_PACKET_TAIL);
+
+	unsigned char *packet_buf;
+	packet_buf = (unsigned char *)malloc(*packet_len);
+	if(packet_buf == NULL)
+	{
+		printf("malloc fail\n");
+		return -1;
+	}
+	memset(packet_buf, 0, *packet_len);
+	*pbuf = packet_buf;
+
+	phead = (CL_PACKET_HEAD *)packet_buf;
+	pbody = (CL_ADAS_BODY *)(packet_buf + sizeof(CL_PACKET_HEAD));
+	ptail = (CL_PACKET_TAIL *)(packet_buf + sizeof(CL_PACKET_HEAD) + data_len);
+
+	/* phead */
+	_set_comm_head_data((CL_COMM_HEAD *)phead, CMD_MPA);
+
+	int length = *packet_len;
+	char temp_length[sizeof(phead->length)+1] = {0};
+	snprintf(temp_length, sizeof(phead->length)+1, "%03d", length);
+	memcpy(phead->length, temp_length, sizeof(phead->length));
+
+	char temp_data_count[sizeof(phead->data_count)+1] = {0};
+	snprintf(temp_data_count, sizeof(phead->data_count)+1, "%02d", data_count);
+	memcpy(phead->data_count, temp_data_count, sizeof(phead->data_count));
+
+	/* pbody */
+    // set location data..
+    {
+        char temp_date[sizeof(pbody->date)+1] = {0};
+        snprintf(temp_date, sizeof(pbody->date)+1, "%02d%02d%02d", gpsdata->year % 100, gpsdata->mon, gpsdata->day);
+        memcpy(pbody->date, temp_date, sizeof(pbody->date));
+
+        char temp_time[sizeof(pbody->time)+1] = {0};
+        snprintf(temp_time, sizeof(pbody->time)+1, "%02d%02d%02d", gpsdata->hour, gpsdata->min, gpsdata->sec);
+        memcpy(pbody->time, temp_time, sizeof(pbody->time));
+
+        if(gpsdata->active == 1) {
+            pbody->gps_status = 'A';
+        } else {
+            pbody->gps_status = 'V';
+        }
+
+        char temp_latitude[sizeof(pbody->latitude)+1] = {0};
+        snprintf(temp_latitude, sizeof(pbody->latitude)+1, "%08.05f", gpsdata->lat);
+        memcpy(pbody->latitude, temp_latitude, sizeof(pbody->latitude));
+
+        char temp_longitude[sizeof(pbody->longitude)+1] = {0};
+        snprintf(temp_longitude, sizeof(pbody->longitude)+1, "%09.05f", gpsdata->lon);
+        memcpy(pbody->longitude, temp_longitude, sizeof(pbody->longitude));
+
+        char temp_speed[sizeof(pbody->speed)+1] = {0};
+        snprintf(temp_speed, sizeof(pbody->speed)+1, "%03d", gpsdata->speed);
+        memcpy(pbody->speed, temp_speed, sizeof(pbody->speed));
+
+        char temp_direction[sizeof(pbody->direction)+1] = {0};
+        snprintf(temp_direction, sizeof(pbody->direction)+1, "%03d", (int)(gpsdata->angle));
+        memcpy(pbody->direction, temp_direction, sizeof(pbody->direction));
+    }
+
+
+    pbody->reserved_2;
+    sprintf(pbody->adas_speed, "%d", param->adas_speed);
+    sprintf(pbody->adas_opt, "%.6s", param->adas_opt_str);
+    sprintf(pbody->adas_event_code, "%02d", param->event_code);
+    printf("pbody->adas_speed [%s]\r\n", pbody->adas_speed);
+    printf("pbody->adas_opt [%s]\r\n", pbody->adas_opt);
+    printf("pbody->adas_event_code [%s]\r\n", pbody->adas_event_code);
+
+#if 0
+	for(i = 0; i < sizeof(pbody->tag_id); i++) {
+		printf("%c ", pbody->tag_id[i]);
+	}
+	printf("\n");
+#endif
+
+	/* ptail */
+	ptail->check_sum = tools_checksum_xor(packet_buf + sizeof(CL_PACKET_HEAD), checksum_len);
+	ptail->tail.etx = ']';
+
+	printf("size = %d \n", *packet_len);
+	for(i = 0; i < *packet_len; i++)
+	{
+		if(i != *packet_len -2)
+		{
+			printf("%c", ((char *)phead)[i]);
+		}
+		else
+		{
+			printf("[%x]", ((char *)phead)[i]);
+		}
+	}
+	printf("\n");
+	
+	return res;
+}
+
 int cl_resp_packet_check(char result)
 {
 	int res = 0;

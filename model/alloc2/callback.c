@@ -22,6 +22,7 @@
 #include <config.h>
 
 #include <at/at_util.h>
+#include <mdsapi/mds_api.h>
 
 #include "alloc2_nettool.h"
 
@@ -43,6 +44,7 @@ int mdm_bcm_evt_proc(const int evt_code, const unsigned char stat_1, const unsig
 
 int test_code = 0;
 
+#define GPIO_NUM__EXT_LEVEL_SENSOR  13
 
 void init_model_callback(void)
 {
@@ -51,11 +53,11 @@ void init_model_callback(void)
 	printf("gtrack calback ::: init_model_callback !!!\r\n");
 
 	//alloc2_init_car_daily_info();
-#ifdef USE_ALLKEY_BCM_1
+#ifdef SERVER_ABBR_ALM1
 	allkey_bcm_1_init(&mdm_bcm_evt_proc);
 	//allkey_bcm_ctr__theft_on(0);
-	allkey_bcm_ctr__door_evt_on(1);
-	//allkey_bcm_ctr__get_info(&g_allkey_bcm_info);
+	//allkey_bcm_ctr__door_evt_on(1);
+	allkey_bcm_ctr__get_info(&g_allkey_bcm_info);
 	printf("--------------------------------------------------\r\n");
 	printf("g_allkey_bcm_info->init_stat [%x] \r\n", g_allkey_bcm_info.init_stat );
 	printf("g_allkey_bcm_info->horn_cnt [%d]\r\n", g_allkey_bcm_info.horn_cnt );
@@ -64,16 +66,18 @@ void init_model_callback(void)
 	printf("--------------------------------------------------\r\n");
 #endif
 
-#ifdef USE_SECO_OBD_1
+#ifdef SERVER_ABBR_ALM1
 	init_seco_obd_mgr("/dev/ttyHSL1", 115200, alloc2_obd_mgr__obd_broadcast_proc);
+    alloc2_obd_mgr__init();
 #endif
 
 	alloc2_init_car_daily_info();
 	init_mdm_setting_pkt_val();
 	init_obd_dev_pkt_info();
-
-	alloc2_obd_mgr__init();
 	
+    // 근접센서
+    gpio_set_direction(GPIO_NUM__EXT_LEVEL_SENSOR, eGpioInput);
+
 	thread_network_set_warn_timeout(MAX(conf->model.report_interval_keyon, conf->model.report_interval_keyoff) * 2);
 }
 
@@ -86,7 +90,10 @@ void network_on_callback(void)
 void button1_callback(void)
 {
 	//allkey_bcm_ctr__door_lock(1);
-	printf("gtrack calback ::: button1_callback !!!\r\n");
+    printf("gtrack calback ::: button1_callback !!!\r\n");
+    //allkey_bcm_ctr__knocksensor_set_modemtime();
+    //allkey_bcm_ctr__knocksensor_set_id(1234);
+    //allkey_bcm_ctr__knocksensor_set_passwd(1234);
 	//test_code = 0; 
 	//set_no_send_pwr_evt_reboot();
 }
@@ -94,8 +101,11 @@ void button1_callback(void)
 void button2_callback(void)
 {
 	//allkey_bcm_ctr__door_lock(0);
-	printf("gtrack calback ::: button2_callback !!!\r\n");
-	//test_code = 2;
+    printf("gtrack calback ::: button2_callback !!!\r\n");
+    //allkey_bcm_ctr__knocksensor_set_modemtime();
+    //allkey_bcm_ctr__knocksensor_set_id(1234);
+    //allkey_bcm_ctr__knocksensor_set_passwd(1234);
+    
 
 }
 
@@ -121,8 +131,9 @@ void ignition_on_callback(void)
 		// load_resume_data();
 		LOGE(eSVC_MODEL, "NEED TO IGI_ON EVT : BUT SKIP\r\n");
 	}
-
+#ifdef SERVER_ABBR_ALM1
 	sender_add_data_to_buffer(e_firm_info, NULL, get_pkt_pipe_type(e_firm_info,0));
+#endif
 }
 
 void ignition_off_callback(void)
@@ -296,8 +307,10 @@ void gps_parse_one_context_callback(void)
 		//if ( current_senario == e_SEND_TO_ONLY_GPS_DATA )
 		LOGT(eSVC_MODEL, "[GPS THREAD] send gps info!!!! [%d]/[%d]\r\n", gps_run_cnt, report_interval);
 		sender_add_data_to_buffer(e_mdm_gps_info, NULL, get_pkt_pipe_type(e_mdm_gps_info,0));
-		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt,evt_code));
 
+#ifdef SERVER_ABBR_ALM1 // 중고차모델에서는 보내지말것 : 180121
+		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt,evt_code));
+#endif
 		gps_run_cnt = 0;
 	}
 
@@ -324,7 +337,8 @@ void main_loop_callback(void)
 	int report_obd_interval = 0;
 	int sms_chk_interval = 0;
 
-	
+	static int last_gpio_sensor_val = -1;
+    int cur_gpio_sensor_val = 0;
 	/*
 	// wait for network on and key on ?
 	while(1)
@@ -348,16 +362,12 @@ void main_loop_callback(void)
 		main_loop_cnt ++;
 		no_send_pwr_evt_flag_clr ++;
 		sms_chk_interval++;
-		// -----------------------------------------------------------
-		// hw check
-		// -----------------------------------------------------------
-		chk_allkey_bcm();
-		
+
 		// ---------------------------------------------------------------------
 		// batt chk 
 		// ---------------------------------------------------------------------
 		chk_car_batt_level(chk_car_low_batt, 0);
-		
+
 		// ----------------------------------------------------------
 		// senario setting
 		// ----------------------------------------------------------
@@ -365,8 +375,19 @@ void main_loop_callback(void)
 		{
 			set_cur_status(e_SEND_TO_SETTING_INFO_ING);
 			sender_add_data_to_buffer(e_mdm_setting_val, NULL, get_pkt_pipe_type(e_mdm_setting_val,0));
+            sleep(20);
 		}
-	
+
+		// -----------------------------------------------------------
+		// hw check
+		// -----------------------------------------------------------
+#ifdef SERVER_ABBR_ALM1
+
+		chk_allkey_bcm();
+
+        if ( p_mdm_setting_val->use_knock_sensor == 1 )
+            chk_bcm_knocksensor_setting();
+
 		if ( get_cur_status() == e_SEND_TO_OBD_INFO )
 		{
 			set_cur_status(e_SEND_TO_OBD_INFO_ING);
@@ -412,11 +433,36 @@ void main_loop_callback(void)
 		{
 			int evt_code = e_evt_code_normal;
 			sender_add_data_to_buffer(e_obd_data, NULL, get_pkt_pipe_type(e_obd_data,0));
-			sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt,evt_code));
+			// sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt,evt_code)); // 삭제요청 : 180126
 			main_loop_cnt = 0;
 		}
 
 		alloc2_obd_mgr__run_cmd_proc();
+#endif
+
+#ifdef SERVER_ABBR_ALM2
+        cur_gpio_sensor_val = gpio_get_value(GPIO_NUM__EXT_LEVEL_SENSOR);
+
+        //if ( last_gpio_sensor_val == -1)
+        //    last_gpio_sensor_val = cur_gpio_sensor_val;
+
+        if ( last_gpio_sensor_val != cur_gpio_sensor_val )
+        {
+            int evt_code = e_evt_code_normal;
+
+            chk_car_batt_level(0,1);
+
+            if ( cur_gpio_sensor_val == 0 ) // 99
+                evt_code = e_evt_code_sensor_1_off;
+            if ( cur_gpio_sensor_val == 1 ) // 98
+                evt_code = e_evt_code_sensor_1_on;
+
+            // sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0)); // 삭제요청 : 180221
+            sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+
+            last_gpio_sensor_val = cur_gpio_sensor_val;
+        }
+#endif
 
 		watchdog_set_cur_ktime(eWdMain);
 		watchdog_process();
@@ -447,3 +493,8 @@ void exit_main_loop(void)
 	flag_run_thread_main = 0;
 }
 
+
+void network_fail_emergency_reset_callback(void)
+{
+	alloc2_poweroff_proc("poweroff callback");
+}

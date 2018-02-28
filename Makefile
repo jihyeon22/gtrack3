@@ -221,6 +221,28 @@ else ifeq ($(SUB),clr0)
 SERVER_ABBR   :=      CLR0
 else ifeq ($(SUB),clr1)
 SERVER_ABBR   :=      CLR1
+else ifeq ($(SUB),clra0)
+SERVER_ABBR   :=      CLRA0
+USE_MOVON_ADAS=y
+else ifeq ($(SUB),clra1)
+SERVER_ABBR   :=      CLRA1
+USE_MOVON_ADAS=y
+else ifeq ($(SUB),clra9)
+SERVER_ABBR   :=      CLRA9
+USE_MOVON_ADAS=y
+else ifeq ($(SUB),clrb0)
+SERVER_ABBR   :=      CLRB0
+USE_MOBILEYE_ADAS=y
+else ifeq ($(SUB),clrb1)
+SERVER_ABBR   :=      CLRB1
+USE_MOBILEYE_ADAS=y
+else ifeq ($(SUB),clrb9)
+SERVER_ABBR   :=      CLRB9
+USE_MOBILEYE_ADAS=y
+else ifeq ($(SUB),alm1)
+SERVER_ABBR   :=      ALM1
+else ifeq ($(SUB),alm2)
+SERVER_ABBR   :=      ALM2
 else ifeq ($(SUB),moram0)
 #MDT + DTG + Kepady Service
 SERVER_ABBR   :=      MRM0
@@ -354,6 +376,19 @@ OBJS	+= $(OBJ_SECO_OBD_1)
 CFLAGS  += $(SECO_OBD_1_CFLAGS)
 endif
 
+ifeq ($(USE_MOVON_ADAS),y)
+-include ext/dev/adas/movon_adas/movon_adas.mk
+CFLAGS  += -DUSE_MOVON_ADAS
+OBJS	+= $(OBJ_MOVON_ADAS)
+CFLAGS  += $(MOVON_ADAS_CFLAGS)
+endif
+
+ifeq ($(USE_MOBILEYE_ADAS),y)
+-include ext/dev/adas/mobileye_adas/mobileye_adas.mk
+CFLAGS  += -DUSE_MOBILEYE_ADAS
+OBJS	+= $(OBJ_MOBILEYE_ADAS)
+CFLAGS  += $(MOBILEYE_ADAS_CFLAGS)
+endif
 
 ifeq ($(USE_RDATE_TIME_SYNC),y)
 CFLAGS  += -DRDATE_TIME_SYNC_ENABLE

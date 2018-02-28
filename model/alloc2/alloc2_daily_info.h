@@ -8,7 +8,7 @@
 
 //jwrho persistant data path modify++
 //#define ALLOC2_CAR_DAILY_INFO "/data/mds/data/alloc_daily_info.dat"
-#define ALLOC2_CAR_DAILY_INFO CONCAT_STR(USER_DATA_DIR, "/alloc_daily_info.dat")
+#define ALLOC2_CAR_DAILY_INFO CONCAT_STR(USER_DATA_DIR, "/alloc_daily_info_v16.dat")
 //jwrho persistant data path modify--
 
 int alloc2_init_car_daily_info();

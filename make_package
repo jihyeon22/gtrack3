@@ -228,11 +228,14 @@ modem_input() {
 
 server_input() {
 	echo -e "Server Model = (skel, asn, cl-thermal, cl-mdt, cl-rfid, bizincar, nisso)"
-	echo -e "               (cs, etr, etrg, etrf, neognp, moram, moram0, moram1, alloc2, cip-rmc, gtnb-mdt, netio, uppp, gtrs, ds-thermal, kt-thermal ...)"
+	echo -e "               (cs, etr, etrg, etrf, neognp, moram, moram0, moram1, cip-rmc, gtnb-mdt, netio, uppp, gtrs, ds-thermal, kt-thermal ...)"
 	echo -e "               (katech-obd, ...)"
 	echo -e "               (ktfms0, ktfms1, ...)"
 	echo -e "               (cl-rfid0, cl-rfid1, ...)"
+	echo -e "               (cl-rfid-movon0, cl-rfid-movon1, cl-rfid-movon9,...)"
+	echo -e "               (cl-rfid-mobileye0, cl-rfid-mobileye1, cl-rfid-mobileye9,...)"
 	echo -e "               (dsme, dsme-mdt, ...)"
+	echo -e "               (alm1, alm2, ...)"
 	echo -e "               (dtg-skel)"
 	echo -e "               ** (if sub model, sub model name have to input) **"
 	read SRVMODEL
@@ -264,6 +267,30 @@ server_input() {
 		cl-rfid1)
 			SRVMODEL="clr1"
 			SERVABBR="CLR1"
+		;;
+		cl-rfid-movon0)
+			SRVMODEL="clra0"
+			SERVABBR="CLRA0"
+		;;
+		cl-rfid-movon1)
+			SRVMODEL="clra1"
+			SERVABBR="CLRA1"
+		;;
+		cl-rfid-movon9)
+			SRVMODEL="clra9"
+			SERVABBR="CLRA9"
+		;;
+		cl-rfid-mobileye0)
+			SRVMODEL="clrb0"
+			SERVABBR="CLRB0"
+		;;
+		cl-rfid-mobileye1)
+			SRVMODEL="clrb1"
+			SERVABBR="CLRB1"
+		;;
+		cl-rfid-mobileye9)
+			SRVMODEL="clrb9"
+			SERVABBR="CLRB9"
 		;;
 		gtnb-mdt)
 			SRVMODEL="gtm"
@@ -325,9 +352,13 @@ server_input() {
 			SRVMODEL="fms1"
 			SERVABBR="FMS1"
 		;;
-		alloc2)
-			SRVMODEL="alc2"
-			SERVABBR="ALC2"
+		alm1)
+			SRVMODEL="alm1"
+			SERVABBR="ALM1"
+		;;
+		alm2)
+			SRVMODEL="alm2"
+			SERVABBR="ALM2"
 		;;
 		cip-rmc)
 			SRVMODEL="cip"

@@ -21,6 +21,15 @@ struct bufData
 	int used_size;
 };
 
+typedef struct clAdasData clAdasData_t;
+struct clAdasData
+{
+	int event_code;
+	int adas_speed;
+	char adas_opt_str[6+1];
+};
+
+
 /*
    CL RESPONSE MESSAGE
 */
@@ -131,6 +140,20 @@ typedef struct {
 }__attribute__((packed))CL_LOCATION_BODY;
 
 typedef struct {
+	char date[6];
+	char time[6];  
+	char gps_status;  
+	char latitude[8];  
+	char longitude[9];  
+	char speed[3];  
+  	char direction[3];  
+	char adas_speed[3];  	// v06 : avg speed, v08 : motion sensor
+  	char reserved_2;  		// v06 : acc stat , v08 : door sensor
+  	char adas_opt[6];  	// v06 : accumul dist , v08 : thermal sensor
+  	char adas_event_code[2];      
+}__attribute__((packed))CL_ADAS_BODY;
+
+typedef struct {
    CL_LOCATION_BODY data;
   	char boarding;  
   	char tag_id[32];      
@@ -147,6 +170,13 @@ typedef struct {
 	CL_RFID_BODY body;
 	CL_PACKET_TAIL tail;  
 }__attribute__((packed))CL_RFID_PACKET;
+
+typedef struct {
+	CL_PACKET_HEAD head;
+	CL_ADAS_BODY body;
+	CL_PACKET_TAIL tail;  
+}__attribute__((packed))CL_ADAS_PACKET;
+
 
 #define CL_SUC_ERROR_CODE 0x30
 #define CL_AUT_ERROR_CODE 0x31
@@ -179,6 +209,8 @@ typedef struct {
 #define CMD_MGZ "MGZ"
 #define CMD_MIR "MIR"
 #define CMD_MST "MST"
+
+#define CMD_MPA "MPA"
 
 enum CL_EVENT_CODE
 {
@@ -227,6 +259,17 @@ enum CL_EVENT_CODE
 
 	CL_CAR_ACCIDENT_BTN_EVENT_CODE = 63, // 
 	CL_CAR_BROKEN_BTN_EVENT_CODE = 64,
+
+	// ME ADAS 
+	CL_ADAS_FCW_EVENT_CODE = 81,		// 전방추돌경보
+	CL_ADAS_UFCW_EVENT_CODE = 82,		// 서행충돌경보
+	CL_ADAS_LDW_EVENT_CODE = 83,		// 차선이탈
+	CL_ADAS_PCW_EVENT_CODE = 84,		// 보행자 충돌 경보
+	CL_ADAS_SLI_EVENT_CODE = 85,		// 속도제한
+	CL_ADAS_TSR_EVENT_CODE = 86,		// 교통표지판 인식
+	CL_ADAS_HMW_EVENT_CODE = 87,		// 차간거리 경보
+	CL_ADAS_RESERVED_EVENT_CODE = 88,	// RESERVED
+	CL_ADAS_ERR_EVENT_CODE = 89,		// ERR
 };
 
 #define RESULT_OK 0
@@ -249,5 +292,6 @@ int make_rfid_packet(unsigned char **pbuf, unsigned short *packet_len, locationD
 int make_mst_packet(unsigned char **pbuf, unsigned short *packet_len, CL_MST_BODY *body);
 int make_raw_packet(unsigned char **pbuf, unsigned short *packet_len, bufData_t *pbuf_data);
 int make_mir_packet(unsigned char **pbuf, unsigned short *packet_len, unsigned int *m_kmh);
+int make_mpa_packet(unsigned char **pbuf, unsigned short *packet_len, gpsData_t *gpsdata, clAdasData_t *param);
 
 #endif

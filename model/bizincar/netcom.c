@@ -121,7 +121,7 @@ int make_event_packet(unsigned char **pbuf, unsigned short *packet_len, int even
 
 	gps_get_curr_data(&gpsdata);
 
-	if ( gpsdata.active != eACTIVE ) 
+	if ( ( gpsdata.active != eACTIVE ) || (gpsdata.lat == 0 ) || (gpsdata.lon == 0 ) ) 
 	{
 		gpsData_t last_gpsdata;
 		gps_valid_data_get(&last_gpsdata);
@@ -129,6 +129,20 @@ int make_event_packet(unsigned char **pbuf, unsigned short *packet_len, int even
 		gpsdata.lon = last_gpsdata.lon;
 	}
 	
+    if ( gpsdata.year < 2016)
+    {
+        configurationBase_t *conf = get_config_base();
+        struct tm loc_time;
+        gpsdata.utc_sec = get_system_time_utc_sec(conf->gps.gps_time_zone);
+        _gps_utc_sec_localtime(gpsdata.utc_sec, &loc_time, conf->gps.gps_time_zone);
+        gpsdata.year = loc_time.tm_year + 1900;
+        gpsdata.mon = loc_time.tm_mon + 1;
+        gpsdata.day = loc_time.tm_mday;
+        gpsdata.hour = loc_time.tm_hour;
+        gpsdata.min = loc_time.tm_min;
+        gpsdata.sec = loc_time.tm_sec;
+    }
+
 	if(create_report_divert_buffer(&p_encbuf, 1) < 0)
 	{
 		LOGE(LOG_TARGET, "%s> create report divert buffer fail\n", __func__);

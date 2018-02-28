@@ -4,8 +4,8 @@
 #include "alloc2_pkt.h"
 #include "board/board_system.h"
 
-#define ALLOC2_MDM_SETTING_INFO CONCAT_STR(USER_DATA_DIR, "/alloc_mdm_setting.dat")
-#define ALLOC2_OBD_SETTING_INFO CONCAT_STR(USER_DATA_DIR, "/alloc_obd_setting.dat")
+#define ALLOC2_MDM_SETTING_INFO CONCAT_STR(USER_DATA_DIR, "/alloc_mdm_setting_v16.dat")
+#define ALLOC2_OBD_SETTING_INFO CONCAT_STR(USER_DATA_DIR, "/alloc_obd_setting_v16.dat")
 
 
 typedef enum {
@@ -52,9 +52,9 @@ int get_car_ctrl_enable();
 #define EVT_TYPE_IGI_ON         3
 #define EVT_TYPE_IGI_OFF        4
 
-#define NO_SEND_TO_PWR_EVT_FLAG_PATH    CONCAT_STR(USER_DATA_DIR, "/no_send_pwr.dat")
-#define NO_SEND_TO_PWR_EVT_SAVE_INFO_PATH      CONCAT_STR(USER_DATA_DIR, "/no_send_pwr_info.dat")
-#define NO_SEND_TO_PWR_EVT_SAVE_INFO_PATH_2    CONCAT_STR(USER_DATA_DIR, "/no_send_pwr_info.dat.bak")
+#define NO_SEND_TO_PWR_EVT_FLAG_PATH    CONCAT_STR(USER_DATA_DIR, "/no_send_pwr_v16.dat")
+#define NO_SEND_TO_PWR_EVT_SAVE_INFO_PATH      CONCAT_STR(USER_DATA_DIR, "/no_send_pwr_info_v16.dat")
+#define NO_SEND_TO_PWR_EVT_SAVE_INFO_PATH_2    CONCAT_STR(USER_DATA_DIR, "/no_send_pwr_info_v16.dat.bak")
 
 int set_no_send_pwr_evt_reboot();
 int get_no_send_pwr_evt_reboot(int flag);
@@ -66,6 +66,29 @@ int chk_read_sms();
 int get_car_batt_level();
 int chk_car_batt_level(int low_batt, int chk_flag);
 
+#define KNOCKSENSOR_RET_SUCCESS     1
+#define KNOCKSENSOR_RET_FAIL        -1
+
+#define KNOCKSENSOR_SETTING__INIT                0
+#define KNOCKSENSOR_SETTING__SETTING_VAL_CHECKING       1
+#define KNOCKSENSOR_SETTING__SETTING_VAL_CHECK_DONE     2
+#define KNOCKSENSOR_SETTING__SETTING_VAL_ID             4
+#define KNOCKSENSOR_SETTING__SETTING_VAL_PASS           5
+#define KNOCKSENSOR_SETTING__BCM_DO_SETTING             6
+#define KNOCKSENSOR_SETTING__BCM_DONE                   7
+
+int chk_bcm_knocksensor_setting();
+int set_bcm_knocksensor_setting(int flag);
+
+int set_bcm_knocksensor_val_id_pass(unsigned short id, unsigned short master_number);
+int get_bcm_knocksensor_val_id_pass(unsigned short* id, unsigned short* master_number);
+int set_bcm_knocksensor_val_id(unsigned short id);
+int get_bcm_knocksensor_val_id(unsigned short* id);
+int set_bcm_knocksensor_val_pass(unsigned short master_number);
+int get_bcm_knocksensor_val_pass(unsigned short* master_number);
+
+int set_bcm_knocksensor_val(unsigned short id, unsigned short master_number);
+int get_bcm_knocksensor_val(unsigned short* id, unsigned short* master_number);
 
 #endif // __ALLOC2_SENARIO_H__
 

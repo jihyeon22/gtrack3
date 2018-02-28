@@ -585,6 +585,54 @@ static int _sms_cmd_proc_set__obd_total_distance(int argc, char* argv[], const c
 
 
 
+static int _sms_cmd_proc_set__bcm_knock_pass_req(int argc, char* argv[], const char* phonenum)
+{
+	int opt_val = 0;
+	int cmd_retry_cnt = 10;
+
+    unsigned int knock_sensor_arg = 0;
+
+	if ( argc != 2 )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+	
+	if ( mds_api_check_is_num(argv[1], strlen(argv[1])) != DEFINES_MDS_API_OK )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+
+    
+    knock_sensor_arg = atoi(argv[1]);
+
+    if ( knock_sensor_arg <= 0 )
+        return SMS_CMD_ALLOC2_RET_FAIL;
+
+    set_bcm_knocksensor_val_pass(knock_sensor_arg);
+
+	return SMS_CMD_ALLOC2_RET_SUCCESS;
+}
+
+
+static int _sms_cmd_proc_set__bcm_knock_id_req(int argc, char* argv[], const char* phonenum)
+{
+	int opt_val = 0;
+	int cmd_retry_cnt = 10;
+
+    unsigned int knock_sensor_arg = 0;
+
+	if ( argc != 2 )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+	
+	if ( mds_api_check_is_num(argv[1], strlen(argv[1])) != DEFINES_MDS_API_OK )
+		return SMS_CMD_ALLOC2_RET_FAIL;
+
+    knock_sensor_arg = atoi(argv[1]);
+
+    if ( knock_sensor_arg <= 0 )
+        return SMS_CMD_ALLOC2_RET_FAIL;
+
+    set_bcm_knocksensor_val_id(knock_sensor_arg);
+    
+	return SMS_CMD_ALLOC2_RET_SUCCESS;
+}
+
 
 static SMS_CMD_FUNC_T sms_cmd_func[] =
 {
@@ -600,8 +648,8 @@ static SMS_CMD_FUNC_T sms_cmd_func[] =
     {eSMS_CMD_SET__OBD_OVERSPEED_TIME, "&23", _sms_cmd_proc_set__overspeed_time},  // 과속기준 시간 설정	secs
     {eSMS_CMD_SET__CAR_ENGINE_OFF, "&30", _sms_cmd_proc_set__engine_off},  // 시동 차단 설정 명령	0 : 시동차단 설정 1 : 시동차단 해제
     {eSMS_CMD_SET__MDM_STAT_REQ, "&40", _sms_cmd_proc_set__req_mdm_stat},  // 단말기 상태 요청	0
-    {eSMS_CMD_SET__BCM_KNOCK_REGI_REQ, "&45", _sms_cmd_proc_set__dummy_test_fail},  // 마스터 키 등록 요청	0
-    {eSMS_CMD_SET__BCM_MASTERKEY_REGI_REQ, "&46", _sms_cmd_proc_set__dummy_test_fail},  // 마스터 카드 등록 요청	0
+    {eSMS_CMD_SET__BCM_KNOCK_PASS_REQ, "&45", _sms_cmd_proc_set__bcm_knock_pass_req},  // 마스터 번호 등록 4자리
+    {eSMS_CMD_SET__BCM_KNOCK_ID_REQ, "&46", _sms_cmd_proc_set__bcm_knock_id_req},  // ID 등록 4자리
     {eSMS_CMD_SET__BCM_RESERVATION_INFO_REQ, "&47", _sms_cmd_proc_set__dummy_test_fail},  // 예약정보 요청	0
     {eSMS_CMD_SET__MDM_REINIT, "&50", _sms_cmd_proc_set__req_mdm_init},  // 단말기 초기화 명령	0
     {eSMS_CMD_SET__MDM_RESET, "&60", _sms_cmd_proc_set__req_mdm_reset},  // 단말기 재부팅 명령	0
@@ -649,6 +697,10 @@ int parse_model_sms(const char *time, const char *phonenum, const char *sms)
 	int need_to_reset_flag = 0;
 	int need_to_init_flag = 0;
 
+#ifdef SERVER_ABBR_ALM2
+    // do not support sms for alm2 model
+    return 0;
+#endif
 	// cr / lr 은 제거한다.
 	remove_cr_sms_len = mds_api_remove_cr(sms, remove_cr_sms, 80);
 	strcpy(original_sms_backup, remove_cr_sms);
