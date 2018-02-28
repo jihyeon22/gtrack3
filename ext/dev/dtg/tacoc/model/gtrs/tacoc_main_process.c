@@ -356,7 +356,8 @@ int main_process()
 		exit(1);
 	}
 
-#if defined(BOARD_TL500S) || defined(BOARD_TL500K)
+#if defined(BOARD_TL500S) || defined(BOARD_TL500K) || defined(BOARD_TL500L)
+	#ifdef SERVER_ABBR_DSKL
 	int	key_status, old_key_status;
     old_key_status = key_status = power_get_ignition_status();
 	while(1)
@@ -376,6 +377,7 @@ int main_process()
 		DTG_LOGD("%s> main power status check...\n", __func__);
 		sleep(5);
 	}
+	#endif
 #else
 	pthread_join(p_thread_dtg, (void **) status);
 	DTG_LOGT("TACOC ETRACE MODEL Exit");
