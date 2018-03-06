@@ -352,6 +352,12 @@ int mobileye_get_evt_data(int argc, char* argv[], ADAS_EVT_DATA_T* evt_data)
             LOGT(LOG_TARGET, "$$ MEADAS >> ERR parse SUCCESS : err_code [%s]\n", ret.err_code);
             //mobileye_adas_mgr_sendpkt(CL_ADAS_ERR_EVENT_CODE, "0", pkt_opt_str);
             evt_data->evt_code = eADAS_EVT__ERR;
+
+            evt_data->evt_data_4 = atoi(ret.err_code);
+            
+            if ( evt_data->evt_data_4 == 0 )
+                evt_data->evt_data_4 = ret.err_code[0] * -1;
+
             sprintf(evt_data->evt_ext, "%s", ret.err_code);
         }
     }
