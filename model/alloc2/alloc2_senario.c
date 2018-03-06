@@ -3,7 +3,9 @@
 #include <string.h>
 #include <stdarg.h>
 #include <unistd.h>
+
 #include <fcntl.h>
+#include <time.h>
 
 #ifdef USE_GPS_MODEL
 #include <base/gpstool.h>
@@ -164,9 +166,6 @@ int get_sms_pkt_cmd_code(unsigned char code)
 
 }
 
-
-
-
 void alloc2_poweroff_proc(char* msg)
 {
     mileage_write();
@@ -177,6 +176,15 @@ void alloc2_poweroff_proc(char* msg)
 	sender_wait_empty_network(20);
 	poweroff("sernaio", strlen("sernaio"));
 }
+
+void alloc2_poweroff_proc_2(char* msg) // immediately reset
+{
+    mileage_write();
+	gps_valid_data_write();
+
+	poweroff("net emer", strlen("net emer"));
+}
+
 
 // --------------------------------------------------------
 static int _car_ctrl_flag = 0;
@@ -323,14 +331,17 @@ int chk_car_batt_level(int low_batt, int chk_flag)
         {
             LOGT(eSVC_MODEL, "[GPS THREAD] send low batt!!!!!! voltage [%d] send evt\r\n", car_voltage);
 
-            sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
-            sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+            if ( get_low_batt_send_timing(low_batt) )
+            {
+                sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
+                sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+            }
             evt_send_flag = 1;
         }
         else
             LOGT(eSVC_MODEL, "[GPS THREAD] send low batt!!!!!! voltage [%d] send evt skip...\r\n", car_voltage);
     }
-    else
+    else if ( (low_batt > 0 ) && ( low_batt < _g_car_batt_level ) ) // evt clear condition
     {
         evt_send_flag = 0;
     }
@@ -553,4 +564,107 @@ int get_bcm_knocksensor_val_pass(unsigned short* master_number)
     }
 
     return ret_val;
+}
+
+int get_gpio_send_timing(int gpio)
+{
+    static time_t last_cycle = 0;
+    static time_t last_send_time = 0;
+    time_t cur_time = 0;
+
+	struct timeval tv;
+	struct tm ttm;
+
+    static int evt_cnt = 0;
+    static int evt_1min_flag = 0;
+
+	gettimeofday(&tv, NULL);
+	localtime_r(&tv.tv_sec, &ttm);
+    cur_time = mktime(&ttm);
+
+    ALLOC_PKT_RECV__MDM_SETTING_VAL* cur_mdm_setting = get_mdm_setting_val();
+
+    int max_send_cnt = cur_mdm_setting->over_speed_limit_km;
+    int reset_send_cnt_sec = cur_mdm_setting->over_speed_limit_time*60;
+
+    //max_send_cnt = 3;
+    //reset_send_cnt_sec = 2*60;
+    max_send_cnt = max_send_cnt * 2; // pair evt
+
+    LOGT(eSVC_MODEL, "[GPS THREAD] get_gpio_send_timing => debug : max_send_cnt [%d] / reset_send_cnt_sec [%d] / evt_1min_flag [%d] \r\n",max_send_cnt, reset_send_cnt_sec, evt_1min_flag);
+
+    // 30 sec interval network chk
+    // 네트워크 쓰레드의 경우 불리는 주기가 불규칙, 때문에 시간계산하여 30초마다 한번씩 불리도록
+
+    if ( evt_1min_flag == 1 )
+    {
+        LOGT(eSVC_MODEL, "[GPS THREAD] get_gpio_send_timing => evt over debug : difftime [%d]/[%d]/ evt_cnt [%d]\r\n",(cur_time - last_cycle), reset_send_cnt_sec, evt_cnt);
+        if( (cur_time - last_cycle) < reset_send_cnt_sec )
+        {
+            LOGT(eSVC_MODEL, "[GPS THREAD] get_gpio_send_timing => err case 0 set : retrun true [%d]\r\n",evt_cnt);
+            return 0;
+        }
+        else
+        {
+            last_cycle = 0;
+            evt_cnt = 0;
+            evt_1min_flag = 0;
+            LOGT(eSVC_MODEL, "[GPS THREAD] get_gpio_send_timing => err case 0 clear : retrun true [%d]\r\n",evt_cnt);
+        }
+    }
+
+    if (cur_time == 0)
+    {
+        LOGT(eSVC_MODEL, "[GPS THREAD] get_gpio_send_timing => err case 1 : retrun true [%d]\r\n",evt_cnt);
+        return 1;
+    }
+    
+    if (last_cycle == 0)
+    {
+        last_cycle = cur_time;
+        evt_cnt++;
+
+        LOGT(eSVC_MODEL, "[GPS THREAD] get_gpio_send_timing => reset cnt : retrun true [%d]\r\n",evt_cnt);
+
+        return 1;
+    }
+
+    // 1분동안 들어온 이벤트의 갯수를 카운트한다.
+    if( (cur_time - last_cycle) < 60 )
+    {
+        evt_cnt++;
+        LOGT(eSVC_MODEL, "[GPS THREAD] get_gpio_send_timing => 1min cnt inc : [%d]\r\n",evt_cnt);
+    }
+    else
+    {
+        last_cycle = cur_time;
+        evt_cnt = 0;
+        LOGT(eSVC_MODEL, "[GPS THREAD] get_gpio_send_timing => 1min cnt reset : [%d]\r\n",evt_cnt);
+    }
+
+    LOGT(eSVC_MODEL, "[GPS THREAD] get_gpio_send_timing => debug : evt_cnt [%d] / evt_1min_flag [%d] / difftime [%d]/[%d]\r\n",evt_cnt, evt_1min_flag, (cur_time - last_cycle), max_send_cnt);
+
+    if ( evt_cnt > max_send_cnt)
+    {
+        LOGI(eSVC_MODEL, "[GPS THREAD] get_gpio_send_timing => 1min cnt over! cnt retry time : [%d]\r\n",evt_cnt);
+        evt_1min_flag = 1;
+        return 0;
+    }
+    else
+    {
+        LOGI(eSVC_MODEL, "[GPS THREAD] get_gpio_send_timing => 1min cnt under.. clear : [%d]\r\n",evt_cnt);
+        evt_1min_flag = 0;
+        last_cycle = cur_time;
+        return 1;
+    }
+
+
+    return 1;
+}
+
+int get_low_batt_send_timing(int batt_level)
+{
+    ALLOC_PKT_RECV__MDM_SETTING_VAL* cur_mdm_setting = get_mdm_setting_val();
+
+    return 1;
 }

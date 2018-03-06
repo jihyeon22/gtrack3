@@ -44,7 +44,10 @@ int mdm_bcm_evt_proc(const int evt_code, const unsigned char stat_1, const unsig
 
 int test_code = 0;
 
-#define GPIO_NUM__EXT_LEVEL_SENSOR  13
+#ifdef SERVER_ABBR_ALM2
+#define GPIO_NUM__EXT_LEVEL_SENSOR      13
+#define GPIO_NUM__EVT_SEND_HOLD_CNT     4
+#endif
 
 void init_model_callback(void)
 {
@@ -76,7 +79,9 @@ void init_model_callback(void)
 	init_obd_dev_pkt_info();
 	
     // 근접센서
+#ifdef SERVER_ABBR_ALM2
     gpio_set_direction(GPIO_NUM__EXT_LEVEL_SENSOR, eGpioInput);
+#endif
 
 	thread_network_set_warn_timeout(MAX(conf->model.report_interval_keyon, conf->model.report_interval_keyoff) * 2);
 }
@@ -339,6 +344,9 @@ void main_loop_callback(void)
 
 	static int last_gpio_sensor_val = -1;
     int cur_gpio_sensor_val = 0;
+
+    static int gpio_sensor_val_cnt_on = 0;
+    static int gpio_sensor_val_cnt_off = 0;
 	/*
 	// wait for network on and key on ?
 	while(1)
@@ -362,6 +370,11 @@ void main_loop_callback(void)
 		main_loop_cnt ++;
 		no_send_pwr_evt_flag_clr ++;
 		sms_chk_interval++;
+
+        // ----------------------------------------------------
+        // net check..
+        // ----------------------------------------------------
+        chk_runtime_network_chk();
 
 		// ---------------------------------------------------------------------
 		// batt chk 
@@ -446,21 +459,31 @@ void main_loop_callback(void)
         //if ( last_gpio_sensor_val == -1)
         //    last_gpio_sensor_val = cur_gpio_sensor_val;
 
-        if ( last_gpio_sensor_val != cur_gpio_sensor_val )
+        if ( cur_gpio_sensor_val == 0 ) // 99
         {
-            int evt_code = e_evt_code_normal;
-
-            chk_car_batt_level(0,1);
-
-            if ( cur_gpio_sensor_val == 0 ) // 99
-                evt_code = e_evt_code_sensor_1_off;
-            if ( cur_gpio_sensor_val == 1 ) // 98
-                evt_code = e_evt_code_sensor_1_on;
-
-            // sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0)); // 삭제요청 : 180221
-            sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
-
+            gpio_sensor_val_cnt_off++;
+            gpio_sensor_val_cnt_on = 0;
+        }
+        else if ( cur_gpio_sensor_val == 1 ) // 98
+        {
+            gpio_sensor_val_cnt_on++;
+            gpio_sensor_val_cnt_off = 0;
+        }
+            
+        if ( ( gpio_sensor_val_cnt_on > GPIO_NUM__EVT_SEND_HOLD_CNT ) && ( gpio_sensor_val_cnt_off == 0) && ( last_gpio_sensor_val != cur_gpio_sensor_val) )
+        {
+            int evt_code = e_evt_code_sensor_1_on;
             last_gpio_sensor_val = cur_gpio_sensor_val;
+            if ( get_gpio_send_timing(cur_gpio_sensor_val))
+                sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+        }
+
+        if ( ( gpio_sensor_val_cnt_off > GPIO_NUM__EVT_SEND_HOLD_CNT ) && ( gpio_sensor_val_cnt_on == 0) && ( last_gpio_sensor_val != cur_gpio_sensor_val)  )
+        {
+            int evt_code = e_evt_code_sensor_1_off;
+            last_gpio_sensor_val = cur_gpio_sensor_val;
+            if ( get_gpio_send_timing(cur_gpio_sensor_val))
+                sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
         }
 #endif
 
@@ -496,5 +519,5 @@ void exit_main_loop(void)
 
 void network_fail_emergency_reset_callback(void)
 {
-	alloc2_poweroff_proc("poweroff callback");
+	alloc2_poweroff_proc_2("net fail reset");
 }

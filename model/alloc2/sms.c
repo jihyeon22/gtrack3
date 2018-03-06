@@ -699,6 +699,7 @@ int parse_model_sms(const char *time, const char *phonenum, const char *sms)
 
 #ifdef SERVER_ABBR_ALM2
     // do not support sms for alm2 model
+    devel_webdm_send_log("[DEBUG] ALM2 is not suport sms [%s] [%s]\r\n", phonenum, sms);
     return 0;
 #endif
 	// cr / lr 은 제거한다.

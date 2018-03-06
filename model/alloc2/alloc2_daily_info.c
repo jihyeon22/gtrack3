@@ -247,6 +247,7 @@ int set_overspeed_info(gpsData_t* gps_info)
 			saved_over_speed_cnt, setting_over_speed_cnt, 
 			g_over_speed_mgr.over_speed_cnt);
 	*/
+#ifdef SERVER_ABBR_ALM1
 	if ( (setting_over_speed > 0 ) && ( cur_speed > setting_over_speed ) )
 		saved_over_speed_cnt++;
 	else
@@ -257,7 +258,7 @@ int set_overspeed_info(gpsData_t* gps_info)
 		g_over_speed_mgr.over_speed_cnt ++;
 		saved_over_speed_cnt = 0;
 	}
-
+#endif
 	return ALLOC2_DAILY_INFO_SUCCESS;
 	
 }

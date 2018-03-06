@@ -37,6 +37,8 @@ ALLOC_PKT_RECV__OBD_DEV_INFO* get_obd_dev_info();
 int get_sms_pkt_cmd_code(unsigned char code);
 
 void alloc2_poweroff_proc(char* msg);
+void alloc2_poweroff_proc_2(char* msg); // immediately reset
+
 
 #define CAR_CTRL_ENABLE     1
 #define CAR_CTRL_DISABLE    -1
@@ -89,6 +91,9 @@ int get_bcm_knocksensor_val_pass(unsigned short* master_number);
 
 int set_bcm_knocksensor_val(unsigned short id, unsigned short master_number);
 int get_bcm_knocksensor_val(unsigned short* id, unsigned short* master_number);
+
+int get_gpio_send_timing(int gpio);
+int get_low_batt_send_timing(int batt_level);
 
 #endif // __ALLOC2_SENARIO_H__
 

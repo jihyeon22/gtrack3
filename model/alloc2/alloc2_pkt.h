@@ -62,8 +62,8 @@ typedef struct {
     unsigned short  mdm_reset_interval; // (b-2) 단말주기적 리셋시간 : 03:20 에 리셋시에는 320
     unsigned char   warnning_horn_cnt;    // (b-1) 경적횟수 : 1~10
     unsigned char   warnning_light_cnt;   // (b-1) 비상등횟수
-    unsigned char   over_speed_limit_km;     // (b-1) 과속 기준속도 : km/h
-    unsigned short  over_speed_limit_time;     // (b-2) 과속 기준시간  : 초
+    unsigned char   over_speed_limit_km;     // (b-1) 과속 기준속도 : km/h // alm2 : 98,99 반복이벤트 횟수 
+    unsigned short  over_speed_limit_time;     // (b-2) 과속 기준시간  : 초 // alm2 : 반복이벤트 해제
     unsigned char   use_obd;    // (b-1) obd 사용여부 : 1 : 사용 / 0 : 사용않함
     unsigned char   use_dtg;    // (b-1) dtg 사용여부 : 1 : 사용 / 0 : 사용않함
     unsigned char   use_zone_function;  //(b-1) zone 입출입가능여부 : 1 사용 / 0 사용않함
