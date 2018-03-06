@@ -227,15 +227,21 @@ int p_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
                 printf("p_bmsg_proc(eADAS_EVT__ERR) :: evt_data->evt_data_2 >> break sig [%d]\r\n", evt_data->evt_data_2);
                 printf("p_bmsg_proc(eADAS_EVT__ERR) :: evt_data->evt_data_3 >> ttc sec [%d]\r\n", evt_data->evt_data_3);
                 printf("p_bmsg_proc(eADAS_EVT__ERR) :: evt_data->evt_data_4 >> ext data [%d]\r\n", evt_data->evt_data_4);
-            
+
+            #ifdef USE_MOVON_ADAS
                 if ( evt_data->evt_data_4 == 0x01 )
                     option_str_len += sprintf(option_str + option_str_len, "%d" , 61);
                 else if ( evt_data->evt_data_4 == 0x02 )
                     option_str_len += sprintf(option_str + option_str_len, "%d" , 62);
                 else
                     option_str_len += sprintf(option_str + option_str_len, "%d" , 89);
+            #endif
 
-                //cl_adas_mgr_sendpkt(CL_ADAS_ERR_EVENT_CODE, evt_data->evt_data_1, option_str);
+            #ifdef USE_MOBILEYE_ADAS
+                option_str_len += sprintf(option_str + option_str_len, "%d" , evt_data->evt_data_4 );
+            #endif
+
+                cl_adas_mgr_sendpkt(CL_ADAS_ERR_EVENT_CODE, evt_data->evt_data_1, option_str);
 
                 err_code_last = evt_data->evt_data_4;
 
@@ -308,7 +314,10 @@ FINISH:
         {
             devel_webdm_send_log("[ADAS] DEV DISCONN : CANNOT COMM");
             option_str_len += sprintf(option_str + option_str_len, "%d" , 89);
-            cl_adas_mgr_sendpkt(CL_ADAS_ERR_EVENT_CODE, evt_data->evt_data_1, option_str);
+        #ifdef USE_MOVON_ADAS
+            if ( g_stat_key_on == 1 )
+                cl_adas_mgr_sendpkt(CL_ADAS_ERR_EVENT_CODE, evt_data->evt_data_1, option_str);
+        #endif
             adas_stat_send_evt = 1;
             adas_evt_stat = 0; 
         }

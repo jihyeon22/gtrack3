@@ -57,7 +57,7 @@ static int _check_device_poweroff();
 static int _process_poweroff();
 
 static int flag_run_thread_main = 1;
-static int stat_key_on = 0;
+
 
 static unsigned int avg_speed_total_val = 0;
 static unsigned int avg_speed_total_num = 0;
@@ -66,6 +66,8 @@ static int system_on_time = 0;
 static time_t prev_gps_active_time = 0;
 
 static pthread_mutex_t avg_speed_mutex = PTHREAD_MUTEX_INITIALIZER ;
+
+int g_stat_key_on = 0;
 
 // #define USE_CL_THERMAL_SENSOR
 
@@ -151,7 +153,7 @@ void ignition_on_callback(void)
 	char code= CL_ACC_ON_EVENT_CODE;
 	gpsData_t gpsdata;
 	
-	stat_key_on = 1;
+	g_stat_key_on = 1;
 
 	_wait_time_sync();
 
@@ -170,7 +172,7 @@ void ignition_off_callback(void)
 	char code= CL_ACC_OFF_EVENT_CODE;
 	gpsData_t gpsdata;
 	
-	stat_key_on = 0;
+	g_stat_key_on = 0;
 
 	_wait_time_sync();
 
@@ -205,7 +207,7 @@ void power_off_callback(void)
 
 	_wait_time_sync();
 
-	if(stat_key_on == 1 && power_get_ignition_status() == POWER_IGNITION_OFF)
+	if(g_stat_key_on == 1 && power_get_ignition_status() == POWER_IGNITION_OFF)
 	{
 		ignition_off_callback();
 	}
@@ -453,7 +455,7 @@ void exit_main_loop(void)
 
 int get_key_stat(void)
 {
-	return stat_key_on;
+	return g_stat_key_on;
 }
 
 void avg_speed_add_data(int speed)
@@ -545,7 +547,7 @@ static int _make_location_data(gpsData_t *gpsdata, int code)
 	}
 
 	memcpy(&(data->gpsdata), gpsdata, sizeof(gpsData_t));
-	data->acc_status = stat_key_on;
+	data->acc_status = g_stat_key_on;
 	data->event_code = code;
 	data->mileage_m = 0;
 	data->avg_speed = 0;

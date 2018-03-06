@@ -23,5 +23,7 @@ int avg_speed_get(void);
 
 void network_fail_emergency_reset_callback(void);
 
+extern int g_stat_key_on;
+
 #endif
 
