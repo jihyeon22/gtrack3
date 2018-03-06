@@ -113,7 +113,7 @@ int mobileye_evt_cmd_parse__sli(int argc, char* argv[], MOBILEYE_CMD_SLI_VAL_T* 
 
 typedef struct
 {
-    int err_code;
+    char err_code[8];
 }MOBILEYE_CMD_ERR_VAL_T;
 
 // ERR COMMAND : ERR CODE

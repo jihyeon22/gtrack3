@@ -155,7 +155,7 @@ int mobileye_evt_cmd_parse__err(int argc, char* argv[], MOBILEYE_CMD_ERR_VAL_T* 
         return eMOBILEYE_CMD_RET__FAIL;
 
     // todo somthing..
-    retval->err_code = atoi(argv[1]);
+    sprintf(retval->err_code, "%s", argv[1]);
 
     return MOBILEYE_ADAS_RET_SUCCESS;
 }
@@ -325,6 +325,20 @@ int mobileye_get_evt_data(int argc, char* argv[], ADAS_EVT_DATA_T* evt_data)
     else if ( strcmp(argv[0], MOBILEYE_CMD_ERR__COMMAND ) == 0 )    
     {
         MOBILEYE_CMD_ERR_VAL_T ret = {0,};
+
+        // send log..
+        {
+            int k = 0;
+            char tmp_log_str[64] = {0,};
+            int tmp_log_str_len = 0;
+
+            for (k = 0; k < argc ; k++)
+            {
+                tmp_log_str_len += sprintf(tmp_log_str+tmp_log_str_len, "[%s]", argv[k]);
+            }
+            devel_webdm_send_log("me err => %s", tmp_log_str);
+        }
+
         if ( mobileye_evt_cmd_parse__err(argc, argv, &ret) != MOBILEYE_ADAS_RET_SUCCESS )
         {
             LOGE(LOG_TARGET, "$$ MEADAS >> ERR parse FAIL \n");
@@ -332,14 +346,13 @@ int mobileye_get_evt_data(int argc, char* argv[], ADAS_EVT_DATA_T* evt_data)
         }
         else  // success 
         {
-            char pkt_opt_str[6+1];
+            //char pkt_opt_str[6+1];
             read_fail_cnt = 0;
-            sprintf(pkt_opt_str, "%d", ret.err_code);
-            LOGT(LOG_TARGET, "$$ MEADAS >> ERR parse SUCCESS : err_code [%d]\n", ret.err_code);
+            //sprintf(pkt_opt_str, "%s", ret.err_code);
+            LOGT(LOG_TARGET, "$$ MEADAS >> ERR parse SUCCESS : err_code [%s]\n", ret.err_code);
             //mobileye_adas_mgr_sendpkt(CL_ADAS_ERR_EVENT_CODE, "0", pkt_opt_str);
             evt_data->evt_code = eADAS_EVT__ERR;
-            evt_data->evt_data_4 = ret.err_code;
-
+            sprintf(evt_data->evt_ext, "%s", ret.err_code);
         }
     }
     // -----------------------------------------------------------------
@@ -348,6 +361,7 @@ int mobileye_get_evt_data(int argc, char* argv[], ADAS_EVT_DATA_T* evt_data)
     else if ( strcmp(argv[0], MOBILEYE_CMD_SYNC__COMMAND ) == 0 )    
     {
         MOBILEYE_CMD_SYNC_VAL_T ret = {0,};
+
         if ( mobileye_evt_cmd_parse__sync(argc, argv, &ret) != MOBILEYE_ADAS_RET_SUCCESS )
         {
             LOGE(LOG_TARGET, "$$ MEADAS >> SYNC parse FAIL \n");

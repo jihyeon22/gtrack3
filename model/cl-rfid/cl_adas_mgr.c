@@ -9,6 +9,7 @@
 
 #include "cl_mdt_pkt.h" 
 #include "netcom.h"
+#include "callback.h"
 
 
 // #define USE_MOVON_ADAS // temp code : for code highligh
@@ -230,15 +231,15 @@ int p_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
 
             #ifdef USE_MOVON_ADAS
                 if ( evt_data->evt_data_4 == 0x01 )
-                    option_str_len += sprintf(option_str + option_str_len, "%d" , 61);
+                    option_str_len += sprintf(option_str + option_str_len, "%s" , "61");
                 else if ( evt_data->evt_data_4 == 0x02 )
-                    option_str_len += sprintf(option_str + option_str_len, "%d" , 62);
+                    option_str_len += sprintf(option_str + option_str_len, "%s" , "62");
                 else
-                    option_str_len += sprintf(option_str + option_str_len, "%d" , 89);
+                    option_str_len += sprintf(option_str + option_str_len, "%s" , "NC");
             #endif
 
             #ifdef USE_MOBILEYE_ADAS
-                option_str_len += sprintf(option_str + option_str_len, "%d" , evt_data->evt_data_4 );
+                option_str_len += sprintf(option_str + option_str_len, "%s" , evt_data->evt_ext );
             #endif
 
                 cl_adas_mgr_sendpkt(CL_ADAS_ERR_EVENT_CODE, evt_data->evt_data_1, option_str);
@@ -313,11 +314,11 @@ FINISH:
         if (( adas_stat_send_evt == 0 ) || ( adas_stat_send_evt == -1 ) )
         {
             devel_webdm_send_log("[ADAS] DEV DISCONN : CANNOT COMM");
-            option_str_len += sprintf(option_str + option_str_len, "%d" , 89);
-        #ifdef USE_MOVON_ADAS
+            option_str_len += sprintf(option_str + option_str_len, "%s" , "NC");
+
             if ( g_stat_key_on == 1 )
                 cl_adas_mgr_sendpkt(CL_ADAS_ERR_EVENT_CODE, evt_data->evt_data_1, option_str);
-        #endif
+
             adas_stat_send_evt = 1;
             adas_evt_stat = 0; 
         }
