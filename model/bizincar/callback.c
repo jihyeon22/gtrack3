@@ -40,6 +40,8 @@
 #include <mdt800/geofence.h>
 #include <mdt800/file_mileage.h>
 
+#include "btn_key_mgr.h"
+
 void abort_callback(void);
 
 static int _process_poweroff(int now_poweroff_flag, char *log);
@@ -368,6 +370,8 @@ void main_loop_callback(void)
 	{
 		therm_sense();
 	}
+
+    bizincar_btn_mgr__init();
 
 	while(flag_run_thread_main)
 	{

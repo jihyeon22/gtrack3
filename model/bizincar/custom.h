@@ -8,6 +8,8 @@ enum msg_ev_code_custom{
 	eKIT_DEFINE_1_EVT			= 90,
 	eKIT_DEFINE_2_EVT			= 93,
 
+	eEXT_GPIO_BTN_1				= 19,
+
 	eMAX_EVENT_CODE                 = 94, //LAST_EVENT_CODE + 1
 };
 
