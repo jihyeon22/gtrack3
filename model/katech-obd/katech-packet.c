@@ -326,13 +326,14 @@ int katech_pkt_1_insert_and_send(gpsData_t* p_gpsdata, int force_send)
     tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_RPM].data;
     tmp_float_val = tmp_float_val * 4;
     _pkt_data_convert((int)tmp_float_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_rpm ) );                    // 43
-    
+
     tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_SPD].data;
     tmp_float_val = tmp_float_val * 1;
     _pkt_data_convert((int)tmp_float_val, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_speed ) );                  // 44
     
     tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_MAF].data;
-    tmp_float_val = tmp_float_val * 0.01;
+    //tmp_float_val = tmp_float_val * 0.01;
+    tmp_float_val = tmp_float_val * 100; // FIXME: 180308 fix
     _pkt_data_convert((int)tmp_float_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_air_flow_rate ) );          // 45
     
     tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_TPA].data;
@@ -340,7 +341,7 @@ int katech_pkt_1_insert_and_send(gpsData_t* p_gpsdata, int force_send)
     _pkt_data_convert((int)tmp_float_val, UNSIGNED_1_BYTE , (char*)(&pkt_body->obd_abs_throttle_posi ) );      // 46
 
     tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_BS1].data;
-    tmp_float_val = tmp_float_val * (65535/2);
+    tmp_float_val = tmp_float_val * (65535/2); // FIXME: 180308 need not fix
     _pkt_data_convert((int)tmp_float_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_lambda ) );                 // 47
     
     tmp_float_val = srr_data_ta1.obd_data[eOBD_CMD_SRR_TA1_BAV].data;
@@ -436,10 +437,10 @@ int katech_pkt_1_insert_and_send(gpsData_t* p_gpsdata, int force_send)
     _pkt_data_convert(tmp_int_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_engine_brake_pwr ) );        // 81
 
 	tmp_int_val = timeserise_calc__exhaus_gas_mass_fr(&srr_data_ta1,&srr_data_ta2);
-    tmp_int_val = tmp_int_val * 100;
+    //tmp_int_val = tmp_int_val * 100;
+    tmp_int_val = tmp_int_val * 10; // FIXME: 180308 fix
     _pkt_data_convert(tmp_int_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_exhaust_gas_flowrate ) );     // 82
     
-
 	tmp_int_val = timeserise_calc__accessory_power(&srr_data_ta1,&srr_data_ta2);
     tmp_int_val = tmp_int_val * 100;
     _pkt_data_convert(tmp_int_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_acc_power ) );              // 83
