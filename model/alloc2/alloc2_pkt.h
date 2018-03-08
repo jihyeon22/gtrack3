@@ -156,6 +156,7 @@ typedef struct {
 
 // 5.	GPS 정보
 // 5.1.	단말 -> 중계서버
+#ifdef SERVER_ABBR_ALM1
 typedef struct {
     ALLOC_PKT_COMMON_HEADER header; // msesage header 공통
     unsigned int   gps_time; // (b-4) gps 생성시간 : unix timestamp
@@ -170,6 +171,28 @@ typedef struct {
     // unsigned char  reserved[2]; // reserved // spec 1.8 에서 변경 : 차량배터리로
     unsigned short car_batt; // spec 1.8 에서 변경 : 차량배터리로
 }__attribute__((packed))ALLOC_PKT_SEND__MDM_GPS_INFO;
+#endif
+
+#ifdef SERVER_ABBR_ALM2
+typedef struct {
+    ALLOC_PKT_COMMON_HEADER header; // msesage header 공통
+    unsigned int   gps_time; // (b-4) gps 생성시간 : unix timestamp
+    unsigned int   gps_lat; // (b-4) gps 위도 : WGS84좌표체계 예)127123456
+    unsigned int   gps_lon; // (b-4) gps 경도 : WGS84좌표체계 예)127123456
+    unsigned short gps_dir; // (b-2) gps 방향 : 360도표현
+    unsigned short gps_speed; // (b-2) gps 속도 : 속도단위에 의존적임
+    unsigned int   total_distance; // (b-4) 누적거리 meter
+    unsigned int   day_distance; // (b-4) 일일 운행거리 meter
+    unsigned int   section_distance; // (b-4) 구간운행거리 : ig1 on ~ ig1 off 누적거리
+    unsigned int   gps_vector; // (b-4) 이동거리 : 이전좌표와 현재 좌표와의 거리
+    // unsigned char  reserved[2]; // reserved // spec 1.8 에서 변경 : 차량배터리로
+    unsigned short car_batt; // spec 1.8 에서 변경 : 차량배터리로
+    unsigned char  gps_invalid; // 0 : valid , 1: invalid  // FIX: 180308 add
+    unsigned char  reserved; // FIX: 180308 add
+}__attribute__((packed))ALLOC_PKT_SEND__MDM_GPS_INFO;
+#endif
+
+
 
 // 5.2.	중계서버 -> 단말
 typedef struct {

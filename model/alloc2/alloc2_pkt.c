@@ -420,6 +420,7 @@ int make_pkt__mdm_gps_info(unsigned char **pbuf, unsigned short *packet_len)
 
 	//gpsData_t* pdata;
 	gps_get_curr_data(&gpsdata);
+
 	// printf("[kksworks gps]\t%d\t%f\t%f\t%d\t%f\t\r\n",gpsdata.satellite, gpsdata.lat, gpsdata.lon, gpsdata.speed, gpsdata.hdop); 
 
     // make header
@@ -438,6 +439,25 @@ int make_pkt__mdm_gps_info(unsigned char **pbuf, unsigned short *packet_len)
     target_pkt.gps_vector = get_diff_distance_prev(cur_total_distance); // (b-4) 이동거리 : 이전좌표와 현재 좌표와의 거리
 //    target_pkt.reserved[2]; // reserved
     target_pkt.car_batt = get_car_batt_level();
+
+#ifdef SERVER_ABBR_ALM2
+    target_pkt.gps_invalid = 0;
+
+    if ( gpsdata.active == 0)
+    {
+        gpsData_t last_gpsdata;
+        gps_valid_data_get(&last_gpsdata);
+
+        LOGT(eSVC_MODEL, "[ALLOC2 ALM2 - GPS PKT] gps invalid last gps recovery\r\n");
+
+        target_pkt.gps_lat = last_gpsdata.lat * 10000000.0; // (b-4) gps 위도 : WGS84좌표체계 예)127123456
+        target_pkt.gps_lon = last_gpsdata.lon * 10000000.0; // (b-4) gps 경도 : WGS84좌표체계 예)127123456
+
+        target_pkt.gps_invalid = 1;
+    }
+#endif
+
+    LOGT(eSVC_MODEL, "[ALLOC2 - GPS PKT] lat [%d] / lon [%d]\r\n", target_pkt.gps_lat, target_pkt.gps_lon);
 
     if (!( send_dm_log % 30 ))
     {
