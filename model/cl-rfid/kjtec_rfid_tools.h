@@ -7,8 +7,19 @@
 #define FW_DOWNLOAD_MAX_FAIL_RETRY_CNT   RFID_CMD_FIRMWARE_ONE_PKT_MAX_RETRY
 #define FW_DOWNLOAD_FILE_PATH           "/system/mds/system/bin"
 // full path : "/system/mds/system/bin/rfid_fw_%s.bin"
-#define FW_DOWNLOAD_FILE_LAST_VER_STR   "1.3.2NBUS"
-#define FW_DOWNLOAD_FILE_LAST_VER_NUM   "132n"
+
+// hundai auto bus server model.
+#if defined(SERVER_ABBR_CLR1) || defined(SERVER_ABBR_CLRA1) || defined(SERVER_ABBR_CLRB1)
+#define FW_DOWNLOAD_FILE_LAST_VER_STR   "1.3.4ABUS"
+#define FW_DOWNLOAD_FILE_LAST_VER_NUM   "134A"
+// cl server model.
+#elif defined(SERVER_ABBR_CLR0) || defined(SERVER_ABBR_CLRA0) || defined(SERVER_ABBR_CLRB0)
+#define FW_DOWNLOAD_FILE_LAST_VER_STR   "1.3.4HBUS"
+#define FW_DOWNLOAD_FILE_LAST_VER_NUM   "134H"
+#else // default model firmware
+#define FW_DOWNLOAD_FILE_LAST_VER_STR   "1.3.4HBUS"
+#define FW_DOWNLOAD_FILE_LAST_VER_NUM   "134H"
+#endif // SERVER_ABBR_CLR0
 
 int kjtec_rfid_mgr__dev_init_chk(RFID_DEV_INFO_T* info);
 

@@ -78,6 +78,8 @@ int cl_adas_ttc_sendpkt(int evt_code)
 }
 #endif
 
+#if defined (USE_MOVON_ADAS) || defined (USE_MOBILEYE_ADAS)
+
 int p_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
 {
     static int err_code_last = -1;
@@ -332,7 +334,7 @@ FINISH:
 
     return 0;
 }
-
+#endif
 
 int cl_adas_mgr__init()
 {
