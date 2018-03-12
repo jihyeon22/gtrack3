@@ -16,6 +16,9 @@
 #define GPS_BOOT_WARM 1
 #define GPS_BOOT_COLD 2
 
+#ifdef MDS_FEATURE_USE_GPS_DEACTIVE_RESET
+#define MAX_GPS_DEACTIVE_CHK_TIME_SEC	600
+#endif
 
 #define GPS_PIPE_PATH "/var/tmp/gps"
 

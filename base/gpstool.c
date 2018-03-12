@@ -26,6 +26,7 @@
 #include <netcom.h>
 
 #include <board/board_system.h>
+#include <board/power.h>
 #include <mdsapi/mds_api.h>
 
 // ----------------------------------------
@@ -494,6 +495,9 @@ void gps_parse(char* buff, int size)
 
 	static time_t prev_gps_time = 0;
 	static int count_utc_refresh = 0;
+
+	static int gps_deactive_time = 0;
+    static int send_gps_active_log = 0;
 
 	int gps_parse_max_try_cnt = 180;
 
@@ -1070,6 +1074,34 @@ void gps_parse(char* buff, int size)
 			 
 		gps_dbg_msg_count = 0;
 	}
+
+    // dbug msg for common models
+#ifndef KT_FOTA_TEST_SVR // kt iot cert model is not send msg
+    if ( ( send_gps_active_log == 0 ) && ( flag_gps_fixed == 1 ) )
+    {
+        devel_webdm_send_log("[GPS TOOL] First GPS ACT [%d]", mds_api_gps_util_get_gps_ant());
+        send_gps_active_log = 1;
+    }
+#endif
+
+#ifdef MDS_FEATURE_USE_GPS_DEACTIVE_RESET
+    if ( ( power_get_ignition_status() == POWER_IGNITION_ON) && (cur_gps_data.active == 0) )
+    {
+        LOGE(LOG_TARGET, "[GPS TOOL] DEACT GPS : [%d]/[%d]\r\n",gps_deactive_time, MAX_GPS_DEACTIVE_CHK_TIME_SEC);
+        gps_deactive_time++;
+    }
+    else
+    {
+        gps_deactive_time = 0;
+    }
+
+    if (gps_deactive_time > MAX_GPS_DEACTIVE_CHK_TIME_SEC )
+    {
+        devel_webdm_send_log("[GPS TOOL] GPS ACT FAIL.: COLD BOOT");
+        gps_reset_immediately(GPS_BOOT_COLD);
+        gps_deactive_time = 0;
+    }
+#endif
 }
 
 void gps_get_curr_data(gpsData_t* out)

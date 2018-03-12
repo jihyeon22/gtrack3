@@ -108,6 +108,7 @@ else ifeq ($(SERVER),gtrace)
 SERVER_ABBR	:=	GTRS
 else ifeq ($(SERVER),bizincar)
 SERVER_ABBR := BIC
+USE_GPS_DEACTIVE_RESET=y
 else ifeq ($(SERVER),moram)
 SERVER_ABBR := MRM
 else ifeq ($(SERVER),dtg-skel)
@@ -393,6 +394,11 @@ ifeq ($(USE_RDATE_TIME_SYNC),y)
 CFLAGS  += -DRDATE_TIME_SYNC_ENABLE
 endif
 
+ifeq ($(USE_GPS_DEACTIVE_RESET),y)
+CFLAGS  += -DMDS_FEATURE_USE_GPS_DEACTIVE_RESET
+endif
+
+
 ifndef BOARD
 $(error BOARD is not correct, please define correct BOARD)
 endif
@@ -543,6 +549,10 @@ ifeq ($(AUTO_PKG),y)
 		$(Q)./make_package $(DESTDIR) $(SERVER_ABBR) $(CORP_ABBR) $(PACKAGE_PREFIX_STR) $(VER) $(BOARD) $(PWD)/../../../out
 endif
 
+autopackage:
+	$(Q)./make_package $(DESTDIR) $(SERVER_ABBR) $(CORP_ABBR) $(PACKAGE_PREFIX_STR) $(VER) $(BOARD) $(PWD)/../../../out
+
+
 clean:
 	@for dir in $(SUBDIRS) ; do \
 		make -C $$dir clean ; \
@@ -556,6 +566,7 @@ uninstall:
 	rm -vrf $(DESTDIR)/system/*.??
 	rm -vrf $(DESTDIR)/system/bin
 
+	
 ###############################################################################
 # Extra rules
 

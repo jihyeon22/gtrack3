@@ -276,12 +276,14 @@ void gps_parse_one_context_callback(void)
 
 			ret = inactive_gps_process(cur_gpsdata, &gpsdata);
             // gps deactivate 10 min ==> cold reset..
+            /*
             if ( gps_fail_cnt++ > 600 )
             {
                 devel_webdm_send_log("gps active fail.. cold boot");
                 gps_reset_immediately(GPS_BOOT_COLD);
                 gps_fail_cnt = 0;
             }
+            */
 			break;
 		case eACTIVE:
             gps_fail_cnt = 0;
