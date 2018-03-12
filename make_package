@@ -2,32 +2,25 @@
 DESTDIR=PACKAGE
 OUTDIR=$1/system
 DATE=`date +%H%M%S`
+DATE2=`date +%y%m%d-%H%M%S`
 
 #########################
 # only new dm.
 #########################
 TYPE_PACKAGE=2
 
-type_package_input(){
-	echo -e "Select package type. 1-OLDDM 2-NEWDM)"
-	read TYPE_PACKAGE
-	case $TYPE_PACKAGE in
-		1)
-			echo Select old dm.
-		;;
-		2)
-			echo Select new dm.
-		;;
-		*)
-			echo select error.
-			exit
-		;;
-	esac
-}
+SERVABBR=$2
+CORPABBR=$3
+SERVICEABBR=$4
+VER=$5
+MODEMABBR=$6
+COPY_PACKAGE_PATH=$7
 
 service_mode() {
-	echo -e "Service Mode = (mdt)"
-	echo -e "  if DTG Mode = (innocar, lp2, cy, kdt, daesin, sh)"
+	if [ ${#SERVICEABBR} -le 0 ] 
+	then
+		echo -e "Service Mode = (mdt)"
+		echo -e "  if DTG Mode = (innocar, lp2, cy, kdt, daesin, sh)"
 		read SERVICEMODEL
 		case $SERVICEMODEL in
 			mdt)
@@ -87,88 +80,71 @@ service_mode() {
 				exit
 			;;
 		esac
-
+	fi
 }
 
 corp_input() {
+	if [ ${#CORPABBR} -le 0 ] 
+	then
 		echo -e "Coporation = (mds, asn, cl, bizincar, cs, etrace, neognp, moram, kt, alloc, cip, netio, gtnb ,uppp, nisso, ds ...) "
 		echo -e "             (gtrs, dsme, katech ...) "
 		read CORPMODEL
 		case $CORPMODEL in
 			mds)
-				CORPMODEL="mds"
 				CORPABBR="MDS"
 			;;
 			asn)
-				CORPMODEL="asn"
 				CORPABBR="ASN"
 			;;
 			cl)
-				CORPMODEL="cl"
 				CORPABBR="CL"
 			;;
 			etrace)
-				CORPMODEL="etrace"
 				CORPABBR="ETR"
 			;;
 			neognp)
-				CORPMODEL="neognp"
 				CORPABBR="NEO"
 			;;
 			bizincar)
-				CORPMODEL="bizincar"
 				CORPABBR="BIC"
 			;;
 			cs)
-				CORPMODEL="cs"
 				CORPABBR="CS"
 			;;
 			moram)
-				CORPMODEL="moram"
 				CORPABBR="MRM"
 			;;
 			kt)
-				CORPMODEL="kt"
 				CORPABBR="KT"
 			;;
 			alloc)
-				CORPMODEL="alc"
 				CORPABBR="ALC"
 			;;
 			cip)
-				CORPMODEL="cip"
 				CORPABBR="CIP"
 			;;
 			netio)
-				CORPMODEL="neti"
 				CORPABBR="NETI"
 			;;
 			uppp)
-				CORPMODEL="uppp"
 				CORPABBR="UPPP"
 			;;
 			gtnb)
-				CORPMODEL="GTNB"
 				CORPABBR="GTNB"
 			;;
 			gtrs)
-				CORPMODEL="gtrs"
 				CORPABBR="GTRS"
 			;;
 			nisso)
-				CORPMODEL="niso"
 				CORPABBR="NISO"
 			;;
 			ds)
-				CORPMODEL="ds"
 				CORPABBR="DS"
 			;;
 			dsme)
-				CORPMODEL="dsme"
 				CORPABBR="DSME"
 			;;
 			katech)
-				CORPMODEL="kat"
 				CORPABBR="KAT"
 			;;
 			*)
@@ -176,6 +152,7 @@ corp_input() {
 				exit
 			;;
 		esac
+	fi
 }
 
 version_check() {
@@ -185,215 +162,180 @@ version_check() {
 }
 
 version_input() {
-	echo -e "Version = (default 00.01)"
-	read VER
+	if [ ${#VER} -le 0 ] 
+	then
+		echo -e "Version = (default 00.01)"
+		read VER
+	fi
 	version_check
 }
 
 modem_input() {
-	echo -e "Modem Model = (tx501s, tx501k, tx501l, tl500s, tl500k, tl500l ...) "
-	read MODEMABBRMODEL
-	case $MODEMABBRMODEL in
-		tx501s)
-			MODEMABBRMODEL="tx501s"
-			MODEMABBR="TX501S"
-		;;
-		tx501k)
-			MODEMABBRMODEL="tx501k"
-			MODEMABBR="TX501K"
-		;;
-		tx501l)
-			MODEMABBRMODEL="tx501l"
-			MODEMABBR="TX501L"
-		;;
-		tl500s)
-			MODEMABBRMODEL="tl500s"
-			MODEMABBR="TL500S"
-		;;
-		tl500k)
-			MODEMABBRMODEL="tl500k"
-			MODEMABBR="TL500K"
-		;;
-		tl500l)
-			MODEMABBRMODEL="tl500l"
-			MODEMABBR="TL500L"
-		;;
-		*)
-			echo DEVICE_MODEL $MODEMABBRMODEL invalid
-			exit
-		;;
-
-	esac
+	if [ ${#MODEMABBR} -le 0 ] 
+	then
+		echo -e "Modem Model = (tx501s, tx501k, tx501l, tl500s, tl500k, tl500l ...) "
+		read MODEMABBRMODEL
+		case $MODEMABBRMODEL in
+			tx501s)
+				MODEMABBR="TX501S"
+			;;
+			tx501k)
+				MODEMABBR="TX501K"
+			;;
+			tx501l)
+				MODEMABBR="TX501L"
+			;;
+			tl500s)
+				MODEMABBR="TL500S"
+			;;
+			tl500k)
+				MODEMABBR="TL500K"
+			;;
+			tl500l)
+				MODEMABBR="TL500L"
+			;;
+			*)
+				echo DEVICE_MODEL $MODEMABBRMODEL invalid
+				exit
+			;;
+		esac
+	fi
 }
 
 server_input() {
-	echo -e "Server Model = (skel, asn, cl-thermal, cl-mdt, cl-rfid, bizincar, nisso)"
-	echo -e "               (cs, etr, etrg, etrf, neognp, moram, moram0, moram1, cip-rmc, gtnb-mdt, netio, uppp, gtrs, ds-thermal, kt-thermal ...)"
-	echo -e "               (katech-obd, ...)"
-	echo -e "               (ktfms0, ktfms1, ...)"
-	echo -e "               (cl-rfid0, cl-rfid1, ...)"
-	echo -e "               (cl-rfid-movon0, cl-rfid-movon1, cl-rfid-movon9,...)"
-	echo -e "               (cl-rfid-mobileye0, cl-rfid-mobileye1, cl-rfid-mobileye9,...)"
-	echo -e "               (dsme, dsme-mdt, ...)"
-	echo -e "               (alm1, alm2, ...)"
-	echo -e "               (dtg-skel)"
-	echo -e "               ** (if sub model, sub model name have to input) **"
-	read SRVMODEL
-	case $SRVMODEL in
-		dtg-skel)
-			SRVMODEL="dtgskel"
-			SERVABBR="DSKL"
-		;;
-		skel)
-			SRVMODEL="skel"
-			SERVABBR="SKEL"
-		;;
-		asn)
-			SRVMODEL="asn"
-			SERVABBR="ASN"
-		;;
-		cl-thermal)
-			SRVMODEL="clt"
-			SERVABBR="CLT"
-		;;
-		cl-mdt)
-			SRVMODEL="clm"
-			SERVABBR="CLM"
-		;;
-		cl-rfid0)
-			SRVMODEL="clr0"
-			SERVABBR="CLR0"
-		;;
-		cl-rfid1)
-			SRVMODEL="clr1"
-			SERVABBR="CLR1"
-		;;
-		cl-rfid-movon0)
-			SRVMODEL="clra0"
-			SERVABBR="CLRA0"
-		;;
-		cl-rfid-movon1)
-			SRVMODEL="clra1"
-			SERVABBR="CLRA1"
-		;;
-		cl-rfid-movon9)
-			SRVMODEL="clra9"
-			SERVABBR="CLRA9"
-		;;
-		cl-rfid-mobileye0)
-			SRVMODEL="clrb0"
-			SERVABBR="CLRB0"
-		;;
-		cl-rfid-mobileye1)
-			SRVMODEL="clrb1"
-			SERVABBR="CLRB1"
-		;;
-		cl-rfid-mobileye9)
-			SRVMODEL="clrb9"
-			SERVABBR="CLRB9"
-		;;
-		gtnb-mdt)
-			SRVMODEL="gtm"
-			SERVABBR="GTM"
-		;;
-		etr)
-			SRVMODEL="etr"
-			SERVABBR="ETR"
-		;;
-		gtrs)
-			SRVMODEL="gtrs"
-			SERVABBR="GTRS"
-		;;
-		etrg)
-			SRVMODEL="etrg"
-			SERVABBR="ETRG"
-		;;
-		etrf)
-			SRVMODEL="etrf"
-			SERVABBR="ETRF"
-		;;
-		nisso)
-			SRVMODEL="niso"
-			SERVABBR="NISO"
-		;;
-		neognp)
-			SRVMODEL="neognp"
-			SERVABBR="NEO"
-		;;
-		bizincar)
-			SRVMODEL="bizincar"
-			SERVABBR="BIC"
-		;;
-		netio)
-			SRVMODEL="neti"
-			SERVABBR="NETI"
-		;;
-		cs)
-			SRVMODEL="cs"
-			SERVABBR="CS"
-		;;
-		moram)
-			SRVMODEL="moram"
-			SERVABBR="MRM"
-		;;
-		moram0)
-			SRVMODEL="moram0"
-			SERVABBR="MRM0"
-		;;
-		moram1)
-			SRVMODEL="moram1"
-			SERVABBR="MRM1"
-		;;
-		ktfms0)
-			SRVMODEL="fms0"
-			SERVABBR="FMS0"
-		;;
-		ktfms1)
-			SRVMODEL="fms1"
-			SERVABBR="FMS1"
-		;;
-		alm1)
-			SRVMODEL="alm1"
-			SERVABBR="ALM1"
-		;;
-		alm2)
-			SRVMODEL="alm2"
-			SERVABBR="ALM2"
-		;;
-		cip-rmc)
-			SRVMODEL="cip"
-			SERVABBR="CIP"
-		;;
-		uppp)
-			SRVMODEL="uppp"
-			SERVABBR="UPPP"
-		;;
-		ds-thermal)
-			SRVMODEL="dsth"
-			SERVABBR="DSTH"
-		;;
-		dsme)
-			SRVMODEL="dsme"
-			SERVABBR="DSME"
-		;;
-		dsme-mdt)
-			SRVMODEL="dsmt"
-			SERVABBR="DSMT"
-		;;
-		kt-thermal)
-			SRVMODEL="ktth"
-			SERVABBR="KTTH"
-		;;
-		katech-obd)
-			SRVMODEL="kato"
-			SERVABBR="KATO"
-		;;
-		*)
-			echo SERVER_MODEL $SRVMODEL invalid
-			exit
-		;;
+	if [ ${#SERVABBR} -le 0 ] 
+	then
+		echo -e "Server Model = (skel, asn, cl-thermal, cl-mdt, cl-rfid, bizincar, nisso)"
+		echo -e "               (cs, etr, etrg, etrf, neognp, moram, moram0, moram1, cip-rmc, gtnb-mdt, netio, uppp, gtrs, ds-thermal, kt-thermal ...)"
+		echo -e "               (katech-obd, ...)"
+		echo -e "               (ktfms0, ktfms1, ...)"
+		echo -e "               (cl-rfid0, cl-rfid1, ...)"
+		echo -e "               (cl-rfid-movon0, cl-rfid-movon1, cl-rfid-movon9,...)"
+		echo -e "               (cl-rfid-mobileye0, cl-rfid-mobileye1, cl-rfid-mobileye9,...)"
+		echo -e "               (dsme, dsme-mdt, ...)"
+		echo -e "               (alm1, alm2, ...)"
+		echo -e "               (dtg-skel)"
+		echo -e "               ** (if sub model, sub model name have to input) **"
 
-	esac
+		read SRVMODEL
+		case $SRVMODEL in
+			dtg-skel)
+				SERVABBR="DSKL"
+			;;
+			skel)
+				SERVABBR="SKEL"
+			;;
+			asn)
+				SERVABBR="ASN"
+			;;
+			cl-thermal)
+				SERVABBR="CLT"
+			;;
+			cl-mdt)
+				SERVABBR="CLM"
+			;;
+			cl-rfid0)
+				SERVABBR="CLR0"
+			;;
+			cl-rfid1)
+				SERVABBR="CLR1"
+			;;
+			cl-rfid-movon0)
+				SERVABBR="CLRA0"
+			;;
+			cl-rfid-movon1)
+				SERVABBR="CLRA1"
+			;;
+			cl-rfid-movon9)
+				SERVABBR="CLRA9"
+			;;
+			cl-rfid-mobileye0)
+				SERVABBR="CLRB0"
+			;;
+			cl-rfid-mobileye1)
+				SERVABBR="CLRB1"
+			;;
+			cl-rfid-mobileye9)
+				SERVABBR="CLRB9"
+			;;
+			gtnb-mdt)
+				SERVABBR="GTM"
+			;;
+			etr)
+				SERVABBR="ETR"
+			;;
+			gtrs)
+				SERVABBR="GTRS"
+			;;
+			etrg)
+				SERVABBR="ETRG"
+			;;
+			etrf)
+				SERVABBR="ETRF"
+			;;
+			nisso)
+				SERVABBR="NISO"
+			;;
+			neognp)
+				SERVABBR="NEO"
+			;;
+			bizincar)
+				SERVABBR="BIC"
+			;;
+			netio)
+				SERVABBR="NETI"
+			;;
+			cs)
+				SERVABBR="CS"
+			;;
+			moram)
+				SERVABBR="MRM"
+			;;
+			moram0)
+				SERVABBR="MRM0"
+			;;
+			moram1)
+				SERVABBR="MRM1"
+			;;
+			ktfms0)
+				SERVABBR="FMS0"
+			;;
+			ktfms1)
+				SERVABBR="FMS1"
+			;;
+			alm1)
+				SERVABBR="ALM1"
+			;;
+			alm2)
+				SERVABBR="ALM2"
+			;;
+			cip-rmc)
+				SERVABBR="CIP"
+			;;
+			uppp)
+				SERVABBR="UPPP"
+			;;
+			ds-thermal)
+				SERVABBR="DSTH"
+			;;
+			dsme)
+				SERVABBR="DSME"
+			;;
+			dsme-mdt)
+				SERVABBR="DSMT"
+			;;
+			kt-thermal)
+				SERVABBR="KTTH"
+			;;
+			katech-obd)
+				SERVABBR="KATO"
+			;;
+			*)
+				echo SERVER_MODEL $SRVMODEL invalid
+				exit
+			;;
+		esac
+	fi
 }
 
 make_package() {
@@ -413,14 +355,9 @@ make_package() {
 	if [ ! -d $DESTDIR/system ]; then mkdir -p $DESTDIR/system
 	fi
 	
-	if [ $TYPE_PACKAGE == "2" ]; then
-		mkdir -p $DESTDIR/system/NEW
-		echo new dm!!
-		cp $OUTDIR/$VER/* $DESTDIR/system/NEW -a
-	else
-		cp $OUTDIR/$VER $DESTDIR/system -a
-	fi
-	
+	mkdir -p $DESTDIR/system/NEW
+	echo new dm!!
+	cp $OUTDIR/$VER/* $DESTDIR/system/NEW -a
 
 	if [ "$FWF"	 != "0" ]; then 
 		echo "====================================================================="
@@ -428,17 +365,15 @@ make_package() {
 		echo "???? ??어 sbin??webdm????데??트??려??.."
 		echo "work/app/expkg ??래 sbin ??더 ??성 ??webdm??복사????으????다."
 		echo "====================================================================="
-		read 
+#		read 
 		cp -r work/app/expkg/* $DESTDIR/system/
 		#cp -r work/app/dtgfw/taco_update $DESTDIR/system/
 		#touch $DESTDIR/system/$VER/emergency_flag
 	fi
 
-	if [ $TYPE_PACKAGE == "2" ]; then
-		cd $DESTDIR/system/NEW
-	else
-		cd $DESTDIR/system/$VER
-	fi	
+
+	cd $DESTDIR/system/NEW
+
 
 	ls | xargs -I {} -t sh -c "md5sum {} > {}.md5"
 	cd ../..
@@ -451,6 +386,15 @@ make_package() {
 	tar -czf PACKAGE.$CORPABBR-$SERVICEABBR.$SERVABBR-$MODEMABBR-$VER.tgz system
 	md5sum PACKAGE.$CORPABBR-$SERVICEABBR.$SERVABBR-$MODEMABBR-$VER.tgz > PACKAGE.$CORPABBR-$SERVICEABBR.$SERVABBR-$MODEMABBR-$VER.tgz.md5
 	rm -vrf system/*
+
+	if [ ${#COPY_PACKAGE_PATH} -gt 0 ] 
+	then
+		COPY_PACKAGE_PATH=${COPY_PACKAGE_PATH}/PACKAGE-$DATE2
+		mkdir ${COPY_PACKAGE_PATH}
+		echo "copy target : $COPY_PACKAGE_PATH"
+		cp -rf PACKAGE.$CORPABBR-$SERVICEABBR.$SERVABBR-$MODEMABBR-$VER.tgz* ${COPY_PACKAGE_PATH}
+	fi
+
 	cd ..
 
 
@@ -459,7 +403,6 @@ make_package() {
 }
 
 do_make_package() {
-#	type_package_input
 	corp_input
 	service_mode
 	version_input
@@ -475,6 +418,9 @@ fi
 do_make_package
 rm -vrf $DESTDIR/system
 tree $DESTDIR
+
+
+
 
 
 

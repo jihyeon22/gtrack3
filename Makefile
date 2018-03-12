@@ -45,7 +45,10 @@ COMMON_SRC_PKG = logd mon
 #CFLAGS	+= -DBOARD_$(BOARD) -DDEBUG
 CFLAGS	+= -DBOARD_$(BOARD) 
 
-
+###############################################################################
+# mdt / or dtg model (innocar, lp2, cy, kdt, daesin, sh)
+###############################################################################
+SERVICEMODEL="mdt" 
 ###############################################################################
 # PACKAGE
 
@@ -539,6 +542,10 @@ install: check install-binary install-script install-pathrun install-rssh instal
 		@echo ""
 		@cat $(DESTDIR)$(WORK_PATH)/PACKAGE
 		@echo -e '\033[0m'
+
+ifeq ($(AUTO_PKG),y)
+		$(Q)./make_package $(DESTDIR) $(SERVER_ABBR) $(CORP_ABBR) $(SERVICEMODEL) $(VER) $(BOARD) $(PWD)/../../../out
+endif
 
 clean:
 	@for dir in $(SUBDIRS) ; do \
