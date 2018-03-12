@@ -46,10 +46,6 @@ COMMON_SRC_PKG = logd mon
 CFLAGS	+= -DBOARD_$(BOARD) 
 
 ###############################################################################
-# mdt / or dtg model (innocar, lp2, cy, kdt, daesin, sh)
-###############################################################################
-SERVICEMODEL="mdt" 
-###############################################################################
 # PACKAGE
 
 # ********** DEFAULT : GPS FEATURE => ENABLE *************
@@ -544,7 +540,7 @@ install: check install-binary install-script install-pathrun install-rssh instal
 		@echo -e '\033[0m'
 
 ifeq ($(AUTO_PKG),y)
-		$(Q)./make_package $(DESTDIR) $(SERVER_ABBR) $(CORP_ABBR) $(SERVICEMODEL) $(VER) $(BOARD) $(PWD)/../../../out
+		$(Q)./make_package $(DESTDIR) $(SERVER_ABBR) $(CORP_ABBR) $(PACKAGE_PREFIX_STR) $(VER) $(BOARD) $(PWD)/../../../out
 endif
 
 clean:
