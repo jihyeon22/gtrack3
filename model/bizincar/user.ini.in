@@ -5,5 +5,5 @@ report_ip=smartlbs.com
 report_port=30021
 collect_interval_keyon = 60
 report_interval_keyon = 60
-collect_interval_keyoff = 3600
-report_interval_keyoff = 3600
+collect_interval_keyoff = 60
+report_interval_keyoff = 60
