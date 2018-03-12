@@ -25,6 +25,14 @@
 //======================================================
 #endif
 
+#if defined (CORP_ABBR_BIC)
+//======================================================
+//      FEATURE_KEYOFF_SEND_GPS_DATA
+// key off senario : gps real location pkt send and mileage calc
+#define FEATURE_KEYOFF_SEND_GPS_DATA
+//======================================================
+#endif
+
 //======================================================
 //      FEATURE_GEO_FENCE_SIMULATION
 // geo fence0 test simulation feature

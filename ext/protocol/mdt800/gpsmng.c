@@ -83,11 +83,14 @@ void _record_last_fixed_gps_data(gpsData_t *pData, int ign_on)
 	static float lon = 0;
 	static unsigned int count = 0;
 
+#ifndef FEATURE_KEYOFF_SEND_GPS_DATA
 	if(ign_on != POWER_IGNITION_OFF)
+#endif
 	{
 		count++;
 	}
-	
+
+
 	if(lgm.fixed_gpsdata.active) 
 	{
 		if(lat == 0 || lon == 0)
@@ -95,8 +98,10 @@ void _record_last_fixed_gps_data(gpsData_t *pData, int ign_on)
 			lat = lgm.fixed_gpsdata.lat;
 			lon = lgm.fixed_gpsdata.lon;
 		}
-	
+
+#ifndef FEATURE_KEYOFF_SEND_GPS_DATA
 		if(ign_on != POWER_IGNITION_OFF)
+#endif
 		{
 			if(pData->speed != 0)
 			{
@@ -442,7 +447,10 @@ gps_condition_t active_gps_process(gpsData_t cur_gps, gpsData_t *pData)
 	memset(pData, 0x00, sizeof(gpsData_t));
 
 	ign_on = power_get_ignition_status();
+
+#ifndef FEATURE_KEYOFF_SEND_GPS_DATA
 	fix_gps_pos_in_key_off(&cur_gps, ign_on);
+#endif
 
 	ret = gps_filter(cur_gps);
 	_record_last_gps_data(&cur_gps);
