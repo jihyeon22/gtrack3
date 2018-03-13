@@ -1077,10 +1077,13 @@ void gps_parse(char* buff, int size)
 
     // dbug msg for common models
 #ifndef KT_FOTA_TEST_SVR // kt iot cert model is not send msg
-    if ( ( send_gps_active_log == 0 ) && ( flag_gps_fixed == 1 ) )
+    if ( ( send_gps_active_log == 0 ) && ( cur_gps_data.active == 1) )
     {
-        devel_webdm_send_log("[GPS TOOL] First GPS ACT [%d]", mds_api_gps_util_get_gps_ant());
-        send_gps_active_log = 1;
+        if ( ( nettool_get_state() == DEFINES_MDS_OK ) )
+        {
+            devel_webdm_send_log("[GPS TOOL] First GPS ACT [%d]", mds_api_gps_util_get_gps_ant());
+            send_gps_active_log = 1;
+        }
     }
 #endif
 
