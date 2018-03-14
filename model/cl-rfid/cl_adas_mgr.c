@@ -18,7 +18,7 @@
 #include <movon_adas.h>
 #define LOG_TARGET eSVC_MODEL
 
-#define ADAS_DEV_FAIL_CHK_CNT       10
+#define ADAS_DEV_FAIL_CHK_CNT       15
 #define ADAS_DEV_NON_EVT_CLR_CNT    30
 #endif
 
@@ -27,7 +27,7 @@
 #include <mobileye_adas.h>
 #define LOG_TARGET eSVC_MODEL
 
-#define ADAS_DEV_FAIL_CHK_CNT     60
+#define ADAS_DEV_FAIL_CHK_CNT     90
 #define ADAS_DEV_NON_EVT_CLR_CNT    1
 #endif
 
@@ -85,7 +85,7 @@ int p_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
     static int err_code_last = -1;
 
     static int read_fail_cnt = 0;
-    static int adas_stat_send_evt = 0;
+    static int adas_stat_send_evt = -1;
 
     static int evt_none_cnt = 0;
     
@@ -328,8 +328,11 @@ FINISH:
 
     if ( ((adas_stat_send_evt==1) && (adas_evt_stat == 1) ) || ((adas_stat_send_evt==-1) && (adas_evt_stat==1)))
     {
-        devel_webdm_send_log("[ADAS] DEV CONN : SUCCESS");
-        adas_stat_send_evt = 0;
+        if ( ( nettool_get_state() == DEFINES_MDS_OK ) )
+        {
+            devel_webdm_send_log("[ADAS] DEV CONN : SUCCESS");
+            adas_stat_send_evt = 0;
+        }
     }
 
     return 0;

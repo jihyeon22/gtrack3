@@ -98,6 +98,7 @@ else ifeq ($(SERVER),cl-thermal)
 SERVER_ABBR := CLT
 else ifeq ($(SERVER),cl-rfid)
 SERVER_ABBR := CLR
+USE_GPS_DEACTIVE_RESET=y
 else ifeq ($(SERVER),cl-mdt)
 SERVER_ABBR := CLM
 else ifeq ($(SERVER),gtnb-mdt)
