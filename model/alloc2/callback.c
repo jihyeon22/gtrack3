@@ -311,11 +311,18 @@ void gps_parse_one_context_callback(void)
 		int evt_code = e_evt_code_normal;
 		//if ( current_senario == e_SEND_TO_ONLY_GPS_DATA )
 		LOGT(eSVC_MODEL, "[GPS THREAD] send gps info!!!! [%d]/[%d]\r\n", gps_run_cnt, report_interval);
-		sender_add_data_to_buffer(e_mdm_gps_info, NULL, get_pkt_pipe_type(e_mdm_gps_info,0));
+		
 
-#ifdef SERVER_ABBR_ALM1 // 중고차모델에서는 보내지말것 : 180121
+#ifdef SERVER_ABBR_ALM1 
+        sender_add_data_to_buffer(e_mdm_gps_info, NULL, get_pkt_pipe_type(e_mdm_gps_info,0));
 		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt,evt_code));
 #endif
+
+#ifdef SERVER_ABBR_ALM2 // 중고차모델에서는 보내지말것 : 180121
+        sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info,0));
+#endif
+
+
 		gps_run_cnt = 0;
 	}
 

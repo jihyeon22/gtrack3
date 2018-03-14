@@ -248,6 +248,7 @@ RETRY_SEND:
                 LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] e_mdm_setting_val >> SUCCESS evtcode [0x%x] recv_ret is [%d] \r\n", op, recv_ret);
                 send_pkt_ret = parse_pkt__mdm_setting_val(&recv_buff, network_setting_info.ip, network_setting_info.port);
                 // printf("[ALLOC2 PKT TRANS] evtcode [%d] success!!!", e_mdm_setting_val);
+
             }
             else
             {
@@ -550,7 +551,8 @@ RETRY_SEND:
 
     if (send_pkt_ret < 0)
     {
-        sleep(5);
+        sleep(10);
+
         // ePIPE_2 is fifo... retry ..
         if (get_pkt_pipe_type(op, 0) == ePIPE_2)
         {

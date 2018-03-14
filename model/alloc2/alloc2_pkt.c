@@ -19,6 +19,9 @@
 
 #include <logd_rpc.h>
 
+#ifdef SERVER_ABBR_ALM2
+#define ALLOC_WEBDM_DBG__SVR_RET_CODE
+#endif
 
 int _get_phonenum_int_type()
 {
@@ -130,7 +133,6 @@ int parse_pkt__mdm_setting_val(ALLOC_PKT_RECV__MDM_SETTING_VAL* recv_buff, char*
 {
     int changed_server = 0;
 
-
     LOGT(eSVC_MODEL, "%s() START\r\n", __func__);
 
 
@@ -200,9 +202,16 @@ int parse_pkt__mdm_setting_val(ALLOC_PKT_RECV__MDM_SETTING_VAL* recv_buff, char*
 
 #ifdef SERVER_ABBR_ALM2
     set_cur_status(e_SEND_REPORT_RUN);
+        
+#ifdef ALLOC_WEBDM_DBG__SVR_RET_CODE
+    devel_webdm_send_log("[mdm_setting : 0x01] RET [%d]\n", pkt_ret_code);
+#endif
+
     pkt_ret_code = 0; // 강제 성공하게 ㅋㅋ
 #endif
     
+
+
     if ( pkt_ret_code == 0 )
         return 0;
     else 
@@ -382,10 +391,29 @@ int parse_pkt__mdm_stat_evt(ALLOC_PKT_RECV__MDM_STAT_EVT* recv_buff)
     return 0;
     */
     int pkt_ret_code = 0;
+    
     pkt_ret_code = recv_buff->reserved[0] + recv_buff->reserved[1] ;
     
     LOGT(eSVC_MODEL, "%s() PARSE RET [%d]\r\n", __func__, pkt_ret_code);
-        
+    
+#ifdef ALLOC_WEBDM_DBG__SVR_RET_CODE
+    {
+        static int last_pkt_ret_code = -1;
+
+        if ( pkt_ret_code == 0 ) 
+        {
+            devel_webdm_send_log("[mdm_stat : 0x02] RET [%d]\n", pkt_ret_code);
+        }
+        else
+        {
+            if ( last_pkt_ret_code != pkt_ret_code ) 
+                devel_webdm_send_log("[mdm_stat : 0x02] RET [%d]\n", pkt_ret_code);
+        }
+
+        last_pkt_ret_code = pkt_ret_code;
+    }
+#endif
+
     if ( pkt_ret_code == 0 )
         return 0;
     else 
@@ -516,10 +544,28 @@ int parse_pkt__mdm_gps_info(ALLOC_PKT_RECV__MDM_GPS_INFO* recv_buff)
 */
     int pkt_ret_code = 0;
     //pkt_ret_code = recv_buff->reserved[0] + recv_buff->reserved[1] ;
-    pkt_ret_code = recv_buff->reserved[0];
+    pkt_ret_code = recv_buff->reserved[0] + recv_buff->reserved[1];
     
     LOGT(eSVC_MODEL, "%s() PARSE RET [%d]\r\n", __func__, pkt_ret_code);
     
+#ifdef ALLOC_WEBDM_DBG__SVR_RET_CODE
+    {
+        static int last_pkt_ret_code = -1;
+
+        if ( pkt_ret_code == 0 ) 
+        {
+            devel_webdm_send_log("[mdm_stat : 0x03] RET [%d]\n", pkt_ret_code);
+        }
+        else
+        {
+            if ( last_pkt_ret_code != pkt_ret_code ) 
+                devel_webdm_send_log("[mdm_stat : 0x03] RET [%d]\n", pkt_ret_code);
+        }
+
+        last_pkt_ret_code = pkt_ret_code;
+    }
+#endif
+
     if ( pkt_ret_code == 0 )
         return 0;
     else 
