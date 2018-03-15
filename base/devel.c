@@ -45,6 +45,10 @@ int devel_webdm_send_status_current(const int no_event)
 
 int devel_webdm_send_log(const char *format, ...)
 {
+#ifdef KT_FOTA_TEST_SVR  // kt cert is not send web dbg msg
+    return 0;
+#endif
+
 	va_list va;
 	char phonenum[AT_LEN_PHONENUM_BUFF] = {0,};
 	char imei[AT_LEN_IMEI_BUFF] = {0,};

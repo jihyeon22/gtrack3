@@ -146,7 +146,7 @@ void gps_reset_immediately(int type)
 	{
 		devel_webdm_send_log("GPSD UDP SEND CMD : WRONG RESET 2 TYPE [%d]",gps_reset_cnt);
 	}
-	gps_reset_cnt = 0;
+	// gps_reset_cnt = 0;
 	// shutdown 되는데 오래걸리니 이정도는 쉬어주도록하자.
 	// sleep(10);
 }
@@ -1076,7 +1076,6 @@ void gps_parse(char* buff, int size)
 	}
 
     // dbug msg for common models
-#ifndef KT_FOTA_TEST_SVR // kt iot cert model is not send msg
     if ( ( send_gps_active_log == 0 ) && ( cur_gps_data.active == 1) )
     {
         if ( ( nettool_get_state() == DEFINES_MDS_OK ) )
@@ -1085,7 +1084,6 @@ void gps_parse(char* buff, int size)
             send_gps_active_log = 1;
         }
     }
-#endif
 
 #ifdef MDS_FEATURE_USE_GPS_DEACTIVE_RESET
     if ( ( power_get_ignition_status() == POWER_IGNITION_ON) && (cur_gps_data.active == 0) )

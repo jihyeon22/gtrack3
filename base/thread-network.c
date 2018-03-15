@@ -178,9 +178,10 @@ void *thread_network(void *args)
 
 		watchdog_set_cur_ktime(eWdNet1);
         watchdog_process();
-        
-        chk_runtime_network_chk();
 
+#ifndef KT_FOTA_TEST_SVR    // skip kt iot cert
+        chk_runtime_network_chk();
+#endif
 		wd_dbg[eWdNet1] = 1;
 		dmmgr_alive_send();
 
