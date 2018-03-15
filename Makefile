@@ -117,6 +117,7 @@ SERVER_ABBR := DSKL
 USE_GPS_MODEL=n
 else ifeq ($(SERVER),ktfms)
 SERVER_ABBR := FMS
+USE_GPS_DEACTIVE_RESET=y
 else ifeq ($(SERVER),cs)
 SERVER_ABBR := CS
 else ifeq ($(SERVER),cip-rmc)
@@ -218,6 +219,8 @@ else ifeq ($(SUB),fms0)
 SERVER_ABBR   :=      FMS0
 else ifeq ($(SUB),fms1)
 SERVER_ABBR   :=      FMS1
+else ifeq ($(SUB),fms2)
+SERVER_ABBR   :=      FMS2
 else ifeq ($(SUB),clr0)
 SERVER_ABBR   :=      CLR0
 else ifeq ($(SUB),clr1)

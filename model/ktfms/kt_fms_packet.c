@@ -117,6 +117,7 @@ const factor_define_t g_factor_define[] = {
 	{e_dct, 60,"A031"},
 	{e_rssi, 4,"A032"},
 	{e_dev_stat, 4,"A033"},
+    {e_ksmc_mode, 1,"A054"},
 	{e_END_OF_FACTOR_IDX,0,"NULL"}
 };
 
@@ -744,6 +745,16 @@ int make_sdr_body(char* input_buff, gpsData_t* p_gpsdata, obdData_t* p_obddata, 
 				
 				break;
 			}
+#ifdef SERVER_ABBR_FMS2
+			case e_ksmc_mode:	// 4,"A054"
+			{
+				// not support yet
+				int ksmc_mode = get_ksmc_mode();
+				buff_len += sprintf(input_buff + buff_len, "%d", ksmc_mode);
+				
+				break;
+			}
+#endif
 			default:
 			{
 				printf(" sdr_factor [%d] is not support\r\n", sdr_factor[i]);
@@ -1016,6 +1027,13 @@ int make_sdr_body_null(char* input_buff, gpsData_t* p_gpsdata, obdData_t* p_obdd
 				
 				break;
 			}
+#ifdef SERVER_ABBR_FMS2
+			case e_ksmc_mode:	// 1,"A054"
+			{
+		//		buff_len += sprintf(input_buff + buff_len, "0");
+				break;
+			}
+#endif
 			default:
 			{
 				printf(" sdr_factor [%d] is not support\r\n", sdr_factor[i]);
@@ -2782,6 +2800,75 @@ int set_hw_err_code(e_HW_ERR_CODE_VAL code, int flag)
 	
 	return code;
 }
+
+static int _g_ksmc_stat = 0;
+static int _load_ksmc_mode_from_file()
+{
+    int tmp_ksmc_stat = SMC_MODE__DEFAULT;
+    int ret;
+    ret = storage_load_file(KSMC_KEY_LAST_STAT_PATH, &tmp_ksmc_stat, sizeof(tmp_ksmc_stat));
+
+	if( ret >= 0 )
+	{
+        printf("[KSMC KEY] READ FROM FILE :: SUCCESS [%d]\r\n", tmp_ksmc_stat);
+	}
+	else
+	{
+        printf("[KSMC KEY] READ FROM FILE :: FAIL [%d]\r\n", tmp_ksmc_stat);
+        storage_save_file(KSMC_KEY_LAST_STAT_PATH, (void*)&tmp_ksmc_stat, sizeof(tmp_ksmc_stat));
+	}
+
+    return tmp_ksmc_stat;
+}
+
+static int _save_ksmc_mode_from_file(int mode)
+{
+    int tmp_ksmc_stat = _load_ksmc_mode_from_file();
+
+    if (tmp_ksmc_stat == mode)
+    {
+        printf("[KSMC KEY] SAVE TO FILE :: ALREADY SAVED [%d]\r\n", mode);
+	}
+    else
+    {
+        printf("[KSMC KEY] SAVE TO FILE :: MODE [%d]\r\n", mode);
+        storage_save_file(KSMC_KEY_LAST_STAT_PATH, (void*)&mode, sizeof(mode));
+	}
+
+    return mode;
+}
+
+
+int init_ksmc_mode()
+{
+	_g_ksmc_stat = _load_ksmc_mode_from_file();
+
+	printf(" --------- ksmc key stat init ---------------\r\n");
+	printf("_g_ksmc_stat is [%d]\r\n", _g_ksmc_stat);
+	printf(" --------- ksmc key stat ---------------\r\n");
+
+    return _g_ksmc_stat;
+}
+
+int set_ksmc_mode(int mode)
+{
+    _save_ksmc_mode_from_file(mode);
+    _g_ksmc_stat = mode;
+
+	printf(" --------- ksmc key stat set ---------------\r\n");
+	printf("_g_ksmc_stat is [%d]\r\n", _g_ksmc_stat);
+	printf(" --------- ksmc key stat se ---------------\r\n");
+    return _g_ksmc_stat;
+}
+
+int get_ksmc_mode()
+{
+	printf(" --------- ksmc key stat get ---------------\r\n");
+	printf("_g_ksmc_stat is [%d]\r\n", _g_ksmc_stat);
+	printf(" --------- ksmc key stat get ---------------\r\n");
+    return _g_ksmc_stat;
+}
+
 
 
 int get_hw_err_code(char* buff)

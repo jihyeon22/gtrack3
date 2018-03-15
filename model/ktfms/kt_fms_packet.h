@@ -23,6 +23,8 @@
 #define CAR_OBD_INFO_PATH			CONCAT_STR(USER_DATA_DIR, "/car_obd_info.dat" )
 #define CAR_OBD_INFO_PATH2			CONCAT_STR(USER_DATA_DIR, "/car_obd_info.dat.bak" )
 
+#define KSMC_KEY_LAST_STAT_PATH		CONCAT_STR(USER_DATA_DIR, "/ksmc_last_key_stat.dat" )
+
 #define DEFAULT_FMS_SDR_INIT	"A000|A001|A002|A020"
 #define DEFAULT_FMS_SDR_ALIVE	"A000|A001|A002"
 #define DEFAULT_FMS_SDR_RUN 	"A000|A001|A002|A020"
@@ -349,6 +351,16 @@ int get_hw_err_code(char* buff);
 
 int set_last_obd_stat(int stat);
 int get_last_obd_stat();
+
+// ksmc model
+#define SMC_MODE__COMPANY	1
+#define SMC_MODE__PRIVATE	0
+#define SMC_MODE__DEFAULT	SMC_MODE__COMPANY
+
+
+int init_ksmc_mode();
+int set_ksmc_mode(int mode);
+int get_ksmc_mode();
 
 
 #endif

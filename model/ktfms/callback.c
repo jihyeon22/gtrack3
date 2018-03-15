@@ -85,6 +85,8 @@ void init_model_callback(void)
 	init_trip_seq();
 	init_hw_err_code();
 	
+    init_ksmc_mode();
+    
 	g_obdData.obd_read_stat = OBD_CMD_RET_INVALID_COND;
 	
 	load_obd_info();
@@ -97,11 +99,13 @@ void network_on_callback(void)
 void button1_callback(void)
 {
 	printf("%s() - [%d]\r\n", __func__, __LINE__);
+    set_ksmc_mode(1);
 }
 
 void button2_callback(void)
 {
 	printf("%s() - [%d]\r\n", __func__, __LINE__);
+    set_ksmc_mode(0);
 }
 
 static power_status = 0;
@@ -460,9 +464,13 @@ void gps_parse_one_context_callback(void)
 			// collect timing 에 일단 body 를 만든다.
 			// - OBD 장애와 정상일때의 패킷의 형태가 다르다.
 			if ( g_obdData.obd_read_stat == OBD_RET_SUCCESS )
+            {
 				body_len = make_sdr_body(body_buff, &gpsdata, &g_obdData, cur_server_policy.sdr_factor);
+            }
 			else 
-				body_len = make_sdr_body_null(body_buff, &gpsdata, &g_obdData, cur_server_policy.sdr_factor);
+            {
+                body_len = make_sdr_body_null(body_buff, &gpsdata, &g_obdData, cur_server_policy.sdr_factor);
+            }
 
 			mds_packet_1_make_and_insert(body_buff, body_len);
 	}
@@ -1005,3 +1013,16 @@ static int _process_poweroff(char *log)
     return 0;
 }
 */
+
+void network_fail_emergency_reset_callback(void)
+{
+#ifdef KT_FOTA_TEST_SVR
+    return;
+#endif
+	set_send_policy(KT_FMS_SEND_POLICY__PWR_OFF_EVENT);
+
+	mileage_write();
+	//_process_poweroff("power_off_callback");
+	sender_wait_empty_network(WAIT_PIPE_CLEAN_SECS);
+	poweroff("poweroff netfail", strlen("poweroff netfail"));
+}
