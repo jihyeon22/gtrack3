@@ -731,7 +731,7 @@ int get_seco_obd_cmd_ta1(SECO_CMD_DATA_SRR_TA1_T* p_ta1_buff)
         printf("-----------------------------------------------------------------\r\n");
         printf("cmd ta1 [%s]  => [%s] \r\n", ta1_debug_str[i].str, argv[i] );
         #endif
-
+#if 0
         if ( i == eOBD_CMD_SRR_TA1_CLV ) {
             convert_num_data = _convert_obd_data_num(argv[i], '*', "2.55");
         }
@@ -802,8 +802,8 @@ int get_seco_obd_cmd_ta1(SECO_CMD_DATA_SRR_TA1_T* p_ta1_buff)
         else {
             convert_num_data = _convert_obd_data_num(argv[i], ' ', NULL);
         }
-
-        
+#endif
+        convert_num_data = _convert_obd_data_num(argv[i], ' ', NULL);
 
         p_ta1_buff->obd_data[i].idx = i;
 
