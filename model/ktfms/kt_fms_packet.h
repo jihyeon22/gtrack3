@@ -107,6 +107,7 @@ typedef enum {
 	e_dct,			// A031 // DCT
 	e_rssi,			// A032 // RSSI
 	e_dev_stat,		// A033 // 장애모니터링
+	e_ksmc_mode,    // A054 // 한국SMC공압 추가 // 1 : 업무용  // 0 : 비업무용
 	e_END_OF_FACTOR_IDX,
 	e_MAX_FACTOR_ID
 } e_FACTOR_ID;
