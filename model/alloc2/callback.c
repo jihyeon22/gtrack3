@@ -128,8 +128,15 @@ void ignition_on_callback(void)
 	{
 		init_keyon_section_distance( mileage_get_m() );
 		sleep(1);
+
+#ifdef SERVER_ABBR_ALM1
 		sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
 		sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
+#endif
+
+#ifdef SERVER_ABBR_ALM2
+		sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+#endif
 	}
 	else
 	{
@@ -152,8 +159,14 @@ void ignition_off_callback(void)
 
 	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_IGI_OFF) == SEND_TO_PWR_EVT_OK )
 	{
+#ifdef SERVER_ABBR_ALM1
 		sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
 		sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+#endif
+
+#ifdef SERVER_ABBR_ALM2
+		sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+#endif
 	}
 	else
 		LOGE(eSVC_MODEL, "NEED TO IGI_OFF EVT : BUT SKIP\r\n");
@@ -168,8 +181,14 @@ void power_on_callback(void)
 
 	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_POWER_ON) == SEND_TO_PWR_EVT_OK )
 	{
+#ifdef SERVER_ABBR_ALM1
 		sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
 		sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
+#endif
+
+#ifdef SERVER_ABBR_ALM2
+		sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+#endif
 	}
 	else
 		LOGE(eSVC_MODEL, "NEED TO POWER_ON EVT : BUT SKIP\r\n");
@@ -186,9 +205,15 @@ void power_off_callback(void)
 	
 	if ( get_no_send_pwr_evt_reboot(EVT_TYPE_POWER_OFF) == SEND_TO_PWR_EVT_OK )
 	{
+#ifdef SERVER_ABBR_ALM1
 		//if ( get_cur_status() > e_SEND_TO_SETTING_INFO_ING )
 		sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
 		sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+#endif
+
+#ifdef SERVER_ABBR_ALM2
+		sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+#endif
 	}
 	else
 		LOGE(eSVC_MODEL, "NEED TO POWER_OFF EVT : BUT SKIP\r\n");

@@ -210,8 +210,14 @@ int set_no_send_pwr_evt_reboot()
     
     save_resume_data();
 
+#ifdef SERVER_ABBR_ALM1
 	sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
 	sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
+#endif
+
+#ifdef SERVER_ABBR_ALM2
+	sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+#endif
 
 	alloc2_poweroff_proc("senario power off");
 }
@@ -333,8 +339,14 @@ int chk_car_batt_level(int low_batt, int chk_flag)
 
             if ( get_low_batt_send_timing(low_batt) )
             {
+#ifdef SERVER_ABBR_ALM1
                 sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info_fifo,0));
                 sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+#endif
+
+#ifdef SERVER_ABBR_ALM2
+                sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+#endif
             }
             evt_send_flag = 1;
         }

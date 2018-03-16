@@ -210,8 +210,6 @@ int parse_pkt__mdm_setting_val(ALLOC_PKT_RECV__MDM_SETTING_VAL* recv_buff, char*
     pkt_ret_code = 0; // 강제 성공하게 ㅋㅋ
 #endif
     
-
-
     if ( pkt_ret_code == 0 )
         return 0;
     else 
@@ -400,15 +398,8 @@ int parse_pkt__mdm_stat_evt(ALLOC_PKT_RECV__MDM_STAT_EVT* recv_buff)
     {
         static int last_pkt_ret_code = -1;
 
-        if ( pkt_ret_code == 0 ) 
-        {
-            devel_webdm_send_log("[mdm_stat : 0x02] RET [%d]\n", pkt_ret_code);
-        }
-        else
-        {
-            if ( last_pkt_ret_code != pkt_ret_code ) 
-                devel_webdm_send_log("[mdm_stat : 0x02] RET [%d]\n", pkt_ret_code);
-        }
+        if ( last_pkt_ret_code != pkt_ret_code ) 
+            devel_webdm_send_log("[server ret : 0x02] RET [%d]\n", pkt_ret_code);
 
         last_pkt_ret_code = pkt_ret_code;
     }
@@ -552,15 +543,8 @@ int parse_pkt__mdm_gps_info(ALLOC_PKT_RECV__MDM_GPS_INFO* recv_buff)
     {
         static int last_pkt_ret_code = -1;
 
-        if ( pkt_ret_code == 0 ) 
-        {
-            devel_webdm_send_log("[mdm_stat : 0x03] RET [%d]\n", pkt_ret_code);
-        }
-        else
-        {
-            if ( last_pkt_ret_code != pkt_ret_code ) 
-                devel_webdm_send_log("[mdm_stat : 0x03] RET [%d]\n", pkt_ret_code);
-        }
+        if ( last_pkt_ret_code != pkt_ret_code ) 
+            devel_webdm_send_log("[server ret : 0x03] RET [%d]\n", pkt_ret_code);
 
         last_pkt_ret_code = pkt_ret_code;
     }

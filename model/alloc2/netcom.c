@@ -13,6 +13,7 @@
 #include <util/list.h>
 #include <util/debug.h>
 #include <util/transfer.h>
+#include <base/watchdog.h>
 
 #include <logd_rpc.h>
 #include <callback.h>
@@ -192,7 +193,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
     int recv_buff_len = 0;
     int recv_ret = 0;
 
-    int send_pkt_ret = 0;
+    int send_pkt_ret = -1;
     int fifo_pkt_fail_cnt = 0;
 
     ALLOC_PKT_RECV__MDM_SETTING_VAL *p_mdm_setting_val = NULL;
@@ -549,10 +550,13 @@ RETRY_SEND:
 			send_pkt_ret = -1;
 */
 
+    watchdog_set_cur_ktime(eWdNet1);
+    watchdog_set_cur_ktime(eWdNet2);
+
     if (send_pkt_ret < 0)
     {
-        sleep(10);
-
+        sleep(10); 
+        
         // ePIPE_2 is fifo... retry ..
         if (get_pkt_pipe_type(op, 0) == ePIPE_2)
         {
