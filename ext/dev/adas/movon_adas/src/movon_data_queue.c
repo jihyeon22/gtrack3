@@ -116,7 +116,7 @@ int get_dataframe_from_Queue(MOVON_DATA_FRAME_T* data)
         deQueue(&data_one);
         if ( data_one != MOVON_DATA_FRAME__PREFIX )
         {
-            printf(" >>> err get data one : [%d][%x][%c] - [%d]\r\n",data_one,data_one,data_one, __LINE__);
+            //printf(" >>> err get data one : [%d][%x][%c] - [%d]\r\n",data_one,data_one,data_one, __LINE__);
             queue_size = _cntQueue();
             continue;
         }
@@ -127,7 +127,7 @@ int get_dataframe_from_Queue(MOVON_DATA_FRAME_T* data)
         deQueue(&data_one);
         if ( data_one != MOVON_DATA_FRAME__DATA1 )
         {
-            printf(" >>> err get data one : [%d][%x][%c] - [%d]\r\n",data_one,data_one,data_one, __LINE__);
+            //printf(" >>> err get data one : [%d][%x][%c] - [%d]\r\n",data_one,data_one,data_one, __LINE__);
             queue_size = _cntQueue();
             continue;
         }
@@ -138,7 +138,7 @@ int get_dataframe_from_Queue(MOVON_DATA_FRAME_T* data)
         deQueue(&data_one);
         if ( data_one != MOVON_DATA_FRAME__DATA2 )
         {
-            printf(" >>> err get data one : [%d][%x][%c] - [%d]\r\n",data_one,data_one,data_one, __LINE__);
+            //printf(" >>> err get data one : [%d][%x][%c] - [%d]\r\n",data_one,data_one,data_one, __LINE__);
             queue_size = _cntQueue();
             continue;
         }

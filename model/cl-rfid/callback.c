@@ -102,13 +102,6 @@ void init_model_callback(void)
 
 	// set_rout_table_port_forward("smd29","ppp1");
 
-#ifdef USE_CL_THERMAL_SENSOR
-	// thermal senser // not use thermal sensor
-	therm_set_sense_cycle(THERMAL_SENSING_CYCLE);
-	therm_set_dev(THERMAL_DEVICE, strlen(THERMAL_DEVICE));
-#endif
-
-    cl_adas_mgr__init();
 	//rfid_tool__set_senario_stat(e_RFID_FIRMWARE_DOWNLOAD_START);
 }
 
@@ -387,6 +380,15 @@ void main_loop_callback(void)
 	static int last_gps_ant_stat = -1;
 
 	// rfid_init();
+    
+#ifdef USE_CL_THERMAL_SENSOR
+	// thermal senser // not use thermal sensor
+	therm_set_sense_cycle(THERMAL_SENSING_CYCLE);
+	therm_set_dev(THERMAL_DEVICE, strlen(THERMAL_DEVICE));
+#endif
+
+    cl_adas_mgr__init();
+    
 	rfid_main_senario_init();
 
 
