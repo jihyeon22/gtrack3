@@ -8,9 +8,20 @@
 
 #include "logd/logd_rpc.h"
 
-
+#ifdef USE_KJTEC_RFID
 #include "kjtec_rfid_cmd.h"
 #include "kjtec_rfid_tools.h"
+#define KJTEC_CONN_DISCONN_CHK_CNT		3
+
+RFID_FIRMWARE_VER_T g_ver_info;
+RFID_DEV_INFO_T g_rfid_dev_info;
+#endif
+
+#ifdef USE_SUP_RFID
+#include "sup_rfid_tools.h"
+#endif
+
+
 #include "cl_rfid_tools.h"
 
 #define GET_RFID_USER_INTERVAL_SEC		60
@@ -18,19 +29,19 @@
 
 #define MAIN_STAT_MSG_PRINT_INTERVAL 	5
 
-RFID_FIRMWARE_VER_T g_ver_info;
 int g_need_to_rfid_ver_chk = 0;
 int g_need_to_rfid_info = 0;
 
-#define KJTEC_CONN_DISCONN_CHK_CNT		3
+
 #define RFID_CHK_INTERVAL				60
 #define MAX_CHK_RFID_WRITE_FAIL_CNT 	1
 
 #define LOG_TARGET eSVC_MODEL
-RFID_DEV_INFO_T g_rfid_dev_info;
+
 
 void rfid_main_senario_init()
 {
+#ifdef USE_KJTEC_RFID
     kjtec_rfid__flush_data(1);
 
     init_kjtec_rfid();
@@ -38,6 +49,10 @@ void rfid_main_senario_init()
 	rfid_tool__set_senario_stat(e_RFID_INIT); 
 
     memset(&g_rfid_dev_info, 0x00, sizeof(g_rfid_dev_info) );
+#endif
+#ifdef USE_SUP_RFID
+    sup_rfid__mgr_init("/dev/ttyHSL1", 9600);
+#endif
 }
 
 
@@ -45,6 +60,8 @@ void rfid_main_senario()
 {
     static int rfid_main_loop_cnt = 0;
     static int main_rfid_chk_cnt = 0;
+    
+#ifdef USE_KJTEC_RFID
     static 	int rfid_read_fail_cnt = 0;
     static 	int rfid_write_user_data_fail_cnt = 0;
 
@@ -189,10 +206,13 @@ void rfid_main_senario()
     // rfid 살아있는지, 연결되어있는지 체크한다.
     if ( ( rfid_main_loop_cnt % RFID_CHK_INTERVAL ) == 0 )
     {
+
         // 정상동작중에만 체크한다.
         if ( ( rfid_tool__get_senario_stat() > e_RFID_INIT ) && ( rfid_tool__get_senario_stat() <= e_RFID_USER_INFO_CHK_READY ) )
         {
-            int dev_stat = kjtec_rfid_mgr__alive_dev();
+            int dev_stat = KJTEC_RFID_RET_SUCCESS;
+
+            dev_stat = kjtec_rfid_mgr__alive_dev();
 
             // 연결 해제 됐다가, 다시 연결된경우.
             if ( ( dev_stat == KJTEC_RFID_RET_SUCCESS ) && ( rfid_read_fail_cnt > KJTEC_CONN_DISCONN_CHK_CNT ) )
@@ -222,9 +242,9 @@ void rfid_main_senario()
                 rfid_tool__set_rifd_dev_stat(RFID_CONN_STAT_NOK);
             }
         }
+
     }
-    
-    
+
     if ( rfid_tool__get_senario_stat() == e_RFID_FIRMWARE_DOWNLOAD_START )
     {
         char fw_filename[FW_NAME_MAX_LEN] = {0,};
@@ -232,7 +252,8 @@ void rfid_main_senario()
         kjtec_rfid_mgr__download_fw(fw_filename);
         rfid_tool__set_senario_stat(e_RFID_INIT); // 처음부터 루틴을 다시 태우도록
     }
-    
+#endif
+
     rfid_main_loop_cnt ++;
     main_rfid_chk_cnt++;
 }

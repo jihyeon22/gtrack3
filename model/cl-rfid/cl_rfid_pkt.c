@@ -14,6 +14,7 @@
 
 #define LOG_TARGET eSVC_COMMON
 
+#ifdef USE_KJTEC_RFID
 static int __make_http_header__req_passenger(char* buff, char* version)
 {
     // http://test.2bt.kr:8887/cd/getpassengerlist_tiny2.aspx?dn=01220003257&v=0
@@ -46,35 +47,6 @@ static int __make_http_header__req_passenger(char* buff, char* version)
     if ( strlen(version) == 12 )
     {
         strcpy(target_ver, version);
-        #if 0
-        strncpy(ver_str_date, version, 6);
-        strncpy(ver_str_time, version + 6, 6);
-        ver_int_date = atoi(ver_str_date);
-        ver_int_time = atoi(ver_str_time);
-
-        // �ð� ��Ʈ���� �ʷ� ��ȯ
-        ver_int_sec += (ver_int_time % 100);
-        // printf("ver_int_sec [%d] => [%d]\r\n", ver_int_sec, (ver_int_time % 100) );
-        ver_int_sec += ( (ver_int_time / 100) % 100 )  * 60;
-        // printf("ver_int_sec [%d] => [%d]\r\n", ver_int_sec, ( (ver_int_time / 100) % 100 ) );
-        ver_int_sec += ( (ver_int_time / 10000) % 100 ) * 3600;
-        // printf("ver_int_sec [%d] => [%d]\r\n", ver_int_sec, ( (ver_int_time / 10000) % 100 )  );
-
-        // �ʷ� ��ȯ�� �����͸� ����ϰ�..
-        ver_int_sec -= REQ_PASSENGER_DATE_MARGIN_SEC;
-
-        // ����� �ʵ����͸� �ٽ� ���ڿ��� �����.
-        ver_int_time = ( ver_int_sec % 60 );
-        //printf("ver_int_time [%d] => [%d]\r\n", ver_int_time, ( ver_int_sec % 60 ) );
-        ver_int_time += (( ver_int_sec / 60 ) % 60) * 100;
-        //printf("ver_int_time [%d] => [%d]\r\n", ver_int_time,  (( ver_int_sec / 60 ) % 60) * 100);
-        ver_int_time += (( ver_int_sec / 3600 ) ) * 10000;
-        //printf("ver_int_time [%d] => [%d]\r\n", ver_int_time,   (( ver_int_sec / 3600 ) ) * 10000);
-        
-        sprintf(target_ver, "%06d%06d", ver_int_date, ver_int_time);
-
-        printf("ver_str_date [%s] / ver_str_time [%s] / ver_int_date [%d] / ver_int_time [%d]\r\n", ver_str_date, ver_str_time, ver_int_date, ver_int_time);
-        #endif
     }
     else
     {
@@ -99,11 +71,12 @@ static int __make_http_header__req_passenger(char* buff, char* version)
 
     return str_len;
 }
-
+#endif
 
 
 int make_clrfid_pkt__req_passenger(unsigned char **pbuf, unsigned short *packet_len, char* version)
 {
+#ifdef USE_KJTEC_RFID
     char pkt_buff[1024] = {0,};
     unsigned char *packet_buf;
 
@@ -130,10 +103,11 @@ int make_clrfid_pkt__req_passenger(unsigned char **pbuf, unsigned short *packet_
     printf("%s() => dump pkt -------------------------------------------------\r\n", __func__);
     printf("%s\r\n", pkt_buff);
     printf("-------------------------------------------------\r\n");
+#endif
 
     return 0;
-
 }
+
 
 #define MAX_CLRFID_PKT_PARSE_FAIL   2
 static int _g_parse_fail_cnt = 0;
@@ -144,6 +118,7 @@ int clear_req_passenger_fail_cnt()
 
 int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
 {
+#ifdef USE_KJTEC_RFID
     int result;
     int i = 0;
     int j = 0;
@@ -326,22 +301,8 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
     devel_webdm_send_log("DOWNLOAD USER INFO SUCCESS : CNT [%d] - ADD [%d] DEL [%d]\r\n", rfid_tool__user_info_total_cnt(), passenger_list_add, passenger_list_del);
     _g_parse_fail_cnt = 0;
 
-    
+#endif
 
-/*
-    while(1)
-    {
-        if ( json_unpack(root, "[s,i,i,i,s]", user_info.rfid_uid, &user_info.day_limit , &user_info.is_use , &user_info.boarding_cont, user_info.last_boarding_date) )
-        {
-            LOGE(LOG_TARGET, "%s:%d> Error json_unpack \n", __func__, __LINE__);
-            break;
-        }
-        else
-        {
-
-        }
-    }
-*/
     return 0;
 
 }

@@ -223,26 +223,37 @@ else ifeq ($(SUB),fms2)
 SERVER_ABBR   :=      FMS2
 else ifeq ($(SUB),clr0)
 SERVER_ABBR   :=      CLR0
+USE_KJTEC_RFID=y
 else ifeq ($(SUB),clr1)
 SERVER_ABBR   :=      CLR1
+USE_KJTEC_RFID=y
 else ifeq ($(SUB),clra0)
 SERVER_ABBR   :=      CLRA0
+USE_KJTEC_RFID=y
 USE_MOVON_ADAS=y
 else ifeq ($(SUB),clra1)
 SERVER_ABBR   :=      CLRA1
 USE_MOVON_ADAS=y
+USE_KJTEC_RFID=y
 else ifeq ($(SUB),clra9)
 SERVER_ABBR   :=      CLRA9
 USE_MOVON_ADAS=y
+USE_KJTEC_RFID=y
 else ifeq ($(SUB),clrb0)
 SERVER_ABBR   :=      CLRB0
 USE_MOBILEYE_ADAS=y
+USE_KJTEC_RFID=y
 else ifeq ($(SUB),clrb1)
 SERVER_ABBR   :=      CLRB1
 USE_MOBILEYE_ADAS=y
+USE_KJTEC_RFID=y
 else ifeq ($(SUB),clrb9)
 SERVER_ABBR   :=      CLRB9
 USE_MOBILEYE_ADAS=y
+USE_KJTEC_RFID=y
+else ifeq ($(SUB),clrc9)
+SERVER_ABBR   :=      CLRC9
+USE_SUP_RFID=y
 else ifeq ($(SUB),alm1)
 SERVER_ABBR   :=      ALM1
 else ifeq ($(SUB),alm2)
@@ -339,6 +350,8 @@ OBJS	+= util/nettool.o util/tools.o util/transfer.o util/validation.o util/crc16
 
 OBJS	+= $(OBJS_MODEL)
 
+####################################################################################
+# feature config
 ifeq ($(USE_DTG_MODEL),y)
 OBJS	+= $(OBJ_DTG)
 CFLAGS  += $(DTG_CFLAGS)
@@ -394,6 +407,14 @@ OBJS	+= $(OBJ_MOBILEYE_ADAS)
 CFLAGS  += $(MOBILEYE_ADAS_CFLAGS)
 endif
 
+ifeq ($(USE_KJTEC_RFID),y)
+CFLAGS  += -DUSE_KJTEC_RFID
+endif
+
+ifeq ($(USE_SUP_RFID),y)
+CFLAGS  += -DUSE_SUP_RFID
+endif
+
 ifeq ($(USE_RDATE_TIME_SYNC),y)
 CFLAGS  += -DRDATE_TIME_SYNC_ENABLE
 endif
@@ -401,6 +422,8 @@ endif
 ifeq ($(USE_GPS_DEACTIVE_RESET),y)
 CFLAGS  += -DMDS_FEATURE_USE_GPS_DEACTIVE_RESET
 endif
+
+
 
 
 ifndef BOARD
@@ -471,7 +494,9 @@ endif
 
 # cl rfid firmware binary
 ifeq ($(SERVER),cl-rfid)
+ifeq ($(USE_KJTEC_RFID),y)
 	$(Q)fakeroot cp -v $(MODEL_PATH)/rfid_fw/rfid_fw*.bin $(DESTDIR)$(WORK_PATH)/
+endif
 endif
 
 ifeq ($(USE_TL500S_FOTA),y)

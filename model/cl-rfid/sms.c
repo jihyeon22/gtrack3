@@ -19,11 +19,15 @@
 #include <at/at_util.h>
 #include "sms.h"
 
+#ifdef USE_KJTEC_RFID
 #include "kjtec_rfid_cmd.h"
 #include "kjtec_rfid_tools.h"
+extern RFID_DEV_INFO_T g_rfid_dev_info;
+#endif
+
 #include "cl_rfid_tools.h"
 
-extern RFID_DEV_INFO_T g_rfid_dev_info;
+
 
 // ----------------------------------------
 //  LOGD Target
@@ -151,6 +155,7 @@ int _sms_cmd_proc_get_dev_info(int argc, char* argv[], const char* phonenum)
 		return -1;
 	}
 	
+#ifdef USE_KJTEC_RFID
 	// ---------------
 	sprintf(result_buff,"dev[%s],rfid_conn[%s],rfid_user[%d],last_up[%s]", 
 			rfid_tool__get_senario_stat_str(), 
@@ -161,11 +166,21 @@ int _sms_cmd_proc_get_dev_info(int argc, char* argv[], const char* phonenum)
 	at_send_sms(phonenum, result_buff);
 	
 	return 0;
+#endif
+#ifdef USE_SUP_RFID
+	sprintf(result_buff,"SUPREMA RFID NOT SUPPORT CMD");
+
+	if ( atoi(argv[2]) == 1 )
+		at_send_sms(phonenum, result_buff);
+	
+	return 0;
+#endif
 }
 
 
 int _sms_cmd_proc_clear_redown_rfid(int argc, char* argv[], const char* phonenum)
 {
+
 	int i = 0 ;
 	int str_len = 0;
 	
@@ -197,7 +212,8 @@ int _sms_cmd_proc_clear_redown_rfid(int argc, char* argv[], const char* phonenum
 		LOGE(LOG_TARGET, " - SMS PWD invalid [%s] / [%s]\n", argv[1], SMS_CMD_PWD);
 		return -1;
 	}
-	
+    
+#ifdef USE_KJTEC_RFID
 	// ---------------
 	if ( rfid_tool__get_senario_stat() == e_RFID_USER_INFO_WRITE_TO_DEV_SUCCESS )
 	{
@@ -213,6 +229,16 @@ int _sms_cmd_proc_clear_redown_rfid(int argc, char* argv[], const char* phonenum
 		at_send_sms(phonenum, result_buff);
 	
 	return 0;
+#endif
+
+#ifdef USE_SUP_RFID
+	sprintf(result_buff,"SUPREMA RFID NOT SUPPORT CMD");
+
+	if ( atoi(argv[2]) == 1 )
+		at_send_sms(phonenum, result_buff);
+	
+	return 0;
+#endif
 }
 
 
@@ -250,6 +276,7 @@ int _sms_cmd_proc_clear(int argc, char* argv[], const char* phonenum)
 		return -1;
 	}
 	
+#ifdef USE_KJTEC_RFID
 	// ---------------
 	if ( rfid_tool__get_senario_stat() == e_RFID_USER_INFO_WRITE_TO_DEV_SUCCESS )
 	{
@@ -276,7 +303,17 @@ int _sms_cmd_proc_clear(int argc, char* argv[], const char* phonenum)
 
 	if ( atoi(argv[2]) == 1 )
 		at_send_sms(phonenum, result_buff);
+#endif
+
+#ifdef USE_SUP_RFID
+	sprintf(result_buff,"SUPREMA RFID NOT SUPPORT CMD");
+
+	if ( atoi(argv[2]) == 1 )
+		at_send_sms(phonenum, result_buff);
 	
+	return 0;
+#endif
+
 	return 0;
 }
 
@@ -340,8 +377,9 @@ int _sms_cmd_proc_rfid_fw_ver(int argc, char* argv[], const char* phonenum)
 	
 	int max_fw_read_retry = 10;
     int get_fw_ver_success = 0;
+#ifdef USE_KJTEC_RFID
     RFID_FIRMWARE_VER_T cur_ver_info;
-
+#endif
 	unsigned char result_buff[80] = {0,};
 	unsigned char tmp_buff[32] = {0,};
 	
@@ -364,7 +402,7 @@ int _sms_cmd_proc_rfid_fw_ver(int argc, char* argv[], const char* phonenum)
 		LOGE(LOG_TARGET, " - SMS PWD invalid [%s] / [%s]\n", argv[1], SMS_CMD_PWD);
 		return -1;
 	}
-	
+#ifdef USE_KJTEC_RFID
     memset(&cur_ver_info, 0x00, sizeof(cur_ver_info));
 
     while(max_fw_read_retry--)
@@ -393,8 +431,18 @@ int _sms_cmd_proc_rfid_fw_ver(int argc, char* argv[], const char* phonenum)
 
 	
 	at_send_sms(phonenum, result_buff);
+
+	return 0;
+#endif
+
+#ifdef USE_SUP_RFID
+	sprintf(result_buff,"SUPREMA RFID NOT SUPPORT CMD");
+
+	if ( atoi(argv[2]) == 1 )
+		at_send_sms(phonenum, result_buff);
 	
 	return 0;
+#endif
 }
 
 
@@ -406,8 +454,9 @@ int _sms_cmd_proc_rfid_fw_down(int argc, char* argv[], const char* phonenum)
 	
 	int max_fw_read_retry = 10;
     int get_fw_ver_success = 0;
+#ifdef USE_KJTEC_RFID
     RFID_FIRMWARE_VER_T cur_ver_info;
-
+#endif
 	unsigned char result_buff[80] = {0,};
 	unsigned char tmp_buff[32] = {0,};
 	
@@ -430,7 +479,8 @@ int _sms_cmd_proc_rfid_fw_down(int argc, char* argv[], const char* phonenum)
 		LOGE(LOG_TARGET, " - SMS PWD invalid [%s] / [%s]\n", argv[1], SMS_CMD_PWD);
 		return -1;
 	}
-	
+
+#ifdef USE_KJTEC_RFID	
     memset(&cur_ver_info, 0x00, sizeof(cur_ver_info));
 
 	kjtec_rfid_mgr__download_sms_noti_enable(1, phonenum);
@@ -459,4 +509,14 @@ int _sms_cmd_proc_rfid_fw_down(int argc, char* argv[], const char* phonenum)
 	//at_send_sms(phonenum, result_buff);
 	
 	return 0;
+#endif
+
+#ifdef USE_SUP_RFID
+	sprintf(result_buff,"SUPREMA RFID NOT SUPPORT CMD");
+
+	if ( atoi(argv[2]) == 1 )
+		at_send_sms(phonenum, result_buff);
+	
+	return 0;
+#endif
 }
