@@ -48,4 +48,8 @@ void load_config_user_default(void);
 int get_user_cfg_report_ip(char* buff);
 int get_user_cfg_report_port(int* port);
 
+int set_user_cfg_report_ip(char* buff);
+int set_user_cfg_report_port(int port);
+
+
 #endif

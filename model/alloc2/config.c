@@ -295,3 +295,29 @@ int get_user_cfg_report_port(int* port)
 	*port = config.model.report_port;
 	return 0;
 }
+
+
+int set_user_cfg_report_ip(char* buff)
+{
+    if ( strcmp(config.model.report_ip, buff) != 0 )
+    {
+        strncpy(config.model.report_ip, buff, strlen(buff));
+        save_config_user("user:report_ip", buff);
+    }
+    
+	return 0;
+}
+
+int set_user_cfg_report_port(int port)
+{
+    if ( config.model.report_port != port ) 
+    {
+        char tmp_char[32] = {0,};
+        
+	    config.model.report_port = port;
+        sprintf(tmp_char,"%d",config.model.report_port);
+        save_config_user("user:report_port", tmp_char);
+    }
+
+	return 0;
+}

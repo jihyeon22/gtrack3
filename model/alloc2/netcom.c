@@ -233,6 +233,10 @@ RETRY_SEND:
             ALLOC_PKT_RECV__MDM_SETTING_VAL recv_buff;
             static int fail_retry_cnt = 0;
 
+            get_user_cfg_report_ip(network_setting_info.ip);
+            get_user_cfg_report_port(&network_setting_info.port);
+            LOGI(eSVC_MODEL, "GET server info - case 2 [%s]:[%d]\r\n", network_setting_info.ip, network_setting_info.port);
+
             LOGI(eSVC_MODEL, "[ALLOC2 NETCOMM] send pkt [0x%x] - e_mdm_setting_val \r\n", e_mdm_setting_val);
 
             recv_buff_len = sizeof(recv_buff);
@@ -286,6 +290,13 @@ RETRY_SEND:
                 //mds_api_debug_hexdump_buff(&recv_buff, recv_buff_len);
                 //printf("-------------------------------------------------\r\n");
                 send_pkt_ret = parse_pkt__mdm_stat_evt(&recv_buff);
+
+                // 한번이라도 통신성공해야... 저장
+                if ( send_pkt_ret >= 0 )
+                {
+                    set_user_cfg_report_ip(network_setting_info.ip);
+                    set_user_cfg_report_port(network_setting_info.port);
+                }
             }
             else
             {

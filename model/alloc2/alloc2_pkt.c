@@ -179,7 +179,7 @@ int parse_pkt__mdm_setting_val(ALLOC_PKT_RECV__MDM_SETTING_VAL* recv_buff, char*
 
     if ( target_port != recv_buff->proxy_server_port ) 
         changed_server = 1;
-
+    
     set_mdm_setting_pkt_val(recv_buff);
 
     if ( changed_server == 1 ) 
