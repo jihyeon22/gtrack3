@@ -16,6 +16,7 @@ struct mileageData {
 };
 
 int mileage_process(const gpsData_t *temp_gpsdata);
+int mileage_process_2(const gpsData_t *temp_gpsdata);
 unsigned int mileage_get_m(void);
 void mileage_set_m(const unsigned int val);
 int mileage_write(void);

@@ -113,6 +113,75 @@ int mileage_process(const gpsData_t *temp_gpsdata)
 	return 0;
 }
 
+
+
+int mileage_process_2(const gpsData_t *temp_gpsdata)
+{
+	configurationBase_t * conf = get_config_base();
+	static time_t last_mileage_time = 0;
+
+    double mileage_buf_tmp = 0;
+	time_t current_time = 0;
+	
+	if(temp_gpsdata->lat < 32.657876 || temp_gpsdata->lat > 39.283294 ||
+	        temp_gpsdata->lon < 123.263168 || temp_gpsdata->lon > 132.074203)
+	{
+		return -1;
+	}
+
+	mileageData_t *md = &mileagedata;
+
+	if(md->lastlat < 32.657876 || md->lastlat > 39.283294 ||
+	        md->lastlon < 123.263168 || md->lastlon > 132.074203)
+	{
+		md->lastyear = temp_gpsdata->year;
+		md->lastmon = temp_gpsdata->mon;
+		md->lastday = temp_gpsdata->day;
+		md->lastlat = temp_gpsdata->lat;
+		md->lastlon = temp_gpsdata->lon;
+		return 0;
+	}
+
+    // donot calc stop...
+    if(temp_gpsdata->speed <= 0)
+        return 0;
+    
+	current_time = tools_get_kerneltime();
+
+    // always calc..
+	if(current_time - last_mileage_time > 0 )
+	{	
+		last_mileage_time = current_time;
+
+		LOGT(LOG_TARGET, "ACC DATA(adjust) Lat:%f Long:%f Distance:%f\n", md->lastlat, md->lastlon, mileage_buf);
+
+		if(md->lastlat >= 32.657876 && md->lastlat <= 39.283294 &&
+		        md->lastlon >= 123.263168 && md->lastlon <= 132.074203)
+		{
+			if(temp_gpsdata->lat != md->lastlat || temp_gpsdata->lon != md->lastlon)
+			{
+                mileage_buf_tmp = get_distance_m(md->lastlat, temp_gpsdata->lat, md->lastlon, temp_gpsdata->lon);
+
+                if ( mileage_buf_tmp > 0 )
+                {
+                    //LOGT(LOG_TARGET, "acc calc ok %f\n", mileage_buf_tmp);
+                    mileage_buf += mileage_buf_tmp;
+       				md->lastlat = temp_gpsdata->lat;
+                    md->lastlon = temp_gpsdata->lon;
+                    md->lastyear = temp_gpsdata->year;
+                    md->lastmon = temp_gpsdata->mon;
+                    md->lastday = temp_gpsdata->day;
+				    md->distance_sum = mileage_buf;
+                }
+
+				crit_set_data_mileage_detail_write(md->distance_sum, md->lastyear, md->lastmon, md->lastday, md->lastlat, md->lastlon);
+			}
+		}
+	}
+	
+	return 0;
+}
+
 unsigned int mileage_get_m(void)
 {
 	return mileage_buf;
