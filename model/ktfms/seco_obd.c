@@ -1302,7 +1302,7 @@ int set_seco_obd_total_trip_fuel(long long trip, long long fuel)
 	int ret = OBD_RET_FAIL;
 	
 	if ( get_use_obd_device() == 0 )
-		return set_seco_obd_total_trip_fuel_fake(0,0);
+		return set_seco_obd_total_trip_fuel_fake(trip,fuel);
 
 	printf("[%lld] / [%lld] \r\n", trip, fuel);
 

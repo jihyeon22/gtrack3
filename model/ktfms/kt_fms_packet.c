@@ -227,6 +227,13 @@ int make_sdr_body(char* input_buff, gpsData_t* p_gpsdata, obdData_t* p_obddata, 
 	char itoa_tmp_buff[ITOA_TMP_BUFF_SIZE] = {0,};
 	
 	//printf("%s() - [%d] ++\r\n", __func__, __LINE__);
+
+    if ( get_use_obd_device() == 0 ) 
+    {
+        mileage_process_2(p_gpsdata);
+        p_obddata->car_mileage_total = mileage_get_m();
+        p_obddata->car_speed = p_gpsdata->speed * 1000;
+    }
 	
 	for (i = 0; i < e_MAX_FACTOR_ID; i++)
 	{
@@ -745,7 +752,7 @@ int make_sdr_body(char* input_buff, gpsData_t* p_gpsdata, obdData_t* p_obddata, 
 				
 				break;
 			}
-#ifdef SERVER_ABBR_FMS2
+//#ifdef SERVER_ABBR_FMS2
 			case e_ksmc_mode:	// 4,"A054"
 			{
 				// not support yet
@@ -754,7 +761,7 @@ int make_sdr_body(char* input_buff, gpsData_t* p_gpsdata, obdData_t* p_obddata, 
 				
 				break;
 			}
-#endif
+//#endif
 			default:
 			{
 				printf(" sdr_factor [%d] is not support\r\n", sdr_factor[i]);
@@ -787,7 +794,14 @@ int make_sdr_body_null(char* input_buff, gpsData_t* p_gpsdata, obdData_t* p_obdd
 	char itoa_tmp_buff[ITOA_TMP_BUFF_SIZE] = {0,};
 	
 	//printf("%s() - [%d] ++\r\n", __func__, __LINE__);
-	
+
+    if ( get_use_obd_device() == 0 ) 
+    {
+        mileage_process_2(p_gpsdata);
+        p_obddata->car_mileage_total = mileage_get_m();
+        p_obddata->car_speed = p_gpsdata->speed * 1000;
+    }
+    
 	for (i = 0; i < e_MAX_FACTOR_ID; i++)
 	{
 		if ( sdr_factor[i] == e_END_OF_FACTOR_IDX)
@@ -1027,13 +1041,13 @@ int make_sdr_body_null(char* input_buff, gpsData_t* p_gpsdata, obdData_t* p_obdd
 				
 				break;
 			}
-#ifdef SERVER_ABBR_FMS2
+//#ifdef SERVER_ABBR_FMS2
 			case e_ksmc_mode:	// 1,"A054"
 			{
 		//		buff_len += sprintf(input_buff + buff_len, "0");
 				break;
 			}
-#endif
+//#endif
 			default:
 			{
 				printf(" sdr_factor [%d] is not support\r\n", sdr_factor[i]);

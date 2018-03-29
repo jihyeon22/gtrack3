@@ -356,7 +356,7 @@ int get_last_obd_stat();
 // ksmc model
 #define SMC_MODE__COMPANY	1
 #define SMC_MODE__PRIVATE	0
-#define SMC_MODE__DEFAULT	SMC_MODE__COMPANY
+#define SMC_MODE__DEFAULT	SMC_MODE__PRIVATE
 
 
 int init_ksmc_mode();

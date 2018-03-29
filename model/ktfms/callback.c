@@ -52,6 +52,8 @@ static int _gps_time_cnt = 0;
 
 //#define ONLY_KT_FOTA_TEST
 
+static pthread_mutex_t obd_data_get_mutex = PTHREAD_MUTEX_INITIALIZER;
+
 // ----------------------------------------
 //  LOGD(LOG_TARGET, LOG_TARGET,  Target
 // ----------------------------------------
@@ -62,6 +64,18 @@ int test_sdr_factor[e_MAX_FACTOR_ID] = {0,};
 
 long long last_total_trip = 0;
 unsigned int last_total_fuel = 0;
+
+
+
+void obd_data_get__mgr_mutex_lock()
+{
+    pthread_mutex_lock(&obd_data_get_mutex);
+}
+
+void obd_data_get__mgr_mutex_unlock()
+{
+    pthread_mutex_unlock(&obd_data_get_mutex);
+}
 
 
 void init_model_callback(void)
@@ -99,13 +113,13 @@ void network_on_callback(void)
 void button1_callback(void)
 {
 	printf("%s() - [%d]\r\n", __func__, __LINE__);
-    set_ksmc_mode(1);
+    set_ksmc_mode(SMC_MODE__COMPANY);
 }
 
 void button2_callback(void)
 {
 	printf("%s() - [%d]\r\n", __func__, __LINE__);
-    set_ksmc_mode(0);
+    set_ksmc_mode(SMC_MODE__PRIVATE);
 }
 
 static power_status = 0;
@@ -133,6 +147,7 @@ void power_on_callback(void)
 {
 	printf("%s() - [%d]\r\n", __func__, __LINE__);
 	LOGI(LOG_TARGET, "PWR ON Callback ...\n");
+    power_status = 1;
 	//if ( get_send_policy() != KT_FMS_SEND_POLICY__SERVER_FAIL_STOP )
 		//set_send_policy(KT_FMS_SEND_POLICY__PWR_ON_EVENT);	
 }
@@ -148,6 +163,7 @@ void power_off_callback(void)
 	//_process_poweroff("power_off_callback");
 	sender_wait_empty_network(WAIT_PIPE_CLEAN_SECS);
 	poweroff("poweroff senario", strlen("poweroff senario"));
+    power_status = 0;
 }
 
 //static int need_to_seq_init = 0;
@@ -201,6 +217,8 @@ void gps_parse_one_context_callback(void)
 	gpsData_t gpsdata = {0,};
 	gpsData_t last_gpsdata = {0,};
 	
+    obdData_t tmp_obdData = {0,};
+    
 	gps_get_curr_data(&gpsdata);
 	
 	// gpsdata.active == 1 // active
@@ -214,7 +232,10 @@ void gps_parse_one_context_callback(void)
 		set_hw_err_code(e_HW_ERR_CODE_GPS_INVAILD , 0);
 
 		if ( power_status == 1 )
-			mileage_process(&gpsdata);
+            mileage_process_2(&gpsdata);
+        
+        // gpsData_t gpsdata = {0,};
+        // gps_get_curr_data(&gpsdata);
 
 		first_gps_hit = 1;
 	}
@@ -253,7 +274,10 @@ void gps_parse_one_context_callback(void)
 	#endif
 	
 	//printf("g_obdData.obd_read_stat is [%d]\r\n",g_obdData.obd_read_stat);
-	
+	obd_data_get__mgr_mutex_lock();
+    memcpy(&tmp_obdData, &g_obdData, sizeof(obdData_t));
+    obd_data_get__mgr_mutex_unlock();
+
 	// 최초 1회 세팅
 	if ( init_flag == 0 )
 	{
@@ -264,7 +288,7 @@ void gps_parse_one_context_callback(void)
 		cur_sec = prev_sec = gpsdata.sec + (gpsdata.min*60) + (gpsdata.hour*60*60);
 		last_daily_date_num = cur_daily_date_num = (gpsdata.year % 100)*10000 + gpsdata.mon*100 + gpsdata.day;
 		
-		if ( g_obdData.obd_read_stat == OBD_CMD_RET_INVALID_COND )
+		if ( tmp_obdData.obd_read_stat == OBD_CMD_RET_INVALID_COND )
 		{
 			LOGE(LOG_TARGET, "WAIT FOR MAIN THREAD\n");
 			return;
@@ -320,22 +344,22 @@ void gps_parse_one_context_callback(void)
 	}
 	*/
 	
-	if ( g_obdData.obd_daily_info_init == 1)
+	if ( tmp_obdData.obd_daily_info_init == 1)
 	{
-		g_obdData.obd_daily_info_init = 0;
+		tmp_obdData.obd_daily_info_init = 0;
 		
 		clr_daily_info();
 		
 		cur_daily_date_num = (gpsdata.year % 100)*10000 + gpsdata.mon*100 + gpsdata.day;
 		
-		if ( (init_server_routine() == 0) && ( g_obdData.obd_read_stat == OBD_RET_SUCCESS ) )
-			save_car_daliy_info(cur_daily_date_num, g_obdData.car_mileage_total, g_obdData.car_fuel_consumption_total);
+		if ( (init_server_routine() == 0) && ( tmp_obdData.obd_read_stat == OBD_RET_SUCCESS ) )
+			save_car_daliy_info(cur_daily_date_num, tmp_obdData.car_mileage_total, tmp_obdData.car_fuel_consumption_total);
 	}
 	
-	if ( g_obdData.obd_read_stat == OBD_RET_SUCCESS )
+	if ( tmp_obdData.obd_read_stat == OBD_RET_SUCCESS )
 	{
-		get_daliy_fuel(g_obdData.car_fuel_consumption_total);
-		get_daliy_trip(g_obdData.car_mileage_total);
+		get_daliy_fuel(tmp_obdData.car_fuel_consumption_total);
+		get_daliy_trip(tmp_obdData.car_mileage_total);
 	}
 				
 	if (( cur_send_policy == KT_FMS_SEND_POLICY__SERVER_FAIL_STOP ) || \
@@ -344,7 +368,7 @@ void gps_parse_one_context_callback(void)
 	{
 		LOGE(LOG_TARGET, "GPS PARSE : skip condition... [%d]", cur_send_policy);
 	
-		if ( ( g_obdData.obd_read_stat == OBD_RET_SUCCESS ) && (g_obdData.car_key_stat == 0 ) )
+		if ( ( tmp_obdData.obd_read_stat == OBD_RET_SUCCESS ) && (tmp_obdData.car_key_stat == 0 ) )
 		{
 			//need_to_seq_init = 1;
 			clear_trip_seq();
@@ -373,8 +397,8 @@ void gps_parse_one_context_callback(void)
 	if ( cur_daily_date_num > saved_daily_date_num )
 	{
 		clr_daily_info();
-		if ((init_server_routine() == 0) && ( g_obdData.obd_read_stat == OBD_RET_SUCCESS ))
-			save_car_daliy_info(cur_daily_date_num, g_obdData.car_mileage_total, g_obdData.car_fuel_consumption_total);
+		if ((init_server_routine() == 0) && ( tmp_obdData.obd_read_stat == OBD_RET_SUCCESS ))
+			save_car_daliy_info(cur_daily_date_num, tmp_obdData.car_mileage_total, tmp_obdData.car_fuel_consumption_total);
 	}
 	
 	// 운행도중 날짜변경될 경우
@@ -431,23 +455,23 @@ void gps_parse_one_context_callback(void)
 	
 	// collect 주기마다 body 를 만든다.
 	// poweroff 라면... body 를 일단 마무리한다.
-	if ( g_obdData.obd_read_stat == OBD_RET_SUCCESS )
+	if ( tmp_obdData.obd_read_stat == OBD_RET_SUCCESS )
 	{
 		if ((force_pkt_done == 0)  && ( ((_gps_time_cnt % cur_server_policy.pkt_collect_interval_sec) == 0)  || ( get_send_policy() == KT_FMS_SEND_POLICY__PWR_OFF_EVENT) ))
 		{
 			// 강제로 poweroff 를 한다고 시뮬레이션 하면... 
 			// 실제 key stat field 에 0 으로 채워서 패킷을 보낸다.
 			if ( get_send_policy() == KT_FMS_SEND_POLICY__PWR_OFF_EVENT)
-				g_obdData.car_key_stat = 0;
+				tmp_obdData.car_key_stat = 0;
 
 			//printf(" body insert [%d] : [%d]	\r\n", _gps_time_cnt, cur_send_policy);
 
 			// collect timing 에 일단 body 를 만든다.
 			// - OBD 장애와 정상일때의 패킷의 형태가 다르다.
-			if ( g_obdData.obd_read_stat == OBD_RET_SUCCESS )
-				body_len = make_sdr_body(body_buff, &gpsdata, &g_obdData, cur_server_policy.sdr_factor);
+			if ( tmp_obdData.obd_read_stat == OBD_RET_SUCCESS )
+				body_len = make_sdr_body(body_buff, &gpsdata, &tmp_obdData, cur_server_policy.sdr_factor);
 			else 
-				body_len = make_sdr_body_null(body_buff, &gpsdata, &g_obdData, cur_server_policy.sdr_factor);
+				body_len = make_sdr_body_null(body_buff, &gpsdata, &tmp_obdData, cur_server_policy.sdr_factor);
 
 			mds_packet_1_make_and_insert(body_buff, body_len);
 		}
@@ -457,19 +481,19 @@ void gps_parse_one_context_callback(void)
 			// 강제로 poweroff 를 한다고 시뮬레이션 하면... 
 			// 실제 key stat field 에 0 으로 채워서 패킷을 보낸다.
 			if ( get_send_policy() == KT_FMS_SEND_POLICY__PWR_OFF_EVENT)
-				g_obdData.car_key_stat = 0;
+				tmp_obdData.car_key_stat = 0;
 
 			//printf(" body insert [%d] : [%d]	\r\n", _gps_time_cnt, cur_send_policy);
 
 			// collect timing 에 일단 body 를 만든다.
 			// - OBD 장애와 정상일때의 패킷의 형태가 다르다.
-			if ( g_obdData.obd_read_stat == OBD_RET_SUCCESS )
+			if ( tmp_obdData.obd_read_stat == OBD_RET_SUCCESS )
             {
-				body_len = make_sdr_body(body_buff, &gpsdata, &g_obdData, cur_server_policy.sdr_factor);
+				body_len = make_sdr_body(body_buff, &gpsdata, &tmp_obdData, cur_server_policy.sdr_factor);
             }
 			else 
             {
-                body_len = make_sdr_body_null(body_buff, &gpsdata, &g_obdData, cur_server_policy.sdr_factor);
+                body_len = make_sdr_body_null(body_buff, &gpsdata, &tmp_obdData, cur_server_policy.sdr_factor);
             }
 
 			mds_packet_1_make_and_insert(body_buff, body_len);
@@ -478,9 +502,9 @@ void gps_parse_one_context_callback(void)
 	// obd ret fail 이다.
 	// 그러면 패킷을 마무리 하고 끝낸다.
 	// 끝내는 과정은 poweroff 하고 똑같이 한다.
-	if ( g_obdData.obd_read_stat != OBD_RET_SUCCESS)
+	if ( tmp_obdData.obd_read_stat != OBD_RET_SUCCESS)
 	{
-		LOGE(LOG_TARGET, "INVAILD OBD DATA [%d]\r\n", g_obdData.car_key_stat);
+		LOGE(LOG_TARGET, "INVAILD OBD DATA [%d]\r\n", tmp_obdData.car_key_stat);
 		set_send_policy(KT_FMS_SEND_POLICY__PWR_OFF_EVENT);
 		
 		// 다시 초기화 시작 
@@ -488,7 +512,7 @@ void gps_parse_one_context_callback(void)
 	}
 	
 	// 만약에 Poweroff 정책이 반영된다면, 바로 패킷을 마무리하고 쏴야한다.	
-	if (( get_send_policy() == KT_FMS_SEND_POLICY__PWR_OFF_EVENT) || ( g_obdData.car_key_stat == 0 ) )
+	if (( get_send_policy() == KT_FMS_SEND_POLICY__PWR_OFF_EVENT) || ( tmp_obdData.car_key_stat == 0 ) )
 	{
 		_gps_time_cnt = (cur_server_policy.pkt_send_interval_sec-1);
 		
@@ -614,8 +638,8 @@ void gps_parse_one_context_callback(void)
 		{
 			// daily info 초기화
 			clr_daily_info();
-			if ( g_obdData.obd_read_stat == OBD_RET_SUCCESS )
-				save_car_daliy_info(cur_daily_date_num, g_obdData.car_mileage_total, g_obdData.car_fuel_consumption_total);
+			if ( tmp_obdData.obd_read_stat == OBD_RET_SUCCESS )
+				save_car_daliy_info(cur_daily_date_num, tmp_obdData.car_mileage_total, tmp_obdData.car_fuel_consumption_total);
 			
 			// 트립시퀀스 초기화
 			clear_trip_seq();
@@ -820,8 +844,10 @@ void main_loop_callback(void)
 						{
 							if (re_read == OBD_RET_SUCCESS)
 							{
+                                obd_data_get__mgr_mutex_lock();
 								memcpy(&g_obdData, &obd_data, sizeof(obdData_t));
 								g_obdData.obd_daily_info_init = 1;
+                                obd_data_get__mgr_mutex_unlock();
 								printf("need to daily info init...\r\n");
 								printf("need to daily info init...\r\n");
 								printf("need to daily info init...\r\n");
@@ -843,9 +869,10 @@ void main_loop_callback(void)
 				}
 				
 				// gps thread 에서 만들 pkt
+                obd_data_get__mgr_mutex_lock();
 				memcpy(&g_obdData, &obd_data, sizeof(obdData_t));
+                obd_data_get__mgr_mutex_unlock();
 
-				
 				if (( main_time % LOG_PRINT_INTERVAL_SEC ) == 0)
 					LOGI(LOG_TARGET, ">> KEY STAT :: ON/OFF => [%d]/[%d] , OBD KEY STAT => [%d]\r\n", cur_key_stat_on, cur_key_stat_off, obd_data.car_key_stat);
 				
@@ -916,7 +943,9 @@ void main_loop_callback(void)
 					set_hw_err_code(e_HW_ERR_CODE_OBD_CONN_DISCONN , 1);
 					set_hw_err_code(e_HW_ERR_CODE_OBD_CONN_DATA_ERR , 1);
 					
+                    obd_data_get__mgr_mutex_lock();
 					g_obdData.obd_read_stat = OBD_RET_FAIL;
+                    obd_data_get__mgr_mutex_unlock();
 					
 					obd_fail_cnt = 0;
 				}

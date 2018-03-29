@@ -43,16 +43,14 @@ int req_obd_data_fake(obdData_t* p_obdData)
 	unsigned char* tmp_buff = ret_buff + 0;
 	unsigned int hex_read_size = 0;
 	
-	gpsData_t gpsdata = {0,};
-	gps_get_curr_data(&gpsdata);
-	
 	// -----------------------------------------
 	// 운행거리 => size 8;
 	// -----------------------------------------
 	{
 		// TODO: 누적거리 단위확인
 		
-		p_obdData->car_mileage_total = mileage_get_m();
+		// p_obdData->car_mileage_total = mileage_get_m();
+        p_obdData->car_mileage_total = 0;
 		// LOGD(LOG_TARGET, " >> fake obd : mileage_total is [%lld]\r\n",p_obdData->car_mileage_total);
 
 	}
@@ -61,7 +59,8 @@ int req_obd_data_fake(obdData_t* p_obdData)
 	// speed  => size 4
 	// -------------------------------------------
 	{
-		p_obdData->car_speed = gpsdata.speed * 1000;
+		//p_obdData->car_speed = gpsdata.speed * 1000;
+        p_obdData->car_speed = 0;
 	}
 	
 	// -------------------------------------------
@@ -462,6 +461,7 @@ int get_obd_gender_spec_hex_fake(char buff[92])
 
 int set_seco_obd_total_trip_fuel_fake(long long trip, long long fuel)
 {
+    set_seco_obd_total_trip_fake(trip);
 	return OBD_RET_SUCCESS;
 }
 
