@@ -2,11 +2,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <logd_rpc.h>
+
 #include "movon_adas.h"
 #include "movon_adas_protocol.h"
 #include "movon_data_queue.h"
 
 #define FULL_QUEUE_DELETE_AND_INSERT
+#define LOG_TARGET eSVC_COMMON
 
 char items[QUEUE_SIZE];
 
@@ -111,45 +114,60 @@ int get_dataframe_from_Queue(MOVON_DATA_FRAME_T* data)
     //if ( queue_size < frame_size)
     //    printf(" >>> err get data one : [%d][%x][%c] - [%d]\r\n",data_one,data_one,data_one, __LINE__);
 
-    while(queue_size >= frame_size)
+    while( queue_size > frame_size)
     {
-        deQueue(&data_one);
+        if ( deQueue(&data_one) == QUEUE_RET_FAIL )
+            break;
+
         if ( data_one != MOVON_DATA_FRAME__PREFIX )
         {
-            //printf(" >>> err get data one : [%d][%x][%c] - [%d]\r\n",data_one,data_one,data_one, __LINE__);
+            //LOGE(LOG_TARGET, " >>> err get data one : [%d][%x] - [%d]\r\n" ,data_one,data_one, __LINE__);
             queue_size = _cntQueue();
+            data_idx = 0;
             continue;
         }
         //printf("00 :  get data one : [%d][%x]\r\n",data_one,data_one);
 
         data_buff[data_idx++] = data_one;
 
-        deQueue(&data_one);
+        if ( deQueue(&data_one) == QUEUE_RET_FAIL )
+            break;
+        
         if ( data_one != MOVON_DATA_FRAME__DATA1 )
         {
-            //printf(" >>> err get data one : [%d][%x][%c] - [%d]\r\n",data_one,data_one,data_one, __LINE__);
+            //LOGE(LOG_TARGET, " >>> err get data one : [%d][%x] - [%d]\r\n" ,data_one,data_one, __LINE__);
             queue_size = _cntQueue();
+            data_idx = 0;
             continue;
         }
         //printf("11 :  get data one : [%d][%x]\r\n",data_one,data_one);
         
         data_buff[data_idx++] = data_one;
         
-        deQueue(&data_one);
+        if ( deQueue(&data_one) == QUEUE_RET_FAIL )
+            break;
+        
         if ( data_one != MOVON_DATA_FRAME__DATA2 )
         {
-            //printf(" >>> err get data one : [%d][%x][%c] - [%d]\r\n",data_one,data_one,data_one, __LINE__);
+            //LOGE(LOG_TARGET," >>> err get data one : [%d][%x] - [%d]\r\n" ,data_one,data_one, __LINE__);
             queue_size = _cntQueue();
+            data_idx = 0;
             continue;
         }
         //printf("22 : get data one : [%d][%x][%c]\r\n",data_one,data_one,data_one);
 
         data_buff[data_idx++] = data_one;
         found_data_prefix = 1;
-        //printf("get data one : chk success\r\n");
+        // printf("get data one : chk success\r\n");
         break;
     }
 
+    if( found_data_prefix == 0 )
+    {
+        // LOGE(LOG_TARGET, ">>> err get data one : [%d][%x] - [%d]\r\n" ,data_one,data_one, __LINE__);
+        return QUEUE_RET_FAIL;
+    }
+    
     frame_size -= data_idx;
     //printf("target frame size case 1 => [%d]\r\n", frame_size);
 
@@ -158,12 +176,6 @@ int get_dataframe_from_Queue(MOVON_DATA_FRAME_T* data)
         deQueue(&data_one);
         data_buff[data_idx++] = data_one;
         //printf("get data one : [%d][%x]\r\n",data_one,data_one);
-    }
-
-    if( found_data_prefix == 0 )
-    {
-//        printf(" >>> err get data one : [%d][%x][%c] - [%d]\r\n",data_one,data_one,data_one, __LINE__);
-        return QUEUE_RET_FAIL;
     }
 
     memcpy(data, data_buff, sizeof(MOVON_DATA_FRAME_T));

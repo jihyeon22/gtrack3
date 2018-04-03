@@ -770,10 +770,10 @@ int kjtec_rfid__dev_wakeup(RFID_DEV_INFO_T* result)
     {
         if ( g_rfid_dev_info.cmd_result  == KJTEC_RFID_RET_SUCCESS )
         {
-            printf("[KJTEC RFID] write cmd 1 [%s] -> resp success\r\n", __func__);
+            //printf("[KJTEC RFID] write cmd 1 [%s] -> resp success\r\n", __func__);
             break;
         }
-        printf("[KJTEC RFID] write cmd 1 [%s] -> resp wait...\r\n", __func__);
+        //printf("[KJTEC RFID] write cmd 1 [%s] -> resp wait...\r\n", __func__);
         usleep(KJTEC_RFID_CMD_RESP_WAIT_ONE_INTERVAL);
 
         if ( max_cmd_wait_time & 20 )

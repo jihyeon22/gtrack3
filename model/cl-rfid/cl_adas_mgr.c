@@ -18,7 +18,7 @@
 #include <movon_adas.h>
 #define LOG_TARGET eSVC_MODEL
 
-#define ADAS_DEV_FAIL_CHK_CNT       15
+#define ADAS_DEV_FAIL_CHK_CNT       30
 #define ADAS_DEV_NON_EVT_CLR_CNT    30
 #endif
 
@@ -31,11 +31,13 @@
 #define ADAS_DEV_NON_EVT_CLR_CNT    1
 #endif
 
+// movon
 #if defined (SERVER_ABBR_CLRA0) || defined (SERVER_ABBR_CLRA1) || defined (SERVER_ABBR_CLRA9)
 #define ADAS_DEV_PATH       "/dev/ttyHSL2"
-#define ADAS_DEV_BAUDRATE   9600
+#define ADAS_DEV_BAUDRATE   115200
 #endif
 
+// mobileye
 #if defined (SERVER_ABBR_CLRB0) || defined (SERVER_ABBR_CLRB1) || defined (SERVER_ABBR_CLRB9)
 #define ADAS_DEV_PATH       "/dev/ttyHSL2"
 #define ADAS_DEV_BAUDRATE   9600
@@ -63,18 +65,22 @@ static int cl_adas_mgr_sendpkt(int evt_code, int speed, char* opt_data)
 
 int cl_adas_ttc_sendpkt(int evt_code)
 {
+    // remove spec..
+    /*  
     MOVON_DATA_FRAME_T cur_movon_data;
     char option_str[32] = {0,};
 
     memset(&cur_movon_data, 0x00, sizeof(MOVON_DATA_FRAME_T));
     movon_adas__get_cur_data(&cur_movon_data);
 
-    sprintf(option_str, "%d" , cur_movon_data.ttc_sec);
-
-    LOGI(LOG_TARGET, "[MOVON ADAS]  ttc_sec [%s]\r\n", option_str);
-
-    cl_adas_mgr_sendpkt(evt_code, cur_movon_data.speed, option_str );
-
+    printf(" >> cur_movon_data.stx is [%d]\r\n", cur_movon_data.stx );
+    // if ( cur_movon_data.stx == MOVON_DATA_FRAME__PREFIX )
+    {
+        sprintf(option_str, "%d" , cur_movon_data.ttc_sec);
+        LOGI(LOG_TARGET, "[MOVON ADAS]  ttc_sec [%s]\r\n", option_str);
+        cl_adas_mgr_sendpkt(evt_code, cur_movon_data.speed, option_str );
+    }
+*/
     return 0;
 }
 #endif
@@ -337,14 +343,17 @@ FINISH:
     {
         if (( adas_stat_send_evt == 0 ) || ( adas_stat_send_evt == -1 ) )
         {
-            devel_webdm_send_log("[ADAS] DEV DISCONN : CANNOT COMM");
-            option_str_len += sprintf(option_str + option_str_len, "%s" , "NC");
+            if ( ( nettool_get_state() == DEFINES_MDS_OK ) )
+            {
+                devel_webdm_send_log("[ADAS] DEV DISCONN : CANNOT COMM");
+                option_str_len += sprintf(option_str + option_str_len, "%s" , "NC");
 
-            if ( g_stat_key_on == 1 )
-                cl_adas_mgr_sendpkt(CL_ADAS_ERR_EVENT_CODE, evt_data->evt_data_1, option_str);
+                if ( g_stat_key_on == 1 )
+                    cl_adas_mgr_sendpkt(CL_ADAS_ERR_EVENT_CODE, evt_data->evt_data_1, option_str);
 
-            adas_stat_send_evt = 1;
-            adas_evt_stat = 0; 
+                adas_stat_send_evt = 1;
+                adas_evt_stat = 0; 
+            }
         }
     }
 

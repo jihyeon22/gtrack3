@@ -580,7 +580,7 @@ static int _send_location_data(void)
 #endif
 	
 #ifdef USE_MOVON_ADAS
-    cl_adas_ttc_sendpkt(PACKET_TYPE_REPORT);
+    cl_adas_ttc_sendpkt(CL_NONE_EVENT_CODE);
 #endif
 	return 0;
 }

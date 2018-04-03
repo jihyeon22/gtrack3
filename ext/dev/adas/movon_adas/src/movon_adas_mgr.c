@@ -109,6 +109,9 @@ void movon_adas__mgr_read_thread(void)
         // printf(" -------------- uart get [%d]\r\n", uart_ret);
         if ( uart_ret > 0 )
         {
+            //printf("---------------------------------------------------------------------\r\n");
+            //debug_hexdump_buff(movon_adas_recv_data, uart_ret);
+            //printf("---------------------------------------------------------------------\r\n");
             enQueue_size(movon_adas_recv_data, uart_ret);
         }
 
@@ -133,6 +136,9 @@ void movon_adas__mgr_read_thread(void)
                 }
                 break;
             }
+
+            movon_adas__set_cur_data(&data_frame);
+
             //dbg_print_movon_data(&data_frame);
             read_invaild_cnt = 0;
 

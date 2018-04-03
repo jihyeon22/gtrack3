@@ -17,6 +17,12 @@
 
 #define MAX_MOVON_ADAS_RET_BUFF_SIZE     2048
 
+#define MOVON_DATA_FRAME__PREFIX    0x5b
+#define MOVON_DATA_FRAME__DATA1     0x49
+#define MOVON_DATA_FRAME__DATA2     0x41
+#define MOVON_DATA_FRAME__DATA3     ' '
+#define MOVON_DATA_FRAME__SUFFIX    '_'
+
 int movon_adas__mgr_init(char *dev_name, int baud_rate, int (*p_bmsg_proc)(ADAS_EVT_DATA_T* evt_data));
 
 int movon_adas__cmd_broadcast_msg_start();

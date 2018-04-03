@@ -246,6 +246,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 				{
 					LOGT(LOG_TARGET, "NEED CONFIG : HAVE TO SET CONFIG {%s}\r\n", resp.data);
 					process_cmd(resp.data);
+                    res = 0;
 					break;
 				}
 				default:;

@@ -20,7 +20,7 @@
 #include "movon_adas_tool.h"
 #include "movon_adas_uart_util.h"
 
-
+/*
 int get_movon_data(char* input_data, MOVON_DATA_FRAME_T* movon_data)
 {
     memcpy(movon_data, input_data, sizeof(MOVON_DATA_FRAME_T));
@@ -29,11 +29,12 @@ int get_movon_data(char* input_data, MOVON_DATA_FRAME_T* movon_data)
     // TODO: data vaild check..
     return ADAS_EVT_RET_SUCCESS;
 }
+*/
 
 int dbg_print_movon_data(MOVON_DATA_FRAME_T* movon_data)
 {
     printf("movon data --------------------------------------\r\n");
-	printf("  >> movon_data->stx -> [%c]\r\n",movon_data->stx);
+	printf("  >> movon_data->stx -> [0x%x]\r\n",movon_data->stx);
 	printf("  >> movon_data->type1 -> [0x%x]\r\n",movon_data->type1);
     printf("  >> movon_data->type2 -> [0x%x]\r\n",movon_data->type2);
     printf("  >> movon_data->data_len -> [0x%x]\r\n",movon_data->data_len);
@@ -55,7 +56,7 @@ int dbg_print_movon_data(MOVON_DATA_FRAME_T* movon_data)
     printf("  >> movon_data->recode -> [0x%x]\r\n",movon_data->recode);
     printf("  >> movon_data->errcode -> [0x%x]\r\n",movon_data->errcode);
     printf("  >> movon_data->chksum -> [0x%x]\r\n",movon_data->chksum);    
-    printf("  >> movon_data->etx -> [%c]\r\n",movon_data->etx);
+    printf("  >> movon_data->etx -> [0x%x]\r\n",movon_data->etx);
     printf("-------------------------------------------------------\r\n");
 }  
 
@@ -103,7 +104,7 @@ int movon_get_evt_data(ADAS_EVT_DATA_T* evt_data, MOVON_DATA_FRAME_T* movon_data
     {
         evt_data->evt_code = eADAS_EVT__ERR;
         evt_data->evt_data_4 = movon_data->errcode;
-        //dbg_print_movon_data(movon_data);
+        dbg_print_movon_data(movon_data);
         movon_data->errcode = 0;
     }
     else
