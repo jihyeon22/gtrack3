@@ -9,7 +9,7 @@
 //#define FEATURE_FAKE_TIME_INACTIVE_GPS	
 //======================================================
 
-#if defined (CORP_ABBR_BIC) || defined (CORP_ABBR_CS)
+#if defined (CORP_ABBR_BIC) || defined (CORP_ABBR_CS) || defined (CORP_ABBR_ETR)
 //======================================================
 //      FEATURE_INVALD_GPS_COPY_LAST_FIX_GPS
 // inactive gps replace latest credible gps position

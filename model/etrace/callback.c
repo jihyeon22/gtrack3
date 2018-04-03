@@ -522,6 +522,15 @@ static int _process_poweroff(int now_poweroff_flag, char *log)
 	return 0;
 }
 
+void network_fail_emergency_reset_callback(void)
+{
+    //_process_poweroff("network chk fail");
+    _process_poweroff(1, "net_fail");
+    poweroff(NULL,0);
+}
+
+
+
 /*
 #define CYCLE_CHECK_BATT_DATA 60
 #define CYCLE_SEND_BATT_DATA 3600

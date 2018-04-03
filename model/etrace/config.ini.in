@@ -36,7 +36,7 @@ target_num=01089619571
 [model]
 tempature_enable = 1
 tempature_device=/dev/ttyHSL2
-tempature_cycle = 180
+tempature_cycle = 60
 
 [dist_gps_filter]
 comment = "filter above filter value (unit:meter)"

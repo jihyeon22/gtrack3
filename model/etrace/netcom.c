@@ -148,13 +148,13 @@ int make_period_packet(unsigned char **pbuf, unsigned short *packet_len)
 				else
 				{
 					printf("p_packet->date.year = [%04d/%02d/%02d]\n", p_packet->date.year, p_packet->date.mon, p_packet->date.day);
-					gps_time.tm_year   = p_packet->date.year - 1900;   // ÁÖÀÇ :³âµµ´Â 1900³âºÎÅÍ ½ÃÀÛ
-					gps_time.tm_mon    = p_packet->date.mon - 1;      // ÁÖÀÇ :¿ùÀº 0ºÎÅÍ ½ÃÀÛ
+					gps_time.tm_year   = p_packet->date.year - 1900;   // ï¿½ï¿½ï¿½ï¿½ :ï¿½âµµï¿½ï¿½ 1900ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					gps_time.tm_mon    = p_packet->date.mon - 1;      // ï¿½ï¿½ï¿½ï¿½ :ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					gps_time.tm_mday   = p_packet->date.day;
 					gps_time.tm_hour   = p_packet->date.hour;
 					gps_time.tm_min    = p_packet->date.min;
 					gps_time.tm_sec    = p_packet->date.sec;
-					gps_time.tm_isdst  = 0;           // ½æ¸Ó Å¸ÀÓ »ç¿ë ¾ÈÇÔ
+					gps_time.tm_isdst  = 0;           // ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 					p_utc_time_list[extend_pack_idx] = mktime(&gps_time);
 					p_etr_pack[extend_pack_idx].time = 0;
@@ -170,8 +170,8 @@ int make_period_packet(unsigned char **pbuf, unsigned short *packet_len)
 				data_length = sizeof(lotte_packet_t);
 				crc = crc8(crc, (unsigned char *)p_packet, data_length);
 
-				gps_time.tm_year   = p_packet->date.year - 1900;   // ÁÖÀÇ :³âµµ´Â 1900³âºÎÅÍ ½ÃÀÛ
-				gps_time.tm_mon    = p_packet->date.mon - 1;      // ÁÖÀÇ :¿ùÀº 0ºÎÅÍ ½ÃÀÛ
+				gps_time.tm_year   = p_packet->date.year - 1900;   // ï¿½ï¿½ï¿½ï¿½ :ï¿½âµµï¿½ï¿½ 1900ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				gps_time.tm_mon    = p_packet->date.mon - 1;      // ï¿½ï¿½ï¿½ï¿½ :ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				gps_time.tm_mday   = p_packet->date.day;
 				gps_time.tm_hour   = p_packet->date.hour;
 				gps_time.tm_min    = p_packet->date.min;
@@ -224,13 +224,13 @@ int make_period_packet(unsigned char **pbuf, unsigned short *packet_len)
 				else
 				{
 					//printf("p_packet->date.year = [%04d/%02d/%02d]\n", p_packet2->date.year, p_packet2->date.mon, p_packet2->date.day);
-					gps_time.tm_year   = p_packet2->date.year - 1900;   // ÁÖÀÇ :³âµµ´Â 1900³âºÎÅÍ ½ÃÀÛ
-					gps_time.tm_mon    = p_packet2->date.mon - 1;      // ÁÖÀÇ :¿ùÀº 0ºÎÅÍ ½ÃÀÛ
+					gps_time.tm_year   = p_packet2->date.year - 1900;   // ï¿½ï¿½ï¿½ï¿½ :ï¿½âµµï¿½ï¿½ 1900ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+					gps_time.tm_mon    = p_packet2->date.mon - 1;      // ï¿½ï¿½ï¿½ï¿½ :ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 					gps_time.tm_mday   = p_packet2->date.day;
 					gps_time.tm_hour   = p_packet2->date.hour;
 					gps_time.tm_min    = p_packet2->date.min;
 					gps_time.tm_sec    = p_packet2->date.sec;
-					gps_time.tm_isdst  = 0;           // ½æ¸Ó Å¸ÀÓ »ç¿ë ¾ÈÇÔ
+					gps_time.tm_isdst  = 0;           // ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 					p_utc_time_list[extend_pack_idx] = mktime(&gps_time);
 					p_etr_pack[extend_pack_idx].time = 0;
@@ -246,8 +246,8 @@ int make_period_packet(unsigned char **pbuf, unsigned short *packet_len)
 				data_length = sizeof(lotte_packet2_t) - sizeof(p_packet2->record) + p_packet2->record_leng;
 				crc = crc8(crc, (unsigned char *)p_packet2, data_length);
 
-				gps_time.tm_year   = p_packet2->date.year - 1900;   // ÁÖÀÇ :³âµµ´Â 1900³âºÎÅÍ ½ÃÀÛ
-				gps_time.tm_mon    = p_packet2->date.mon - 1;      // ÁÖÀÇ :¿ùÀº 0ºÎÅÍ ½ÃÀÛ
+				gps_time.tm_year   = p_packet2->date.year - 1900;   // ï¿½ï¿½ï¿½ï¿½ :ï¿½âµµï¿½ï¿½ 1900ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+				gps_time.tm_mon    = p_packet2->date.mon - 1;      // ï¿½ï¿½ï¿½ï¿½ :ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 				gps_time.tm_mday   = p_packet2->date.day;
 				gps_time.tm_hour   = p_packet2->date.hour;
 				gps_time.tm_min    = p_packet2->date.min;
@@ -308,6 +308,15 @@ int make_event_packet(unsigned char **pbuf, unsigned short *packet_len, int even
 
 	gps_get_curr_data(&gpsdata);
 
+	if ( ( gpsdata.active != eACTIVE ) || (gpsdata.lat == 0 ) || (gpsdata.lon == 0 ) ) 
+	{
+		gpsData_t last_gpsdata;
+		gps_valid_data_get(&last_gpsdata);
+		gpsdata.lat = last_gpsdata.lat;
+		gpsdata.lon = last_gpsdata.lon;
+        LOGE(LOG_TARGET, "%s> gps invalid : fill last valid gps \n", __func__);
+	}
+
 	if(create_report_divert_buffer(&p_encbuf, 1) < 0)
 	{
 		LOGE(LOG_TARGET, "%s> create report divert buffer fail\n", __func__);
@@ -340,6 +349,15 @@ int make_event2_packet(unsigned char **pbuf, unsigned short *packet_len, int eve
 
 	gps_get_curr_data(&gpsdata);
 
+	if ( ( gpsdata.active != eACTIVE ) || (gpsdata.lat == 0 ) || (gpsdata.lon == 0 ) ) 
+	{
+		gpsData_t last_gpsdata;
+		gps_valid_data_get(&last_gpsdata);
+		gpsdata.lat = last_gpsdata.lat;
+		gpsdata.lon = last_gpsdata.lon;
+        LOGE(LOG_TARGET, "%s> gps invalid : fill last valid gps \n", __func__);
+	}
+    
 	if(create_report2_divert_buffer(&p_encbuf, 1) < 0)
 	{
 		LOGE(LOG_TARGET, "%s> create report2 divert buffer fail\n", __func__);
