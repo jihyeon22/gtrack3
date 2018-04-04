@@ -43,7 +43,12 @@
 
 
 #define MILEAGE_NOT_INIT				(-1)
+#if defined (CORP_ABBR_BIC) || defined (CORP_ABBR_CS) || defined (CORP_ABBR_ETR)
+#define GPS_INIT_MAX_WAITING_TIME		(1)  //unit : sec
+#else
 #define GPS_INIT_MAX_WAITING_TIME		(120)  //unit : sec
+#endif
+
 #define MILEAGE_INTERVAL	10
 
 typedef enum gps_active_status gps_active_status_t;

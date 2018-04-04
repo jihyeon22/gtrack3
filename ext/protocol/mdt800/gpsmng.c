@@ -288,7 +288,7 @@ void recovery_gps_data(gpsData_t *pData)
 		pData->hdop      = lgm.fixed_gpsdata.hdop; //keep HDOP status
 
         // recovery fix : workaround poweroff and gps no fix
-        if ( ( pData->lat == 0 ) || ( pData->lon ) )
+        if ( ( pData->lat == 0 ) || ( pData->lon == 0 ) )
         {
             gpsData_t last_gpsdata;
             gps_valid_data_get(&last_gpsdata);
@@ -349,6 +349,16 @@ int fake_gps_time(gpsData_t *pData)
 gps_condition_t inactive_gps_process(gpsData_t cur_gps, gpsData_t *pData)
 {
 	gps_condition_t ret = eUNKNOWN_GPS_DATA;
+
+#ifdef FEATURE_INVALD_GPS_COPY_LAST_FIX_GPS	
+    if ( ( cur_gps.active != eACTIVE ) || ( cur_gps.lat == 0 ) || ( cur_gps.lon  == 0 ) )
+    {
+        gpsData_t last_gpsdata;
+        gps_valid_data_get(&last_gpsdata);
+        cur_gps.lat = last_gpsdata.lat;
+        cur_gps.lon = last_gpsdata.lon;
+    }
+#endif
 
 	memset(pData, 0x00, sizeof(gpsData_t));
 	switch(lgm.first_gps_active) 
