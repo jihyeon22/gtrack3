@@ -242,6 +242,14 @@ void gps_parse_one_context_callback(void)
 		LOGI(LOG_TARGET, "\n-----------------------------------------\nserver_mileage[%d], gps_mileage = [%d]\n-----------------------------------------", get_server_mileage(), get_gps_mileage());
 	}
 
+    if ( ( cur_gpsdata.active != eACTIVE ) || ( cur_gpsdata.lat == 0 ) || ( cur_gpsdata.lon  == 0 ) )
+    {
+        gpsData_t last_gpsdata;
+        gps_valid_data_get(&last_gpsdata);
+        cur_gpsdata.lat = last_gpsdata.lat;
+        cur_gpsdata.lon = last_gpsdata.lon;
+    }
+    
 	if ( cur_gpsdata.active == eACTIVE ) 
 	{
 		gps_cnt_active ++;
