@@ -457,6 +457,9 @@ int katech_pkt_1_insert_and_send(gpsData_t* p_gpsdata, int force_send)
 	tmp_int_val = timeserise_calc__garde(&srr_data_ta1,&srr_data_ta2);
     tmp_int_val = tmp_int_val + 127 ;
     _pkt_data_convert(tmp_int_val, SIGNED_1_BYTE , (char*)(&pkt_body->obd_road_gradient ) );      // 89
+
+    pkt_body->obd_basic_spare_1 = KATECH_PKT_VER_NUM;
+    
 	//_debug_print_report1_pkt(pkt_body);
 	// cpy buffer.
 	//memcpy( pkt_body->obd_raw_data, &mux_body, 200);
@@ -687,6 +690,9 @@ int katech_pkt_2_insert_and_send()
 	pkt_body->trip_start_time = tripdata__get_start_time();
 	pkt_body->trip_end_date = tripdata__get_end_date();
 	pkt_body->trip_end_time = tripdata__get_end_time();
+
+    pkt_body->tripdata_trip_spare_1 = KATECH_PKT_VER_NUM;
+    
 	// pkt_body->trip_spare_23;
 	// pkt_body->trip_spare_24;
 

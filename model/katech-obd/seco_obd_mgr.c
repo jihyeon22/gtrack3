@@ -33,6 +33,23 @@ int katech_obd_mgr__get_ta1_obd_info(SECO_CMD_DATA_SRR_TA1_T* ta1_buff)
 
 int katech_obd_mgr__set_ta1_obd_info(SECO_CMD_DATA_SRR_TA1_T ta1_buff)
 {
+    // filter invalid data.
+    if( ( ta1_buff.obd_data[eOBD_CMD_SRR_TA1_MAP].data == 0 ) &&
+        ( ta1_buff.obd_data[eOBD_CMD_SRR_TA1_RPM].data == 0 ) &&
+        ( ta1_buff.obd_data[eOBD_CMD_SRR_TA1_SPD].data == 0 ) &&
+        ( ta1_buff.obd_data[eOBD_CMD_SRR_TA1_BS1].data == 0 ) &&
+        ( ta1_buff.obd_data[eOBD_CMD_SRR_TA1_BAV].data == 0 ) &&
+        ( ta1_buff.obd_data[eOBD_CMD_SRR_TA1_EFR].data == 0 ) &&
+        ( ta1_buff.obd_data[eOBD_CMD_SRR_TA1_AED].data == 0 ) &&
+        ( ta1_buff.obd_data[eOBD_CMD_SRR_TA1_COT].data == 0 ) &&
+        ( ta1_buff.obd_data[eOBD_CMD_SRR_TA1_EGR].data == 0 ) &&
+        ( ta1_buff.obd_data[eOBD_CMD_SRR_TA1_EGE].data == 0 ) &&
+        ( ta1_buff.obd_data[eOBD_CMD_SRR_TA1_BRO].data == 0 ) )
+    {
+        printf("[OBD MGR] ERR not valid ta1 data\r\n");
+        return 0;
+    }
+
     pthread_mutex_lock(&katech_obd_data_mutex);
     memcpy ( &_g_obd_ta1, &ta1_buff, sizeof(_g_obd_ta1) );
     _g_get_ta1_obd_info_ret = 1;

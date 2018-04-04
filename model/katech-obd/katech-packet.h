@@ -17,6 +17,8 @@
 #define KATECH_PKT_INTERVAL_SEND    0
 #define KATECH_PKT_IMMEDIATELY_SEND 1
 
+#define KATECH_PKT_VER_NUM          2
+
 typedef enum {
     UNSIGNED_1_BYTE,
     SIGNED_1_BYTE,

@@ -725,7 +725,7 @@ int get_seco_obd_cmd_ta1(SECO_CMD_DATA_SRR_TA1_T* p_ta1_buff)
 
     for( i = 0 ; i < argc ; i++)
     {
-        int convert_num_data = 0 ;
+        float convert_num_data = 0 ;
         
         #ifdef DEBUG_MSG_OBD_CMD_TA1
         printf("-----------------------------------------------------------------\r\n");
@@ -803,7 +803,7 @@ int get_seco_obd_cmd_ta1(SECO_CMD_DATA_SRR_TA1_T* p_ta1_buff)
             convert_num_data = _convert_obd_data_num(argv[i], ' ', NULL);
         }
 #endif
-        convert_num_data = _convert_obd_data_num(argv[i], ' ', NULL);
+        convert_num_data = atof(argv[i]);
 
         p_ta1_buff->obd_data[i].idx = i;
 

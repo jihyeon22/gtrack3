@@ -15,7 +15,7 @@
 typedef struct seco_cmd_data_bulk_type
 {
     int idx;
-    int data;
+    float data;
 }__attribute__((packed))SECO_CMD_DATA_BULK_TYPE_T;
 
 #define OBD_CMD_SRR_TA1_MAX_CNT     22
