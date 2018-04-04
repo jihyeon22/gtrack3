@@ -164,6 +164,7 @@ void power_off_callback(void)
 	sender_wait_empty_network(WAIT_PIPE_CLEAN_SECS);
 	poweroff("poweroff senario", strlen("poweroff senario"));
     power_status = 0;
+    
 }
 
 //static int need_to_seq_init = 0;
@@ -887,6 +888,7 @@ void main_loop_callback(void)
 					{
 						LOGI(LOG_TARGET, "MAIN : KEY STAT CHANGE TO ON [%d] \n", obd_data.car_key_stat );
 						set_send_policy(KT_FMS_SEND_POLICY__PWR_ON_EVENT);
+                        init_ksmc_mode();
 						
 						// 기존에 서버를 무한정 대기시키던것을 다시 원복한다.
 						set_server_send_interval_default();

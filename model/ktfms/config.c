@@ -685,6 +685,7 @@ int get_use_obd_device(unsigned char* driver_id)
 	return conf->model.use_obd;
 	*/
 	// 혹시나 중간에 변하지 않을까 싶어서... static 하게..
+    // printf("get obd use [%d]\r\n", _use_obd_device);
 	return _use_obd_device;
 
 }

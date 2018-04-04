@@ -292,6 +292,9 @@ void pre_init()
 	
 	dbg_print_gender_spec(&cur_gender_spec);
 	
+	if ( get_use_obd_device() == 0 )
+		return OBD_RET_SUCCESS;
+
 	if ( get_obd_info(&last_gender_spec) != 0 )
 	{
 		LOGI(LOG_TARGET, "NO Saved OBD Gender\r\n");

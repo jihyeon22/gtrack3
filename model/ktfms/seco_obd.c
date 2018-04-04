@@ -1042,10 +1042,13 @@ int set_obd_gender_spec(odbGender_t* p_obdGender)
 	if ( p_obdGender == NULL )
 		return OBD_RET_FAIL;
 	
+	if ( get_use_obd_device() == 0 )
+		return OBD_RET_SUCCESS;
+        
 	// 기존데이터를 갖고온다.
 	if ( get_obd_gender_spec_hex(hex_ret_buff) != OBD_RET_SUCCESS )
 	{
-		printf("%s() get gender spec hex fail...\r\n",__func__);
+		printf("%s() get gender spec hex fail... \r\n", __func__);
 		return OBD_RET_FAIL;
 	}
 	

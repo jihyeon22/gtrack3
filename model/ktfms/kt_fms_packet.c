@@ -2855,7 +2855,9 @@ static int _save_ksmc_mode_from_file(int mode)
 
 int init_ksmc_mode()
 {
-	_g_ksmc_stat = _load_ksmc_mode_from_file();
+    // do not save last stat...
+	//_g_ksmc_stat = _load_ksmc_mode_from_file();
+    _g_ksmc_stat = SMC_MODE__DEFAULT;
 
 	printf(" --------- ksmc key stat init ---------------\r\n");
 	printf("_g_ksmc_stat is [%d]\r\n", _g_ksmc_stat);
@@ -2866,7 +2868,8 @@ int init_ksmc_mode()
 
 int set_ksmc_mode(int mode)
 {
-    _save_ksmc_mode_from_file(mode);
+    // do not save last stat...
+    //_save_ksmc_mode_from_file(mode);
     _g_ksmc_stat = mode;
 
 	printf(" --------- ksmc key stat set ---------------\r\n");

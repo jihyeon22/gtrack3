@@ -456,6 +456,7 @@ int set_obd_gender_spec_fake(odbGender_t* p_obdGender)
 int get_obd_gender_spec_hex_fake(char buff[92])
 {
 	// TODO: remove this api
+    printf("get_obd_gender_spec_hex_fake() return success\r\n"); 
 	return OBD_RET_SUCCESS;
 }
 
