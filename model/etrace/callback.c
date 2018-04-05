@@ -149,7 +149,8 @@ void ignition_on_callback(void)
 	printf("%s ++\n", __func__);
 	LOGI(LOG_TARGET, "ignition_on_callback ++\n");
 	
-	init_gps_manager(); //jwrho
+    // no init gps // etrace req.
+	// init_gps_manager(); //jwrho
 
 	if(conf->model.tempature_enable == 1)
 	{
