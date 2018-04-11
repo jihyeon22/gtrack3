@@ -140,21 +140,21 @@ int p_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
             adas_evt_stat = 1;
             break;
         }
-        case eADAS_EVT__PCW:
+        case eADAS_EVT__UFCW:
         {
-            LOGT(LOG_TARGET, "p_bmsg_proc(eADAS_EVT__PCW) :: evt_data->evt_code [%d]\r\n", evt_data->evt_code);
+            LOGT(LOG_TARGET, "p_bmsg_proc(eADAS_EVT__UFCW) :: evt_data->evt_code [%d]\r\n", evt_data->evt_code);
+            
+            printf("p_bmsg_proc(eADAS_EVT__UFCW) :: evt_data->evt_code [%d]\r\n", evt_data->evt_code);
+            printf("p_bmsg_proc(eADAS_EVT__UFCW) :: evt_data->evt_data_1 >> speed [%d]\r\n", evt_data->evt_data_1);
+            printf("p_bmsg_proc(eADAS_EVT__UFCW) :: evt_data->evt_data_2 >> break sig [%d]\r\n", evt_data->evt_data_2);
+            printf("p_bmsg_proc(eADAS_EVT__UFCW) :: evt_data->evt_data_3 >> ttc sec [%d]\r\n", evt_data->evt_data_3);
+            printf("p_bmsg_proc(eADAS_EVT__UFCW) :: evt_data->evt_data_4 >> ext data [%d]\r\n", evt_data->evt_data_4);
 
-            printf("p_bmsg_proc(eADAS_EVT__PCW) :: evt_data->evt_code [%d]\r\n", evt_data->evt_code);
-            printf("p_bmsg_proc(eADAS_EVT__PCW) :: evt_data->evt_data_1 >> speed [%d]\r\n", evt_data->evt_data_1);
-            printf("p_bmsg_proc(eADAS_EVT__PCW) :: evt_data->evt_data_2 >> break sig [%d]\r\n", evt_data->evt_data_2);
-            printf("p_bmsg_proc(eADAS_EVT__PCW) :: evt_data->evt_data_3 >> ttc sec [%d]\r\n", evt_data->evt_data_3);
-            printf("p_bmsg_proc(eADAS_EVT__PCW) :: evt_data->evt_data_4 >> ext data [%d]\r\n", evt_data->evt_data_4);
-        
             memset(option_str, 0x00, sizeof(option_str));
             option_str_len = 0;
             
             option_str_len += sprintf(option_str + option_str_len, "%d" , evt_data->evt_data_2);
-            cl_adas_mgr_sendpkt(CL_ADAS_PCW_EVENT_CODE, evt_data->evt_data_1, option_str);
+            cl_adas_mgr_sendpkt(CL_ADAS_UFCW_EVENT_CODE, evt_data->evt_data_1, option_str);
 
             err_code_last = -1;
 
@@ -192,21 +192,21 @@ int p_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
             adas_evt_stat = 1;
             break;
         }
-        case eADAS_EVT__HMW:
+        case eADAS_EVT__PCW:
         {
-            LOGT(LOG_TARGET, "p_bmsg_proc(eADAS_EVT__HMW) :: evt_data->evt_code [%d]\r\n", evt_data->evt_code);
+            LOGT(LOG_TARGET, "p_bmsg_proc(eADAS_EVT__PCW) :: evt_data->evt_code [%d]\r\n", evt_data->evt_code);
 
-            printf("p_bmsg_proc(eADAS_EVT__HMW) :: evt_data->evt_code [%d]\r\n", evt_data->evt_code);
-            printf("p_bmsg_proc(eADAS_EVT__HMW) :: evt_data->evt_data_1 >> speed [%d]\r\n", evt_data->evt_data_1);
-            printf("p_bmsg_proc(eADAS_EVT__HMW) :: evt_data->evt_data_2 >> break sig [%d]\r\n", evt_data->evt_data_2);
-            printf("p_bmsg_proc(eADAS_EVT__HMW) :: evt_data->evt_data_3 >> ttc sec [%d]\r\n", evt_data->evt_data_3);
-            printf("p_bmsg_proc(eADAS_EVT__HMW) :: evt_data->evt_data_4 >> ext data [%d]\r\n", evt_data->evt_data_4);
+            printf("p_bmsg_proc(eADAS_EVT__PCW) :: evt_data->evt_code [%d]\r\n", evt_data->evt_code);
+            printf("p_bmsg_proc(eADAS_EVT__PCW) :: evt_data->evt_data_1 >> speed [%d]\r\n", evt_data->evt_data_1);
+            printf("p_bmsg_proc(eADAS_EVT__PCW) :: evt_data->evt_data_2 >> break sig [%d]\r\n", evt_data->evt_data_2);
+            printf("p_bmsg_proc(eADAS_EVT__PCW) :: evt_data->evt_data_3 >> ttc sec [%d]\r\n", evt_data->evt_data_3);
+            printf("p_bmsg_proc(eADAS_EVT__PCW) :: evt_data->evt_data_4 >> ext data [%d]\r\n", evt_data->evt_data_4);
         
             memset(option_str, 0x00, sizeof(option_str));
             option_str_len = 0;
-
+            
             option_str_len += sprintf(option_str + option_str_len, "%d" , evt_data->evt_data_2);
-            cl_adas_mgr_sendpkt(CL_ADAS_HMW_EVENT_CODE, evt_data->evt_data_1, option_str);
+            cl_adas_mgr_sendpkt(CL_ADAS_PCW_EVENT_CODE, evt_data->evt_data_1, option_str);
 
             err_code_last = -1;
 
@@ -231,6 +231,78 @@ int p_adas_bmsg_proc(ADAS_EVT_DATA_T* evt_data)
             
             option_str_len += sprintf(option_str + option_str_len, "%d" , evt_data->evt_data_4);
             cl_adas_mgr_sendpkt(CL_ADAS_SLI_EVENT_CODE, evt_data->evt_data_1, option_str);
+
+            err_code_last = -1;
+
+            read_fail_cnt = 0;
+            evt_none_cnt = 0;
+
+            adas_evt_stat = 1;
+            break;
+        }
+        case eADAS_EVT__TSR:
+        {
+            LOGT(LOG_TARGET, "p_bmsg_proc(eADAS_EVT__TSR) :: evt_data->evt_code [%d]\r\n", evt_data->evt_code);
+
+            printf("p_bmsg_proc(eADAS_EVT__TSR) :: evt_data->evt_code [%d]\r\n", evt_data->evt_code);
+            printf("p_bmsg_proc(eADAS_EVT__TSR) :: evt_data->evt_data_1 >> speed [%d]\r\n", evt_data->evt_data_1);
+            printf("p_bmsg_proc(eADAS_EVT__TSR) :: evt_data->evt_data_2 >> break sig [%d]\r\n", evt_data->evt_data_2);
+            printf("p_bmsg_proc(eADAS_EVT__TSR) :: evt_data->evt_data_3 >> ttc sec [%d]\r\n", evt_data->evt_data_3);
+            printf("p_bmsg_proc(eADAS_EVT__TSR) :: evt_data->evt_data_4 >> ext data [%d]\r\n", evt_data->evt_data_4);
+        
+            memset(option_str, 0x00, sizeof(option_str));
+            option_str_len = 0;
+            
+            option_str_len += sprintf(option_str + option_str_len, "");
+            cl_adas_mgr_sendpkt(CL_ADAS_TSR_EVENT_CODE, evt_data->evt_data_1, option_str);
+
+            err_code_last = -1;
+
+            read_fail_cnt = 0;
+            evt_none_cnt = 0;
+
+            adas_evt_stat = 1;
+            break;
+        }
+        case eADAS_EVT__HMW:
+        {
+            LOGT(LOG_TARGET, "p_bmsg_proc(eADAS_EVT__HMW) :: evt_data->evt_code [%d]\r\n", evt_data->evt_code);
+
+            printf("p_bmsg_proc(eADAS_EVT__HMW) :: evt_data->evt_code [%d]\r\n", evt_data->evt_code);
+            printf("p_bmsg_proc(eADAS_EVT__HMW) :: evt_data->evt_data_1 >> speed [%d]\r\n", evt_data->evt_data_1);
+            printf("p_bmsg_proc(eADAS_EVT__HMW) :: evt_data->evt_data_2 >> break sig [%d]\r\n", evt_data->evt_data_2);
+            printf("p_bmsg_proc(eADAS_EVT__HMW) :: evt_data->evt_data_3 >> ttc sec [%d]\r\n", evt_data->evt_data_3);
+            printf("p_bmsg_proc(eADAS_EVT__HMW) :: evt_data->evt_data_4 >> ext data [%d]\r\n", evt_data->evt_data_4);
+        
+            memset(option_str, 0x00, sizeof(option_str));
+            option_str_len = 0;
+
+            option_str_len += sprintf(option_str + option_str_len, "%d" , evt_data->evt_data_2);
+            cl_adas_mgr_sendpkt(CL_ADAS_HMW_EVENT_CODE, evt_data->evt_data_1, option_str);
+
+            err_code_last = -1;
+
+            read_fail_cnt = 0;
+            evt_none_cnt = 0;
+
+            adas_evt_stat = 1;
+            break;
+        }
+        case eADAS_EVT__FPW:
+        {
+            LOGT(LOG_TARGET, "p_bmsg_proc(eADAS_EVT__FCW) :: evt_data->evt_code [%d]\r\n", evt_data->evt_code);
+            
+            printf("p_bmsg_proc(eADAS_EVT__FCW) :: evt_data->evt_code [%d]\r\n", evt_data->evt_code);
+            printf("p_bmsg_proc(eADAS_EVT__FCW) :: evt_data->evt_data_1 >> speed [%d]\r\n", evt_data->evt_data_1);
+            printf("p_bmsg_proc(eADAS_EVT__FCW) :: evt_data->evt_data_2 >> break sig [%d]\r\n", evt_data->evt_data_2);
+            printf("p_bmsg_proc(eADAS_EVT__FCW) :: evt_data->evt_data_3 >> ttc sec [%d]\r\n", evt_data->evt_data_3);
+            printf("p_bmsg_proc(eADAS_EVT__FCW) :: evt_data->evt_data_4 >> ext data [%d]\r\n", evt_data->evt_data_4);
+
+            memset(option_str, 0x00, sizeof(option_str));
+            option_str_len = 0;
+            
+            option_str_len += sprintf(option_str + option_str_len, "%d" , evt_data->evt_data_2);
+            cl_adas_mgr_sendpkt(CL_ADAS_FPW_HMW_EVENT_CODE, evt_data->evt_data_1, option_str);
 
             err_code_last = -1;
 
@@ -350,7 +422,7 @@ FINISH:
 
                 if ( g_stat_key_on == 1 )
                     cl_adas_mgr_sendpkt(CL_ADAS_ERR_EVENT_CODE, evt_data->evt_data_1, option_str);
-
+                
                 adas_stat_send_evt = 1;
                 adas_evt_stat = 0; 
             }
@@ -362,9 +434,9 @@ FINISH:
         if ( ( nettool_get_state() == DEFINES_MDS_OK ) )
         {
             devel_webdm_send_log("[ADAS] DEV CONN : SUCCESS");
-            adas_stat_send_evt = 0;
-
             cl_adas_mgr_sendpkt(CL_ADAS_PWR_ON, 0, NULL);
+
+            adas_stat_send_evt = 0;
 
         }
     }
