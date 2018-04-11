@@ -122,7 +122,11 @@ void mobileye_adas__mgr_read_thread(void)
             // 여러개 line 이 한번에 들어올때가 있어서 버퍼를 읽으면서 proc 에 던진다.
             if ( ( read_line_len = mds_api_read_line(p_tmp_buff, to_line_read, read_line_buff, sizeof(read_line_buff)) ) <= 0 )
                 break;
-                 
+
+            // debug msg
+            if ( strlen(read_line_buff) > 0 )
+                devel_webdm_send_log("ME EVT => %s",read_line_buff);
+            
             to_line_read -= read_line_len;
             p_tmp_buff += read_line_len;
 

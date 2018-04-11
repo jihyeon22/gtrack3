@@ -74,9 +74,15 @@ int movon_get_evt_data(ADAS_EVT_DATA_T* evt_data, MOVON_DATA_FRAME_T* movon_data
     evt_data->evt_data_2 = movon_data->break_signal;
     evt_data->evt_data_3 = movon_data->ttc_sec;
     
+    dbg_print_movon_data(movon_data);
+    
     if ( movon_data->fcw == 0x02 ) 
     {
-        evt_data->evt_code = eADAS_EVT__FCW;
+        if ( movon_data->speed < 30)
+            evt_data->evt_code = eADAS_EVT__UFCW;
+        else
+            evt_data->evt_code = eADAS_EVT__FCW;
+
         //dbg_print_movon_data(movon_data);
         movon_data->fcw = 0;
     }
@@ -99,6 +105,12 @@ int movon_get_evt_data(ADAS_EVT_DATA_T* evt_data, MOVON_DATA_FRAME_T* movon_data
         evt_data->evt_code = eADAS_EVT__PCW;
         //dbg_print_movon_data(movon_data);
         movon_data->pcw = 0;
+    }
+    else if ( movon_data->fpw == 0x02 ) 
+    {
+        evt_data->evt_code = eADAS_EVT__FPW;
+        //dbg_print_movon_data(movon_data);
+        movon_data->fpw = 0;
     }
     else if ( movon_data->errcode != 0x00 ) 
     {

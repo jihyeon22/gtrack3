@@ -221,7 +221,10 @@ int mobileye_get_evt_data(int argc, char* argv[], ADAS_EVT_DATA_T* evt_data)
             read_fail_cnt = 0;
             LOGT(LOG_TARGET, "$$ MEADAS >> FCW parse SUCCESS : speed_kmh [%d] \n", ret.speed_kmh);
             //mobileye_adas_mgr_sendpkt(CL_ADAS_FCW_EVENT_CODE, ret.speed_kmh, "0");
-            evt_data->evt_code = eADAS_EVT__FCW;
+            if ( ret.speed_kmh < 30 )
+                evt_data->evt_code = eADAS_EVT__FCW;
+            else
+                evt_data->evt_code = eADAS_EVT__UFCW;
             evt_data->evt_data_1 = ret.speed_kmh;
         }
     }
@@ -336,7 +339,7 @@ int mobileye_get_evt_data(int argc, char* argv[], ADAS_EVT_DATA_T* evt_data)
             {
                 tmp_log_str_len += sprintf(tmp_log_str+tmp_log_str_len, "[%s]", argv[k]);
             }
-            devel_webdm_send_log("me err => %s", tmp_log_str);
+            //devel_webdm_send_log("me err => %s", tmp_log_str);
         }
 
         if ( mobileye_evt_cmd_parse__err(argc, argv, &ret) != MOBILEYE_ADAS_RET_SUCCESS )

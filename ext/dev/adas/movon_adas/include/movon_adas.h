@@ -4,7 +4,7 @@
 #include <adas_common.h>
 
 #define MOVON_ADAS_DEV_DEFAULT_PATH          "/dev/ttyHSL2"
-#define MOVON_ADAS_DEV_DEFAULT_BAUDRATE      9600
+#define MOVON_ADAS_DEV_DEFAULT_BAUDRATE      115200
 // movon setting : rs232 -> convert
 
 #define MOVON_ADAS_RET_SUCCESS                0
@@ -59,6 +59,8 @@ typedef struct
     char pcw;       // 0x00 – None, 0x01 – Recognized, 0x02 – PCW event, 0x03 – Function disabled
     char recode;        // 0x00 – None , 0x01 – Recording (Mic off), 0x02 – Recording (Mic On)
     char errcode;       // 0x00 – None, 0x01 – Low visibility, 0x02 – Camera blocked 
+//    unsigned short ahead_distance;  // None : 0xff Only 0x91 / 0x92
+//    unsigned short ahead_speed;     // None : 0xff Only 0x91 / 0x92
     char chksum;
     char etx;     // Transmission End
 }MOVON_DATA_FRAME_T;
