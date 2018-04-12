@@ -124,9 +124,11 @@ void mobileye_adas__mgr_read_thread(void)
                 break;
 
             // debug msg
+            /*
             if ( strlen(read_line_buff) > 0 )
                 devel_webdm_send_log("ME EVT => %s",read_line_buff);
-            
+            */
+           
             to_line_read -= read_line_len;
             p_tmp_buff += read_line_len;
 

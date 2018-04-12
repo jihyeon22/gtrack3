@@ -45,7 +45,7 @@ typedef struct
 int mobileye_evt_cmd_parse__pcw(int argc, char* argv[], MOBILEYE_CMD_PCW_VAL_T* retval);
 
 // --------------------------------------------------
-// LDW COMMAND : 차선이탈
+// LDW COMMAND : 차선이탈 // $MELDW,105,R*31
 // --------------------------------------------------
 #define MOBILEYE_CMD_LDW__ARG_CNT   4
 #define MOBILEYE_CMD_LDW__COMMAND   "$MELDW"
@@ -72,7 +72,7 @@ typedef struct
 int mobileye_evt_cmd_parse__ldw(int argc, char* argv[], MOBILEYE_CMD_LDW_VAL_T* retval);
 
 // --------------------------------------------------
-// HMW COMMAND : 차간거리 경보
+// HMW COMMAND : 차간거리 경보 // $MEHMW,99*76
 // --------------------------------------------------
 #define MOBILEYE_CMD_HMW__ARG_CNT   3
 #define MOBILEYE_CMD_HMW__COMMAND   "$MEHMW"
@@ -92,9 +92,9 @@ typedef struct
 int mobileye_evt_cmd_parse__hmw(int argc, char* argv[], MOBILEYE_CMD_HMW_VAL_T* retval);
 
 // --------------------------------------------------
-// SLI COMMAND : 속도제한
+// SLI COMMAND : 속도제한 // ME EVT => $MESLI,4,104*5f
 // --------------------------------------------------
-#define MOBILEYE_CMD_SLI__ARG_CNT   3
+#define MOBILEYE_CMD_SLI__ARG_CNT   4
 #define MOBILEYE_CMD_SLI__COMMAND   "$MESLI"
 
 typedef struct

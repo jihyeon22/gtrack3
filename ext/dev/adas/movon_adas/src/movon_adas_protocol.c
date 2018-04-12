@@ -74,7 +74,7 @@ int movon_get_evt_data(ADAS_EVT_DATA_T* evt_data, MOVON_DATA_FRAME_T* movon_data
     evt_data->evt_data_2 = movon_data->break_signal;
     evt_data->evt_data_3 = movon_data->ttc_sec;
     
-    dbg_print_movon_data(movon_data);
+    //dbg_print_movon_data(movon_data);
     
     if ( movon_data->fcw == 0x02 ) 
     {
