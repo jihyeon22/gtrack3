@@ -316,7 +316,7 @@ int get_sup_rfid_dataframe_from_Queue(SUP_RFID_DATA_FRAME_T* data)
     }
 
     // found data..
-    if ( ( found_data_sufix != 1 ) || ( found_data_sufix != 1 ) )
+    if ( ( found_data_prefix != 1 ) || ( found_data_sufix != 1 ) )
         return SUP_RFID_QUEUE_RET_FAIL;
 
     mds_api_remove_etc_char(data_buff, tmp_buff, sizeof(tmp_buff));

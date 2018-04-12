@@ -251,8 +251,8 @@ else ifeq ($(SUB),clrb9)
 SERVER_ABBR   :=      CLRB9
 USE_MOBILEYE_ADAS=y
 USE_KJTEC_RFID=y
-else ifeq ($(SUB),clrc9)
-SERVER_ABBR   :=      CLRC9
+else ifeq ($(SUB),clrc0)
+SERVER_ABBR   :=      CLRC0
 USE_SUP_RFID=y
 else ifeq ($(SUB),alm1)
 SERVER_ABBR   :=      ALM1
