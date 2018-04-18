@@ -50,6 +50,14 @@ int katech_obd_mgr__set_ta1_obd_info(SECO_CMD_DATA_SRR_TA1_T ta1_buff)
         return 0;
     }
 
+    // FIX : 180418 filer add
+    if( ( ta1_buff.obd_data[eOBD_CMD_SRR_TA1_RPM].data >= 16383 ) ||
+        ( ta1_buff.obd_data[eOBD_CMD_SRR_TA1_SPD].data >= 255 ))
+    {
+        printf("[OBD MGR] ERR not valid ta1 data\r\n");
+        return 0;
+    }
+
     pthread_mutex_lock(&katech_obd_data_mutex);
     memcpy ( &_g_obd_ta1, &ta1_buff, sizeof(_g_obd_ta1) );
     _g_get_ta1_obd_info_ret = 1;

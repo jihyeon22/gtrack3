@@ -66,11 +66,11 @@ int tripdata__calc_stop_cnt(float speed);
 
 // 9) mean speed w/ stop : tripdata_mean_spd_w_stop
 int tripdata__init_total_speed_avg();
-int tripdata__get_total_speed_avg();
+float tripdata__get_total_speed_avg();
 
 // 10) mean speed w/o stop : tripdata_mean_spd_wo_stop
 int tripdata__init_run_speed_avg();
-int tripdata__get_run_speed_avg();
+float tripdata__get_run_speed_avg();
 
 // 11) acc rate : tripdata_acc_rate
 int tripdata__init_accelation_rate();
@@ -92,14 +92,14 @@ int tripdata__init_stop_rate();
 int tripdata__get_stop_rate();
 
 // 15) PKE : tripdata_pke
-int tripdata__init_PKE();
-int tripdata__get_PKE();
-int tripdata__calc_PKE(int cur_speed);
+float tripdata__init_PKE();
+float tripdata__get_PKE();
+float tripdata__calc_PKE(int cur_speed);
 
 // 16) PRA : tripdata_rpa
-int tripdata__init_RPA();
-int tripdata__get_RPA();
-int tripdata__calc_RPA(float acceleration, float speed);
+float tripdata__init_RPA();
+float tripdata__get_RPA();
+float tripdata__calc_RPA(float acceleration, float speed);
 
 // 17) Mean acc : tripdata_mean_acc
 int tripdata__init_acc_avg();

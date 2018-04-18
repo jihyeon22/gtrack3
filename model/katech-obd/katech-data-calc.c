@@ -552,7 +552,7 @@ int tripdata__init_total_speed_avg()
 }
 
 // TODO : 형변환관련 추가
-int tripdata__get_total_speed_avg()
+float tripdata__get_total_speed_avg()
 {
     float total_distance = tripdata__get_driving_distance_km();
     int total_time_sec = tripdata__get_total_time_sec();
@@ -573,7 +573,7 @@ int tripdata__get_total_speed_avg()
         speed_avg = 0;
         //devel_webdm_send_log("%s : %d => err [%d] [%d]\n", __func__, __LINE__, total_distance, total_time_sec);
     }
-   // speed_avg = speed_avg * 100;
+   // speed_avg = speed_avg * 100; // CHK: 180418 ok!!
 
     return speed_avg;
 }
@@ -586,7 +586,7 @@ int tripdata__init_run_speed_avg()
     return 0;
 }
 
-int tripdata__get_run_speed_avg()
+float tripdata__get_run_speed_avg() // CHK: 180418 ok!!
 {
     float total_distance = tripdata__get_driving_distance_km();
     int total_time_sec = tripdata__get_driving_time_sec();
@@ -594,11 +594,12 @@ int tripdata__get_run_speed_avg()
     float speed_avg = 0;
 
     float calc_factor_1 = total_distance;
-    float calc_factor_2 = total_time_sec;
+    float calc_factor_2 = total_time_sec; 
+    float calc_factor_3 = 3600; // CHK: 180418 ok!!
 
     if ( calc_factor_2 > 0 )
     {
-        speed_avg = calc_factor_1 / calc_factor_2;
+        speed_avg = calc_factor_1 / calc_factor_2 / calc_factor_3; // CHK: 180418 ok!!
     }
     else
     {
@@ -606,7 +607,7 @@ int tripdata__get_run_speed_avg()
         //devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
     }
     
-    speed_avg = speed_avg * 100;
+    // speed_avg = speed_avg * 100;
 
     return speed_avg;
 }
@@ -648,7 +649,7 @@ int tripdata__get_accelation_rate()
 
 int tripdata__calc_accelation_rate(float acceleration, float speed)
 {
-    if ( ( acceleration >= 0.5 ) && (speed > 0) )
+    if ( ( acceleration >= 0.139 ) && (speed > 0) ) // NOTE: 180418 fix
     {
         #ifdef DEBUG_MSG_ACC_RATE
         OBD_DEBUG_PRINT("increase acc rate [%d]\r\n", _g_acceleration_rate);
@@ -696,7 +697,7 @@ int tripdata__get_deaccelation_rate()
 
 int tripdata__calc_deaccelation_rate(float acceleration, float speed)
 {
-    if ( ( acceleration <= -0.5 ) && (speed > 0) )
+    if ( ( acceleration <= -0.139 ) && (speed > 0) ) // NOTE: 180418 0.5 -> 0.139
     {
         #ifdef DEBUG_MSG_ACC_RATE
         OBD_DEBUG_PRINT("increase acc de rate [%d]\r\n", _g_deacceleration_rate);
@@ -720,7 +721,7 @@ int tripdata__init_cruise_rate()
 int tripdata__calc_cruise_rate(float acceleration, float speed)
 {
     
-    if ( ( acceleration >= -0.5 ) && ( acceleration <= 0.5 ) && (speed > 0) )
+    if ( ( acceleration > -0.139 ) && ( acceleration < 0.139 ) && (speed > 0) ) // NOTE: 180418 0.5 -> 0.139
     {
         #ifdef DEBUG_MSG_ACC_RATE
         OBD_DEBUG_PRINT("increase cruise rate [%d]\r\n", _g_cruise_rate);
@@ -790,15 +791,15 @@ int tripdata__get_stop_rate()
 // --------------------------------------------------
 // 15) PKE
 // --------------------------------------------------
-static int _g_pke_value;
-int tripdata__init_PKE()
+static float _g_pke_value;
+float tripdata__init_PKE()
 {
     _g_pke_value = 0;
     return _g_pke_value;
 }
 
 
-int tripdata__get_PKE()
+float tripdata__get_PKE()  // CHK: 180418 ok!!
 {
     float driving_distance = tripdata__get_driving_distance_km();
 
@@ -820,31 +821,32 @@ int tripdata__get_PKE()
     }
 
     OBD_DEBUG_PRINT("              --> tripdata__get_PKE is [%f]/[%f] -> [%f]\r\n", calc_factor_1, calc_factor_2, tmp_pke_val);
-    //tmp_pke_val = tmp_pke_val * 1000;
-    tmp_pke_val = tmp_pke_val * 100;
 
-    
+    // tmp_pke_val = tmp_pke_val * 1000;
+    // tmp_pke_val = tmp_pke_val * 100;   // FIX: 180418 remove
+
     return tmp_pke_val;
 }
 
 
-int tripdata__calc_PKE(int cur_speed)
+float tripdata__calc_PKE(int cur_speed) // CHK: 180418 ok!!
 {
+    //static float speed_last = 0;
+    //float cur_speed = cur_speed_i;
     static int speed_last = 0;
 
     if ( cur_speed > speed_last )
     {
-        OBD_DEBUG_PRINT("1 >> cur_speed [%d] / speed_last [%d] / _g_pke_value [%f]\r\n",cur_speed, speed_last, _g_pke_value);
+        OBD_DEBUG_PRINT("1 >> cur_speed [%f] / speed_last [%f] / _g_pke_value [%f]\r\n",cur_speed, speed_last, _g_pke_value);
         _g_pke_value = _g_pke_value + ( cur_speed ^ 2 ) - (speed_last ^ 2);
     }
     else
     {
-        OBD_DEBUG_PRINT("2 >> cur_speed [%d] / speed_last [%d] / _g_pke_value [%f]\r\n",cur_speed, speed_last, _g_pke_value);
+        OBD_DEBUG_PRINT("2 >> cur_speed [%f] / speed_last [%f] / _g_pke_value [%f]\r\n",cur_speed, speed_last, _g_pke_value);
     }
 
     speed_last = cur_speed;
 
-    
     return _g_pke_value;
 }
 
@@ -852,13 +854,13 @@ int tripdata__calc_PKE(int cur_speed)
 // 16) PRA
 // --------------------------------------------------
 static float _g_rpa_value;
-int tripdata__init_RPA()
+float tripdata__init_RPA()
 {
     _g_rpa_value = 0;
     return _g_rpa_value;
 }
 
-int tripdata__get_RPA()
+float tripdata__get_RPA()
 {
     float tmp_rpa = 0 ;
     float driving_distance = tripdata__get_driving_distance_km();
@@ -881,12 +883,12 @@ int tripdata__get_RPA()
 
     OBD_DEBUG_PRINT("              --> tripdata__get_RPA is [%f]/[%f] -> [%f]\r\n", calc_factor_1, calc_factor_2, tmp_rpa);
     //tmp_rpa = tmp_rpa * 1000;
-    tmp_rpa = tmp_rpa * 100;
+    // tmp_rpa = tmp_rpa * 100; // FIX : 180418 remove
 
     return tmp_rpa;
 }
 
-int tripdata__calc_RPA(float acceleration, float speed)
+float tripdata__calc_RPA(float acceleration, float speed) // CHK: 180418 ok!!
 {
     float tmp_speed = speed ;
 
@@ -894,8 +896,10 @@ int tripdata__calc_RPA(float acceleration, float speed)
     float calc_factor_2 = 3.6;
 
     if ( acceleration > 0 )
-        tmp_rpa = (acceleration * tmp_speed) / calc_factor_2;
-
+    {
+        tmp_rpa = (acceleration * tmp_speed);
+        tmp_rpa = tmp_rpa  / calc_factor_2;
+    }
 
     _g_rpa_value += tmp_rpa;
     OBD_DEBUG_PRINT(" _g_rpa_value ::: [%f]\r\n", _g_rpa_value);
@@ -935,7 +939,7 @@ int tripdata__get_acc_avg()
         //devel_webdm_send_log("%s : %d => err \n", __func__, __LINE__);
     }
 
-    tmp_acc_avg = tmp_acc_avg * 100;
+    //tmp_acc_avg = tmp_acc_avg * 100; // FIX : 180418 remove
 
     // printf("tripdata__get_acc_avg :: [%f][%f] \r\n",tmp_acc_avg, tmp_acc_avg);
     return tmp_acc_avg;
@@ -1514,7 +1518,7 @@ int timeserise_calc__exhaus_gas_mass_fr(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_
 
     OBD_DEBUG_PRINT("%s() -> [%f], [%d]\r\n", __func__, exh_fr, (int)exh_fr);
 
-    exh_fr = exh_fr * 10.0;
+    // exh_fr = exh_fr * 10.0; // NOTE: 180418 remove
     return (int)exh_fr;
 }
 
@@ -1534,7 +1538,7 @@ int timeserise_calc__accessory_power(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD
     return (int)acc_power;
 }
 
-// 87 Acceleration
+// 87 Acceleration // CHK: 180418 ok!!
 int timeserise_calc__acceleration(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_TA2_T* ta2_buff)
 {
     //Post.acc(i)=(Post.VS_corr(i+1)-Post.VS_corr(i-1))/7.2;
@@ -1558,18 +1562,18 @@ int timeserise_calc__acceleration(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DA
 
     OBD_DEBUG_PRINT("%s() -> [%f], [%d]\r\n", __func__, tmp_accelation, (int)tmp_accelation);
 
-    // tmp_accelation = tmp_accelation * 500.0;
+    // tmp_accelation = tmp_accelation * 500.0;  // NOTE: 180418
     return (int)tmp_accelation;
 }
 
-//  88 Corrected vehicle speed
+//  88 Corrected vehicle speed // CHK: 180418 ok!!
 int timeserise_calc__corr_v_speed(SECO_CMD_DATA_SRR_TA1_T* ta1_buff, SECO_CMD_DATA_SRR_TA2_T* ta2_buff)
 {
     float veh_speed = ta1_buff->obd_data[eOBD_CMD_SRR_TA1_SPD].data;
 
     OBD_DEBUG_PRINT("%s() -> [%f], [%d]\r\n", __func__, veh_speed, (int)veh_speed);
 
-    veh_speed = veh_speed * 100.0;
+    //veh_speed = veh_speed * 100.0; // NOTE: 180418 remove 
     return (int)veh_speed;
 }
 

@@ -39,6 +39,8 @@ static int flag_run_thread_main = 1;
 
 static int trip_status = 0;
 
+static int tl500_power_stat = 0;
+
 gpsData_t g_gpsdata;
 
 static void wait_time_sync()
@@ -107,31 +109,27 @@ void ignition_on_callback(void)
 	printf("ignition on callback!!!!\r\n");
 	printf("ignition on callback!!!!\r\n");
 
-    wait_time_sync();
+    tl500_power_stat = 1;
+    // wait_time_sync();
 
-	start_tripdata();
 }
 
 void ignition_off_callback(void)
 {
-    wait_time_sync();
-
+    // wait_time_sync();
+    tl500_power_stat = 0;
 	printf("ignition off callback!!!!\r\n");
 	printf("ignition off callback!!!!\r\n");
 	printf("ignition off callback!!!!\r\n");
 
-    end_tripdata();
-
-    gpsData_t cur_gpsdata = {0,};
-    
-    gps_get_curr_data(&cur_gpsdata);
-    katech_pkt_1_insert_and_send(&cur_gpsdata, KATECH_PKT_IMMEDIATELY_SEND);
-    //katech_pkt_2_insert_and_send(&cur_gpsdata, KATECH_PKT_IMMEDIATELY_SEND);
+    // katech_pkt_2_insert_and_send(&cur_gpsdata, KATECH_PKT_IMMEDIATELY_SEND);
 }
 
 void power_on_callback(void)
 {
 	set_obd_auto_poweroff_sec(60);
+
+
 }
 
 void power_off_callback(void)
@@ -174,14 +172,20 @@ void main_loop_callback(void)
 	int time_cnt = 0;
 	int auth_fail_chk_cnt = 0;
 
-    
+    static int last_tl500_power_stat = -1;
+
 	katech_obd_mgr__timeserise_calc_init();
 	
     wait_time_sync();
 
 	while(flag_run_thread_main)
 	{
+        printf("[MAIN] power stat [%d]/[%d]\r\n", last_tl500_power_stat, tl500_power_stat);
+
+
         watchdog_set_cur_ktime(eWdMain);
+
+
         // -------------------------------------------------------
         // server auth senario
         // -------------------------------------------------------
@@ -193,24 +197,70 @@ void main_loop_callback(void)
             LOGI(LOG_TARGET, "MAIN :: SEND AUTH PKT [%d]\n", katech_tools__get_svr_stat());
             katech_pkt_auth_send();
         }
-        
-        // 잡혔을때..
-        if ( g_cur_gpsdata.active == 1 ) 
+
+        // -------------------------------------------------------
+        // power off sernaio... do nothing..
+        // -------------------------------------------------------
+        if ( tl500_power_stat == 1 )
         {
-            LOGT(LOG_TARGET, "[MAIN THREAD] GPS DATA GET OK ..\n");
-            mileage_process(&g_cur_gpsdata);
-            katech_pkt_1_insert_and_send(&g_cur_gpsdata, KATECH_PKT_INTERVAL_SEND);
+            /*
+            // 잡혔을때..
+            if ( g_cur_gpsdata.active == 1 ) 
+            {
+                LOGT(LOG_TARGET, "[MAIN THREAD] GPS DATA GET OK ..\n");
+                mileage_process(&g_cur_gpsdata);
+                katech_pkt_1_insert_and_send(&g_cur_gpsdata, KATECH_PKT_INTERVAL_SEND);
+            }
+            else // 안잡혔을때..
+            {
+                gpsData_t last_gpsdata = {0,};
+                LOGE(LOG_TARGET, "[MAIN THREAD] GPS DATA GET NOK ..\n");
+                gps_valid_data_get(&last_gpsdata);
+                last_gpsdata.satellite = 0;
+                katech_pkt_1_insert_and_send(&last_gpsdata, KATECH_PKT_INTERVAL_SEND);
+            }
+            */
+
+           LOGT(LOG_TARGET, "MAIN :: POWER ON CALC DATA... [%d]/[%d]\n", last_tl500_power_stat, tl500_power_stat);
+           
+            katech_pkt_1_insert_and_send(NULL, KATECH_PKT_INTERVAL_SEND);
+            calc_tripdata();
+
+            
         }
-        else // 안잡혔을때..
+        else
         {
-            gpsData_t last_gpsdata = {0,};
-            LOGE(LOG_TARGET, "[MAIN THREAD] GPS DATA GET NOK ..\n");
-            gps_valid_data_get(&last_gpsdata);
-            last_gpsdata.satellite = 0;
-            katech_pkt_1_insert_and_send(&last_gpsdata, KATECH_PKT_INTERVAL_SEND);
+            LOGE(LOG_TARGET, "MAIN :: POWER OFF DO NOTHING... [%d]/[%d]\n", last_tl500_power_stat, tl500_power_stat);
         }
-        
-        calc_tripdata();
+
+        // key on callback.
+        if ( ( last_tl500_power_stat != tl500_power_stat) && ( tl500_power_stat == 1 ) )
+        {
+            LOGI(LOG_TARGET, "MAIN :: POWER ON SIMUL CALLBACK  [%d]/[%d]\n", last_tl500_power_stat, tl500_power_stat);
+            LOGI(LOG_TARGET, "MAIN :: POWER ON SIMUL CALLBACK  [%d]/[%d]\n", last_tl500_power_stat, tl500_power_stat);
+            LOGI(LOG_TARGET, "MAIN :: POWER ON SIMUL CALLBACK  [%d]/[%d]\n", last_tl500_power_stat, tl500_power_stat);
+            LOGI(LOG_TARGET, "MAIN :: POWER ON SIMUL CALLBACK  [%d]/[%d]\n", last_tl500_power_stat, tl500_power_stat);
+
+            start_tripdata();
+        }
+
+        // key off callback.
+        if ( ( last_tl500_power_stat != tl500_power_stat) && ( tl500_power_stat == 0 ) )
+        {
+            gpsData_t cur_gpsdata = {0,};
+
+            LOGI(LOG_TARGET, "MAIN :: POWER OFF SIMUL CALLBACK  [%d]/[%d]\n", last_tl500_power_stat, tl500_power_stat);
+            LOGI(LOG_TARGET, "MAIN :: POWER OFF SIMUL CALLBACK  [%d]/[%d]\n", last_tl500_power_stat, tl500_power_stat);
+            LOGI(LOG_TARGET, "MAIN :: POWER OFF SIMUL CALLBACK  [%d]/[%d]\n", last_tl500_power_stat, tl500_power_stat);
+            LOGI(LOG_TARGET, "MAIN :: POWER OFF SIMUL CALLBACK  [%d]/[%d]\n", last_tl500_power_stat, tl500_power_stat);
+
+            end_tripdata();
+
+            gps_get_curr_data(&cur_gpsdata);
+            katech_pkt_1_insert_and_send(NULL, KATECH_PKT_IMMEDIATELY_SEND);
+        }
+
+        last_tl500_power_stat = tl500_power_stat;
 
 		time_cnt++;
 		sleep(1);

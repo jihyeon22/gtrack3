@@ -245,12 +245,18 @@ int katech_pkt_1_insert_and_send(gpsData_t* p_gpsdata, int force_send)
     float tmp_float_val = 0;
 
 	int collect_cnt = 0; 
+
+    static int last_mdm_date;
+    static int last_mdm_time;
 	
 	SECO_CMD_DATA_SRR_TA1_T srr_data_ta1;
 	SECO_CMD_DATA_SRR_TA2_T srr_data_ta2;
 
     memset(&srr_data_ta1, 0x00, sizeof(srr_data_ta1));
     memset(&srr_data_ta2, 0x00, sizeof(srr_data_ta2));
+
+    gpsData_t last_gpsdata = {0,};
+    gpsData_t cur_gpsdata = {0,};
 
     collect_cnt = get_report_interval();
 
@@ -261,6 +267,24 @@ int katech_pkt_1_insert_and_send(gpsData_t* p_gpsdata, int force_send)
 		LOGE(LOG_TARGET, "%s> report packet malloc error : %d\n", __func__, errno);
 		return KATECH_PKT_RET_FAIL_CANNOT_MALLOC;
 	}
+
+    if ( p_gpsdata == NULL )
+    {
+        gps_get_curr_data(&cur_gpsdata);
+
+        if ( cur_gpsdata.active == 1 ) 
+        {
+            LOGT(LOG_TARGET, "[MAIN THREAD] GPS DATA GET OK ..\n");
+            p_gpsdata = &cur_gpsdata;
+        }
+        else
+        {
+            LOGE(LOG_TARGET, "[MAIN THREAD] GPS DATA GET NOK ..\n");
+            gps_valid_data_get(&last_gpsdata);
+            last_gpsdata.satellite = 0;
+            p_gpsdata = &last_gpsdata;
+        }
+    }
 
 	// GET OBD DATA...
 	katech_obd_mgr__get_ta1_obd_info(&srr_data_ta1);
@@ -284,11 +308,22 @@ int katech_pkt_1_insert_and_send(gpsData_t* p_gpsdata, int force_send)
 		// printf("%s() - mux_body.mdm_time is [%d]\r\n", __func__, pkt_body->mdm_time);
 	}
     
+    // filer invalid time..
+    if ( ( last_mdm_date == pkt_body->mdm_date ) && ( last_mdm_time == pkt_body->mdm_time) )
+    {
+        LOGE(LOG_TARGET, "%s> same mdm time : skip routine.. \n", __func__);
+        return 0;
+    }
+
+
+    last_mdm_date = pkt_body->mdm_date;
+    last_mdm_time = pkt_body->mdm_time;
     
 	// -------- modem gps data  --------------
     {
         // gps mux
-        pkt_body->mdm_gps_time = ( p_gpsdata->hour*10000 + p_gpsdata->min*100 + p_gpsdata->sec ) * 100;
+        //pkt_body->mdm_gps_time = ( p_gpsdata->hour*10000 + p_gpsdata->min*100 + p_gpsdata->sec ) * 100;
+        pkt_body->mdm_gps_time =  pkt_body->mdm_time; // NOTE: 일단 시간싱크로 인해서 중복시간발생? 그래서 그냥 같게한다.
         //printf("%s() - mux_body.gps_time is [%d]\r\n", __func__, pkt_body->mdm_gps_time);
         pkt_body->mdm_gps_long =  p_gpsdata->lat*1000000;
         //printf("%s() - mux_body.gps_long is [%d]\r\n", __func__, mux_body.gps_long);
@@ -438,7 +473,7 @@ int katech_pkt_1_insert_and_send(gpsData_t* p_gpsdata, int force_send)
 
 	tmp_int_val = timeserise_calc__exhaus_gas_mass_fr(&srr_data_ta1,&srr_data_ta2);
     //tmp_int_val = tmp_int_val * 100;
-    tmp_int_val = tmp_int_val * 10; // FIXME: 180308 fix
+    tmp_int_val = tmp_int_val * 10; // NOTE: 180308 fix // CHK: 180418 ok!!
     _pkt_data_convert(tmp_int_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_exhaust_gas_flowrate ) );     // 82
     
 	tmp_int_val = timeserise_calc__accessory_power(&srr_data_ta1,&srr_data_ta2);
@@ -448,10 +483,11 @@ int katech_pkt_1_insert_and_send(gpsData_t* p_gpsdata, int force_send)
 	tmp_float_val = timeserise_calc__acceleration(&srr_data_ta1,&srr_data_ta2);
     tmp_float_val = tmp_float_val + 0.64;
     tmp_float_val = tmp_float_val * 20;
+    tmp_float_val = tmp_float_val + 0.5; // NOTE: 180418 add // CHK: 180418 ok!!
     _pkt_data_convert((int)tmp_float_val, SIGNED_1_BYTE , (char*)(&pkt_body->obd_acceleration ) );       // 87
 
 	tmp_int_val = timeserise_calc__corr_v_speed(&srr_data_ta1,&srr_data_ta2);
-    tmp_int_val = tmp_int_val * 100;
+    tmp_int_val = tmp_int_val * 100; // CHK: 180418 ok!!
     _pkt_data_convert(tmp_int_val, UNSIGNED_2_BYTE , (char*)(&pkt_body->obd_cor_speed ) );          // 88
 
 	tmp_int_val = timeserise_calc__garde(&srr_data_ta1,&srr_data_ta2);
@@ -650,14 +686,28 @@ int katech_pkt_2_insert_and_send()
 	pkt_body->tripdata_stop_time = tripdata__get_stoptime_sec();
 	pkt_body->tripdata_driving_dist = tripdata__get_driving_distance_km() * 100;
 	pkt_body->tripdata_num_of_stop = tripdata__get_stop_cnt();
-	pkt_body->tripdata_mean_spd_w_stop = tripdata__get_total_speed_avg() * 100;
-	pkt_body->tripdata_mean_spd_wo_stop = tripdata__get_run_speed_avg() * 100;
+
+    tmp_float_val = tripdata__get_total_speed_avg();
+    tmp_float_val = tmp_float_val * 100;
+	pkt_body->tripdata_mean_spd_w_stop = tmp_float_val; // CHK: 180418 ok!!
+    
+    tmp_float_val = tripdata__get_run_speed_avg();
+    tmp_float_val = tmp_float_val * 100;
+	pkt_body->tripdata_mean_spd_wo_stop = tmp_float_val; // CHK: 180418 ok!!
+
 	pkt_body->tripdata_acc_rate = tripdata__get_accelation_rate() * 255/100;
 	pkt_body->tripdata_dec_rate = tripdata__get_deaccelation_rate() * 255/100;
 	pkt_body->tripdata_cruise_rate = tripdata__get_cruise_rate() * 255/100;
 	pkt_body->tripdata_stop_rate = tripdata__get_stop_rate() * 255/100;
-	pkt_body->tripdata_pke = tripdata__get_PKE() * 25;
-	pkt_body->tripdata_rpa = tripdata__get_RPA() * 25;
+
+    tmp_float_val = tripdata__get_PKE();
+    tmp_float_val = tmp_float_val * 25;
+	pkt_body->tripdata_pke = tmp_float_val;  // CHK: 180418 ok!!
+
+    tmp_float_val = tripdata__get_RPA();
+    tmp_float_val = tmp_float_val * 25;
+	pkt_body->tripdata_rpa = tmp_float_val;  // CHK: 180418 ok!!
+    
 	pkt_body->tripdata_mean_acc = tripdata__get_acc_avg() * 25;
 	pkt_body->tripdata_cold_rate = tripdata__get_cold_rate() * 255/100;
 	pkt_body->tripdata_warm = tripdata__get_warm_rate() * 255/100;
