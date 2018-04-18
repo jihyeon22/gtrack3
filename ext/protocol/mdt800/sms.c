@@ -30,7 +30,9 @@
 #include "gps_utill.h"
 #include "file_mileage.h"
 
-
+#ifdef SERVER_ABBR_BICD
+#error "BICD MODEL IS NOT USE THIS CODE"
+#endif
 
 static int _server_ip_set(int argc, char **argv);
 static int _rpt_cycle_keyon(int argc, char **argv);

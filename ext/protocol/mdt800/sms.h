@@ -1,6 +1,9 @@
 #ifndef __MDT800_SMS_H__
 #define __MDT800_SMS_H__
 
+#ifdef SERVER_ABBR_BICD
+#error "BICD MODEL IS NOT USE THIS CODE"
+#endif
 
 #ifdef CORP_ABBR_HNR
 // 하누리티엔의 경우 mdt 프로토콜은 같지만 
