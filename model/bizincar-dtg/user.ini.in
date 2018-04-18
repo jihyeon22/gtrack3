@@ -1,0 +1,21 @@
+[user]
+model_name=bicd
+date=160318
+report_ip=13.124.141.97
+report_port=7000
+collect_interval_keyon = 60
+report_interval_keyon = 60
+collect_interval_keyoff = 60
+report_interval_keyoff = 60
+
+[dtg]
+report_ip=13.124.241.79
+report_port=7000
+collect_interval_keyon = 1
+report_interval_keyon = 180
+collect_interval_keyoff = 1
+report_interval_keyoff = 60
+
+[dvr]
+report_ip=13.124.246.47
+report_port=7000
