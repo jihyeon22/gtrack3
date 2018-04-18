@@ -6,7 +6,11 @@
 #include <tacom/tacom_std_protocol.h>
 #include <tacom/tacom_inc.h>
 
+#ifdef SERVER_ABBR_BICD
+#define DTG_TTY_DEV_NAME	"/dev/ttyHSL2"
+#else
 #define DTG_TTY_DEV_NAME	"/dev/ttyHSL1"
+#endif
 //#define DTG_TTY_DEV_NAME	"/dev/ttyHSL2"
 
 enum tacom_stat {

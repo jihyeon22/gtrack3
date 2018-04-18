@@ -2,11 +2,15 @@
 # DTG COMMON CONFIG
 # ===========================================================
 ifeq ($(USE_DTG_MODEL),y)
-DTG_COMMON_OBJ += ext/dev/dtg/tacoc/common_sms.o \
-				  ext/dev/dtg/tacoc/common_mdmc.o \
+
+DTG_COMMON_OBJ += ext/dev/dtg/tacoc/common_mdmc.o \
 				  ext/dev/dtg/tacoc/common_debug.o \
 				  ext/dev/dtg/tacoc/tacoc_local.o \
 				  ext/dev/dtg/tacoc/tacoc.o \
+
+ifneq ($(DTG_SERVER),gtrack_tool)
+DTG_COMMON_OBJ += ext/dev/dtg/tacoc/common_sms.o
+endif
 
 DTG_COMMON_OBJ += ext/dev/dtg/wrapper/dtg_atcmd.o \
 				  ext/dev/dtg/wrapper/dtg_convtools.o \
@@ -144,6 +148,14 @@ DTG_SERVER_OBJ += ext/dev/dtg/tacoc/model/moram/dtg_data_manage.o            \
 DTG_SERVER_CFLAGS += -I./ext/dev/dtg/tacoc/model/moram/inc/
 DTG_SERVER_CFLAGS += -DSERVER_MODEL_MORAM
 # ----------------------------------------------------
+else ifeq ($(DTG_SERVER),gtrack_tool)
+DTG_CONFIG_FILE=moram.ini
+DTG_SERVER_OBJ += ext/dev/dtg/tacoc/model/gtrack_tool/tacoc_api.o
+DTG_SERVER_OBJ += ext/dev/dtg/tacoc/model/gtrack_tool/dtg_config.o
+
+	
+DTG_SERVER_CFLAGS += -I./ext/dev/dtg/tacoc/model/gtrack_tool/inc/
+DTG_SERVER_CFLAGS += -DSERVER_MODEL_DTG_GTRACK_TOOL
 else
 $(error DTG_SERVER is not correct, please define correct DTG_SERVER)
 endif

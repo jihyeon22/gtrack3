@@ -72,5 +72,11 @@ typedef struct {
 extern const struct tm_ops cy_ops;
 extern struct tacom_setup cy_setup;
 
-int cy_unreaded_records_num (TACOM *tm);
+int cy_unreaded_records_num ();
+
+#ifdef SERVER_ABBR_BICD
+// cy dtg force send cmd
+void cy_send_cmd_force_send(char* cmd_code);
+#endif
+
 #endif /* _TACOM_CHOYOUNG_PROTOCOL_H_ */

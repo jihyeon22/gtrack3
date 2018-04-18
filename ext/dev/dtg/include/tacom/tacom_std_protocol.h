@@ -44,4 +44,11 @@ struct tacom_std_data {
 typedef struct tacom_std_data tacom_std_data_t;
 #pragma pack(pop)
 
+
+
+#ifdef SERVER_MODEL_DTG_GTRACK_TOOL
+int taco_gtrack_tool__set_cur_std_data(tacom_std_data_t *p_std_data);
+int taco_gtrack_tool__get_cur_std_data(tacom_std_data_t *p_std_data);
+#endif
+
 #endif 

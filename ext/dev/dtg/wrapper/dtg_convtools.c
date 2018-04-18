@@ -33,6 +33,19 @@ double char_mbtod(char *srcptr, int size)
 	return result;
 }
 
+
+float char_mbtof(char *srcptr, int size)
+{
+	char tmp_buf[128];
+	float result;
+
+	memset(tmp_buf, 0x00, sizeof(tmp_buf));
+	memcpy(tmp_buf, srcptr, size);
+	result = atof(tmp_buf);
+	return result;
+}
+
+
 bool bcc_check(unsigned char bcc, void *data, size_t size)
 {
 	int i;

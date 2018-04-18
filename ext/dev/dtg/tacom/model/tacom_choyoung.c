@@ -27,6 +27,8 @@ extern int dtg_uart_fd;
 static int valid_check(char *buf, int size);
 int cy_ack_records( int readed_bytes);
 
+static int data_convert(tacom_std_data_t *std_data, tacom_cy_data_t *cy_data);
+
 struct tacom_setup cy_setup  = {
 	.tacom_dev				= "TACOM CHOYOUNG : ",
 	.cmd_rl					= "800201",
@@ -92,6 +94,48 @@ void wait_taco_unill_power_on()
 	}
 }
 #endif	
+
+#ifdef SERVER_ABBR_BICD
+// cy dtg force send cmd
+void cy_send_cmd_force_send(char* cmd_code)
+{
+    char cmdstr[32] = {0};
+    unsigned char tmp[2] = {0};
+    unsigned char *crc_data;
+    int str_idx = 0;
+    unsigned short crc16_value;
+    int i = 0;
+    int result;
+
+    if(dtg_uart_fd > 0)
+		result = write(dtg_uart_fd, &cmdstr[i], 1);
+
+    crc16_value = mds_api_crc16_get(NULL, 0);
+    crc16_value = mds_api_crc16_get(cmd_code, strlen(cmd_code));
+    
+    crc_data = (unsigned char *)&crc16_value;
+    tmp[0] = crc_data[(cy_setup.conf_flag >> 
+                        TACOM_CRC_ENDIAN1_BIT) & 0x1];
+    tmp[1] = crc_data[(cy_setup.conf_flag >> 
+                        TACOM_CRC_ENDIAN0_BIT) & 0x1];
+    unsigned short *tmp_short = (unsigned short *)tmp;
+
+    str_idx += sprintf(cmdstr+str_idx, "$80%02d%s%04x", strlen(cmd_code), cmd_code, *tmp_short);
+
+    printf("cy senc cmd !!!!!!!!!!!!!!!!! [%s][%s][%d]\r\n", cmd_code, cmdstr, str_idx);
+    
+    cmdstr[str_idx++] = 0x0d;
+	cmdstr[str_idx++] = 0x0a;
+
+    result = -1;
+    
+    if(dtg_uart_fd > 0)
+        result = write(dtg_uart_fd, &cmdstr[i], str_idx);
+
+    return result;
+
+}
+#endif
 
 static void *cy_send_cmd_thread (void *pargs)
 {
@@ -349,7 +393,7 @@ int data_extract(unsigned char *dest, int dest_len, unsigned char *un_do_buf, in
 	int i;
 	int ret;
 
-	DTG_LOGD("dtg data recv [%s]/[%d]\r\n", dest, dest_len);
+	//DTG_LOGD("dtg data recv [%s]/[%d]\r\n", dest, dest_len);
 #if defined(BOARD_TL500S) || defined(BOARD_TL500K)
 	if(led_init == 0)
 	{
@@ -417,7 +461,20 @@ int data_extract(unsigned char *dest, int dest_len, unsigned char *un_do_buf, in
 							*******************************************************************/
 							//if(memcmp(p_cydata->date_time, read_curr_buf.date_time, 14) != 0)
 							if(strncmp(p_cydata->date_time, read_curr_buf.date_time, 14)  > 0)
+                            {
 								store_recv_bank(&op_data_buf[i], sizeof(tacom_cy_data_t));
+                            #ifdef SERVER_MODEL_DTG_GTRACK_TOOL
+                                {
+                                    tacom_cy_data_t cy_data;
+                                    tacom_std_data_t std_data;
+                                    
+                                    memcpy(&cy_data, &op_data_buf[i], sizeof(tacom_cy_data_t));
+                                    data_convert(&std_data, &cy_data);
+                                    taco_gtrack_tool__set_cur_std_data(&std_data);
+                                //    printf(" ---->>>>> get current data\r\n");
+                                }
+                            #endif
+                            }
 							else {
 								DTG_LOGE("============================================");
 								DTG_LOGE("RECEIVED SAME DATE FROM DTG");
@@ -433,6 +490,7 @@ int data_extract(unsigned char *dest, int dest_len, unsigned char *un_do_buf, in
 						}
 						else
 						{
+                            printf(" ---->>>>> get current data fail\r\n");
 							if(invalid_data_cnt > 30)
 							{
 //								// w200_led_set_color(W200_LED_GPS, W200_LED_R); // TODO: api fix
@@ -588,6 +646,7 @@ static int valid_check(char *buf, int size){
 	memcpy(tmp_crc, &buf[size-6], 4);
 	data_len = strtol(tmp_crc, &ptr, 16);
 	if(data_len == 0 || ptr == NULL){
+        DTG_LOGE("Valid Check ERR : [%d]\n", __LINE__ );
 		return -1;
 	}
 	data_crc = (unsigned short)data_len;
@@ -596,6 +655,7 @@ static int valid_check(char *buf, int size){
 	memcpy(tmp_len, &buf[3], 2);
 	data_len = strtol(tmp_len, &ptr, 10);
 	if(data_len == 0 || ptr == NULL || (data_len != size -11)){
+        DTG_LOGE("Valid Check ERR : [%d]\n", __LINE__ );
 		return -1;
 	}
 

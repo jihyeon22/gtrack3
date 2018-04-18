@@ -53,7 +53,10 @@ void tacoc_run(void)
 	DTG_LOGI("RUN");
 
 
-	
+#ifdef SERVER_MODEL_DTG_GTRACK_TOOL
+    main_process();
+    return 0 ;
+#endif
 #ifdef SERVER_ABBR_DSKL
 	while(1)
 	{
