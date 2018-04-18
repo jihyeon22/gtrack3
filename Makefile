@@ -110,6 +110,11 @@ SERVER_ABBR	:=	GTRS
 else ifeq ($(SERVER),bizincar)
 SERVER_ABBR := BIC
 USE_GPS_DEACTIVE_RESET=y
+else ifeq ($(SERVER),bizincar-dtg)
+SERVER_ABBR := BICD
+USE_GPS_DEACTIVE_RESET=y
+USE_GPS_MODEL=n
+USE_GPS_FAKE=y
 else ifeq ($(SERVER),moram)
 SERVER_ABBR := MRM
 else ifeq ($(SERVER),dtg-skel)
@@ -374,6 +379,11 @@ CFLAGS  += -DUSE_GPS_MODEL
 OBJS	+= base/gpstool.o base/mileage.o base/thread-gps.o
 endif
 
+ifeq ($(USE_GPS_FAKE),y)
+CFLAGS  += -DUSE_GPS_FAKE
+OBJS	+= util/gps_fake.o
+endif
+
 ifeq ($(USE_BUTTON_THREAD),y)
 CFLAGS  += -DUSE_BUTTON_THREAD
 OBJS	+= base/thread-btn-pwr.o
@@ -535,8 +545,14 @@ install-progchkg : $(CHKPROG_BIN)
 install-wdprogkg : $(WDPROG_BIN)
 	$(Q)fakeroot cp -v $(WDPROG_BIN) $(DESTDIR)$(WORK_PATH)
 	
+
+ifeq ($(USE_GPS_MODEL),y)
 install-gpsd : $(GPSD_BIN)
 	$(Q)fakeroot cp -v $(GPSD_BIN) $(DESTDIR)$(WORK_PATH)
+else 
+# not use gpsd to nothing..
+install-gpsd :
+endif
 
 install: check install-binary install-script install-pathrun install-rssh install-dlpkg install-emerkg install-monchkg install-progchkg install-wdprogkg install-gpsd $(WDPROG_BIN)
 		@echo CORP=$(CORP)

@@ -390,8 +390,9 @@ int main(int argc, char** argv)
 	//_initial_btn_check();
 
 	//led_noti(eLedcmd_SYSTEM_INIT);
-
+#if defined (BOARD_TL500S) || defined (BOARD_TL500K) || defined (BOARD_TL500L) 
 	_gpio_check();
+#endif
 
 	error_rm_no_mon();
 
