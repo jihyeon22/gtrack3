@@ -31,6 +31,8 @@
 #include "data-list.h"
 #include "user_func.h"
 
+#include <base/dmmgr.h>
+
 static int flag_run_thread_main = 1;
 
 #define UART_MAX_RECEIVE_LENGTH		(8*1024)
@@ -122,7 +124,18 @@ void main_loop_callback(void)
 	create_watchdog("gtrack.daily.reset", 60*60*48);
 	watchdog_set_cur_ktime(eWdMain);
 
+    // ------------------------------------------------------
+    // force send to key on evt;
+    // ------------------------------------------------------
+    dmmgr_send(eEVENT_KEY_ON, NULL, 0);
+    ignition_on_callback();
 
+    // ------------------------------------------------------
+    // force send to power on evt;
+    // ------------------------------------------------------
+    dmmgr_send(eEVENT_PWR_ON, NULL, 0);
+    power_on_callback();
+	
 	while(flag_run_thread_main && nettool_get_state() != DEFINES_MDS_OK) {
 		//LOGI(LOG_TARGET, "%s : first time wating untill network enable..\n", __func__);
 		LOGD(eSVC_MODEL, "%s : first time wating untill network enable..\n", __func__);
@@ -211,3 +224,10 @@ void exit_main_loop(void)
 
 	flag_run_thread_main = 0;
 }
+
+void network_fail_emergency_reset_callback(void)
+{
+
+    poweroff(NULL,0);
+}
+
