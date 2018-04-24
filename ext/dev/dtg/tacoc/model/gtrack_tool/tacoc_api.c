@@ -402,6 +402,7 @@ int taco_gtrack_tool__set_cur_std_data(tacom_std_data_t *p_std_data_in)
         taco_gtrack_tool__mutex_unlock();
     }
 
+    printf("taco_gtrack_tool__set_cur_std_data => key stat[%d]\r\n", p_std_data_in->key_stat);
 #ifdef USE_GPS_FAKE
     if ( dtg_year > 2016 )
     {

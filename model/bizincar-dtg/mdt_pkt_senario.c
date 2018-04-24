@@ -13,6 +13,8 @@
 #include <base/thermtool.h>
 #include <base/thread.h>
 #include <base/watchdog.h>
+#include <base/dmmgr.h>
+
 #include <board/modem-time.h>
 #include <board/power.h>
 #include <board/battery.h>
@@ -123,7 +125,16 @@ void gps_parse_one_context_callback_fake(void)
 		return;
 	}
 
-	create_report_data(eCYCLE_REPORT_EVC, p_packet, gpsdata);
+    if ( bizincar_dtg__key_stat() == 1)
+    {
+        printf("make key on report pkt\r\n");
+	    create_report_data(eCYCLE_REPORT_EVC, p_packet, gpsdata);
+    }
+    else
+    {
+        printf("make key off report pkt\r\n");
+        create_report_data(eIGN_OFF_EVT, p_packet, gpsdata);
+    }
 
     // init odo and fill dtg data..
     p_packet->vehicle_odo = bizincar_dtg__vehicle_odo();
@@ -138,6 +149,29 @@ void gps_parse_one_context_callback_fake(void)
 	return;
 }
 
+void fake_ignition_on_callback_mdt(void)
+{
+    // ------------------------------------------------------
+    // mdt pkt
+    // ------------------------------------------------------
+    dmmgr_send(eEVENT_KEY_ON, NULL, 0); 
+	sender_add_data_to_buffer(eIGN_ON_EVT, NULL, ePIPE_2);
+}
+
+
+void fake_ignition_off_callback_mdt(void) // do not use
+{
+    // ------------------------------------------------------
+    // mdt pkt
+    // ------------------------------------------------------
+    /*
+    sender_add_data_to_buffer(eIGN_OFF_EVT, NULL, ePIPE_2);
+	sender_add_data_to_buffer(eCYCLE_REPORT_EVC, NULL, ePIPE_1);
+	save_mileage_file(get_server_mileage() + get_gps_mileage());
+    */
+    dmmgr_send(eEVENT_KEY_OFF, NULL, 0); 
+}
+
 // ----------------------------------------------------------------
 // bizincar mdt main senario :: call 1sec
 // ----------------------------------------------------------------
@@ -149,8 +183,35 @@ int bizincar_mdt_pkt_sernaio()
 	int condition_send = 0;
     static int msg_print_cnt = 0;
 
+    static int last_key_stat = -1;
+    int cur_key_stat = 0;
+
     gps_parse_one_context_callback_fake();
-    
+
+    // -----------------------------------------
+    // fake key sernaio......
+    // -----------------------------------------
+    cur_key_stat = bizincar_dtg__key_stat();
+
+    if (( last_key_stat != cur_key_stat ) && ( cur_key_stat == 1 )) // key on sernaio.
+    {
+        devel_webdm_send_log("FAKE KEY ON");
+        LOGI(LOG_TARGET, "FAKE KEY ON SENARIO\r\n");
+        fake_ignition_on_callback_mdt();
+    }
+    else if ( ( last_key_stat != cur_key_stat ) && ( cur_key_stat == 0 )) // key off sernaio.
+    {
+        devel_webdm_send_log("FAKE KEY OFF");
+        LOGI(LOG_TARGET, "FAKE KEY OFF SENARIO\r\n");
+        fake_ignition_off_callback_mdt();
+        // do nothing..
+    }
+
+    last_key_stat = cur_key_stat;
+
+    // ---------------------------------------------
+    // mdt report data sernaio
+    // ---------------------------------------------
     report_interval = get_report_interval();
     collect_interval = get_collection_interval();
     if(msg_print_cnt++ > 5) {
@@ -311,9 +372,12 @@ int bizincar_mdt__parse_resp(bizincar_mdt_response_t* resp)
     int resp_code = -1;
     int ret_val = -1;
 
-    printf("%s() -> [%d]\r\n", __func__, __LINE__);
     resp_code = resp->packet_ret_code;
 
+    LOGI(LOG_TARGET, "%s > retcode [%d]\n", __func__, resp_code);
+    LOGI(LOG_TARGET, "%s > retcode [%d]\n", __func__, resp_code);
+    LOGI(LOG_TARGET, "%s > retcode [%d]\n", __func__, resp_code);
+    
     switch (resp_code)
     {
         case 0 : 
@@ -327,6 +391,5 @@ int bizincar_mdt__parse_resp(bizincar_mdt_response_t* resp)
             break;
     }   
 
-    printf("%s() -> [%d]\r\n", __func__, __LINE__);
     return ret_val;
 }

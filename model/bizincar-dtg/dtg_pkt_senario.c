@@ -189,6 +189,10 @@ int bizincar_dtg__parse_pkt(bizincar_dtg_respose_t* resp)
 
     resp_code = resp->packet_ret_code;
 
+    LOGI(LOG_TARGET, "%s > retcode [%d]\n", __func__, resp_code);
+    LOGI(LOG_TARGET, "%s > retcode [%d]\n", __func__, resp_code);
+    LOGI(LOG_TARGET, "%s > retcode [%d]\n", __func__, resp_code);
+    
     switch (resp_code)
     {
         case 0 : 
@@ -220,3 +224,16 @@ int bizincar_dtg__vehicle_odo()
     LOGI(LOG_TARGET, "%s > dtg odo [%d]\n", __func__, vehicle_odo);
     return vehicle_odo;
 }
+
+
+int bizincar_dtg__key_stat()
+{
+    tacom_std_data_t std_taco_data = {0,};
+    int key_stat = 0;
+    taco_gtrack_tool__get_cur_std_data(&std_taco_data);
+    key_stat = std_taco_data.key_stat;;
+    // printf(" bizincar_dtg__key_stat() => [%d]\r\n", key_stat);
+    LOGI(LOG_TARGET, "%s > dtg key_stat [%d]\n", __func__, key_stat);
+    return key_stat;
+}
+

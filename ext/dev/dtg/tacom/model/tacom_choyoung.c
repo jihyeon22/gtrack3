@@ -430,7 +430,8 @@ int data_extract(unsigned char *dest, int dest_len, unsigned char *un_do_buf, in
 		{
 			if( (i + 2) < dest_len)
 			{
-				if(op_data_buf[i+1] == '2' && op_data_buf[i+2] == '0') //data
+				if ( (op_data_buf[i+1] == '2' && op_data_buf[i+2] == '0') || 
+                     (op_data_buf[i+1] == '2' && op_data_buf[i+2] == '7') ) //data add : key off data..
 				{
 					if( (i + sizeof(tacom_cy_data_t)) <= dest_len)
 					{
@@ -687,7 +688,7 @@ static int data_convert(tacom_std_data_t *std_data, tacom_cy_data_t *cy_data) {
 #ifdef SIMULATTION_DATA_ENABLE
 	char tmp_buf[20]; //for test
 #endif
-
+    char tmp_packet_type[3+1] = {0,};
 	ret = valid_check((char *)cy_data, sizeof(tacom_cy_data_t));
 	if(ret < 0) {
 		DTG_LOGE("%s: wrong dtg data", __func__);
@@ -704,6 +705,24 @@ static int data_convert(tacom_std_data_t *std_data, tacom_cy_data_t *cy_data) {
 	memcpy(cy_data->acumul_run_dist, tmp_buf, 7);
 #endif
 
+#ifdef SERVER_MODEL_DTG_GTRACK_TOOL
+    memcpy(tmp_packet_type, cy_data->packet_type, 3);
+    if ( strcmp(tmp_packet_type, "$20") == 0 )
+    {
+//         printf("cy this msg is key on msg!!!!!!!\r\n");
+//        printf("cy this msg is key on msg!!!!!!!\r\n");
+//        printf("cy this msg is key on msg!!!!!!!\r\n");
+        std_data->key_stat = 1;
+    }
+    else if ( strcmp(tmp_packet_type, "$27") == 0 )
+    {
+//        printf("cy this msg is key off msg!!!!!!!\r\n");
+//        printf("cy this msg is key off msg!!!!!!!\r\n");
+//        printf("cy this msg is key off msg!!!!!!!\r\n");
+        std_data->key_stat = 0;
+    }
+
+#endif
 
 	memcpy(std_data->day_run_distance, cy_data->day_run_dist, 4);
 	memcpy(std_data->cumulative_run_distance, cy_data->acumul_run_dist, 7);

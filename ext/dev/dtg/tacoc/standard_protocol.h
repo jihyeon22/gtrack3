@@ -34,6 +34,11 @@ struct tacom_std_data {
 	char temperature_A[5];
 	char temperature_B[5];
 	char residual_oil[7];
+	
+#ifdef SERVER_MODEL_DTG_GTRACK_TOOL
+	int  key_stat;						// key 상태 추가 // 1: key on // 0 : key off
+#endif
+
 #if defined(DEVICE_MODEL_INNOCAR) || defined(DEVICE_MODEL_INNOSNS) || defined(DEVICE_MODEL_INNOSNS_DCU)
 	unsigned short k_factor;
 	char rpm_factor;
