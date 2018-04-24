@@ -116,7 +116,7 @@ void main_loop_callback(void)
 	printf("%d\n", *p_test);
 	printf("==========================================\n");
 	*/
-	check_internal_uart_use();
+	// check_internal_uart_use();
 
 	setting_network_param();
 	
