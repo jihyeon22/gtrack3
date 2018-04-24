@@ -2,11 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <fcntl.h>
+#include <time.h>
+
 #include <at/at_util.h>
 #include <base/gpstool.h>
 #include <base/thermtool.h>
 #include <board/battery.h>
 #include <board/power.h>
+#include <util/debug.h>
+
 #include "gps_utill.h"
 #include "gpsmng.h"
 #include "packet.h"
@@ -33,17 +38,37 @@ int is_available_report_divert_buffer(int cnt)
 	return 1;
 }
 
-int get_main_power_volt()
+int get_main_power_volt(int* car_volt_p)
 {
-	int voltage;
-	voltage = battery_get_battlevel_car();
-	//printf("voltage is [%d]\r\n",voltage);
-	
-	if(voltage < 0)
-		voltage = 0;
+	int car_voltage;
+    static int last_car_voltage;
 
-	voltage = voltage/100;
-	return voltage;
+    static time_t last_cycle = 0;
+    time_t cur_time = 0;
+	struct timeval tv;
+	struct tm ttm;
+	gettimeofday(&tv, NULL);
+	localtime_r(&tv.tv_sec, &ttm);
+
+    cur_time = mktime(&ttm);
+
+    if ( ( (cur_time - last_cycle) > 30 ) || ( last_cycle == 0 ) || ( last_car_voltage == 0 ))
+    {
+	    if ( at_get_adc_main_pwr(&car_voltage) == AT_RET_SUCCESS )
+        {
+            last_car_voltage = car_voltage;
+        }
+        last_cycle = cur_time;
+    }
+    else
+    {
+        printf("voltage calc skip..\r\n");
+    }
+
+	printf("/ [%d] sec / last sec [%d] / last vol [%d] \r\n",(cur_time - last_cycle), last_cycle, last_car_voltage);
+    *car_volt_p = last_car_voltage;
+
+	return AT_RET_SUCCESS;
 }
 
 unsigned char convert_angle(float azimuth)
@@ -77,7 +102,7 @@ static unsigned short saved_speed = 0;
 
 int create_report2_data(int ev_code, nisso_packet2_t *packet, gpsData_t gpsdata, char *record, int rec_len)
 {
-	char *ver = PRG_VER;
+//	char *ver = PRG_VER;
 	char phonenum[MAX_DEV_ID_LED] = {0,};
     unsigned int tmp_uint = 0;
 
@@ -189,7 +214,7 @@ int create_report2_data(int ev_code, nisso_packet2_t *packet, gpsData_t gpsdata,
 	{
 		int car_voltage = 0;
 		static int saved_car_voltage = 0;
-		if ( at_get_adc_main_pwr(&car_voltage) == AT_RET_SUCCESS )
+		if ( get_main_power_volt(&car_voltage) == AT_RET_SUCCESS )
 		{
 			if ( ( car_voltage > 0 ) &&  ( car_voltage < 52 ) )
 				saved_car_voltage = car_voltage;
@@ -205,7 +230,21 @@ int create_report2_data(int ev_code, nisso_packet2_t *packet, gpsData_t gpsdata,
 	//snprintf(packet->version, sizeof(packet->version) - 1 , "%c%c%c", ver[1], ver[2], ver[3]);
 	strcpy(packet->version, "002");
 
-	packet->reseved = get_nisso_pkt__invoice_info();
+#ifdef SERVER_ABBR_NIS0
+    {
+	    packet->reseved = get_nisso_pkt__invoice_info();
+    }
+#elif SERVER_ABBR_NIS1
+    // invoice info..
+    {
+        invoice_info_2_t invoice_info = {0,};
+        get_nisso_pkt__invoice_info_2(&invoice_info);
+	    packet->reseved = invoice_info.invoice;
+        strncpy(packet->invoice_date, invoice_info.p_str_invoice_date, 8);
+        strncpy(packet->invoice_num_1, invoice_info.p_str_invoice_info_num_1, 8);
+        strncpy(packet->invoice_num_2, invoice_info.p_str_invoice_info_num_2, 8);
+    }
+#endif
 
 	print_report2_data(*packet);
 
@@ -249,6 +288,12 @@ void print_report2_data(nisso_packet2_t packet)
 	printf("\tcreate_cycle_time = [%d]\n", packet.create_cycle_time);
 
 	printf("\tversion = [%.3s]\n", packet.version);
+    printf("\teseved = [%d]\n", packet.reseved);
+#ifdef SERVER_ABBR_NIS1
+    printf("\trinvoice_date = [%.3s]\n", packet.invoice_date);
+    printf("\trinvoice_num_1 = [%.3s]\n", packet.invoice_num_1);
+    printf("\trinvoice_num_2 = [%.3s]\n", packet.invoice_num_2);
+#endif
 
 }
 
@@ -256,6 +301,7 @@ static char _g_nisso_invoice_val = 0;
 char set_nisso_pkt__invoice_info(int invoice)
 {
 	_g_nisso_invoice_val = (char*)invoice;
+    return _g_nisso_invoice_val;
 }
 
 char get_nisso_pkt__invoice_info()
@@ -263,12 +309,45 @@ char get_nisso_pkt__invoice_info()
 	return _g_nisso_invoice_val;
 }
 
+static invoice_info_2_t _g_nisso_invoice_info_2 = {0,};
+int init_nisso_pkt__invoice_info_2()
+{
+    memset(&_g_nisso_invoice_info_2, 0x20, sizeof(invoice_info_2_t));
+    _g_nisso_invoice_info_2.invoice = 0;
+    return 1;
+}
+
+int set_nisso_pkt__invoice_info_2(invoice_info_2_t* p_invoice_info_2)
+{
+    if (p_invoice_info_2->invoice == 1 )
+    {
+        memcpy(&_g_nisso_invoice_info_2, p_invoice_info_2, sizeof(invoice_info_2_t));
+    }
+    return 1;
+}
+
+int get_nisso_pkt__invoice_info_2(invoice_info_2_t* p_invoice_info_2)
+{
+	memcpy(p_invoice_info_2, &_g_nisso_invoice_info_2, sizeof(invoice_info_2_t));
+    return 1;
+}
+
+void print_nisso_pkt__invoice_info_2()
+{
+    printf("invoice print -> invoice [%d]\r\n",_g_nisso_invoice_info_2.invoice);
+    printf("invoice print -> p_str_invoice_date [%s]\r\n",_g_nisso_invoice_info_2.p_str_invoice_date);
+    printf("invoice print -> p_str_invoice_info_num_1 [%s]\r\n",_g_nisso_invoice_info_2.p_str_invoice_info_num_1);
+    printf("invoice print -> p_str_invoice_info_num_2 [%s]\r\n",_g_nisso_invoice_info_2.p_str_invoice_info_num_2);
+}
+
+
 
 
 static char _g_nisso_powerstat = 0;
 char set_nisso_pkt__external_pwr(char pwr_stat)
 {
 	_g_nisso_powerstat = pwr_stat;
+    return _g_nisso_powerstat;
 }
 
 char get_nisso_pkt__external_pwr()

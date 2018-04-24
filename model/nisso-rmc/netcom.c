@@ -102,6 +102,10 @@ int make_period_packet(unsigned char **pbuf, unsigned short *packet_len)
 		{
 			if(list_pop(&gps_buffer_list, (void *)&p_packet2) < 0)
 				break;
+            
+            if ( p_packet2 == NULL )
+                break;
+            
 			data_length = sizeof(nisso_packet2_t);
 
 			crc = crc8(crc, (unsigned char *)p_packet2, data_length);
@@ -200,11 +204,19 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
 	int ret_val = -1;
     int fail_count = 0;
 
+    static int last_success_server_port = 0;
+    static char last_success_server_ip[40] = {0,};
+
 	printf("\n\nsend_packet : op[%d]============>\n", op);
 	hdlc_async_print_data(packet_buf, packet_len);
 	
 	while(1) 
 	{
+        watchdog_set_cur_ktime(eWdNet1);
+        watchdog_set_cur_ktime(eWdNet2);
+
+        setting_network_param();
+
 		memset(&svr_resp, 0x00, sizeof(svr_resp));
 		//res = transfer_packet_recv_etx(&gSetting_report, packet_buf, packet_len, svr_resp, sizeof(svr_resp), ']');
 #ifdef TEST_CODE_TEST_TEST__TEST
@@ -228,7 +240,20 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
             devel_webdm_send_log("pkt send recv fail");
 
         if (ret_val >= 0)
+        {
+            /*
+            memset(last_success_server_ip, 0x00, sizeof(last_success_server_ip));
+            last_success_server_port = gSetting_report.port;
+            strncpy(last_success_server_ip, gSetting_report.ip, 40);
+            LOGE(LOG_TARGET, "%s> recovery ip [%s][%d]\n", __func__, last_success_server_ip, last_success_server_port);
+            */
+
+           // every time save gps data..
+           	gps_valid_data_write();
+	        mileage_write();
+
             break;
+        }
         else
         {
             devel_webdm_send_log("pkt parse fail [%d]", fail_count);
@@ -239,20 +264,30 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
 		//wait_count = MAX_WAIT_RETRY_TIME/WAIT_INTERVAL_TIME;
 		//while(wait_count-- > 0) {
 		//	LOGI(LOG_TARGET, "%s> wait time count [%d]\n", __func__, wait_count);
+
+        if ( fail_count > 30 )
+        {
+            if ( last_success_server_port > 0 )
+            {
+                #if 0
+                LOGE(LOG_TARGET, "%s> recovery ip [%s][%d]\n", __func__, last_success_server_ip, last_success_server_port);
+                devel_webdm_send_log("recovery ip [%s][%d]", __func__, last_success_server_ip, last_success_server_port);
+
+                configurationModel_t * conf = get_config_model();
+                strncpy(conf->model.report_ip, last_success_server_ip, sizeof(conf->model.report_ip));
+	            conf->model.report_port = last_success_server_port;
+                save_config_user("user:report_ip", last_success_server_ip);
+                save_config_user("user:report_port", last_success_server_port);
+                #endif
+            }
+        }
+        
         fail_count ++;
 		sleep(WAIT_INTERVAL_TIME);
         if ( fail_count > PACKET_RETRY_COUNT )
             break;
 		//}
-		
-		if(op == eCYCLE_REPORT_EVC)
-		{
-			watchdog_set_cur_ktime(eWdNet1);
-		}
-		else
-		{
-			watchdog_set_cur_ktime(eWdNet2);
-		}
+
 	}
 
 #if SEND_MIRRORED_PACKET
@@ -307,7 +342,7 @@ int setting_network_param(void)
 	gSetting_report.retry_count_send = 1;
 	gSetting_report.retry_count_receive = 7;
 	gSetting_report.timeout_secs = 30;
-// ±âÁ¸
+// ï¿½ï¿½ï¿½ï¿½
 /*
 	configurationModel_t *conf = get_config_model();
 	strncpy(gSetting_report.ip, conf->model.report_ip, 40);

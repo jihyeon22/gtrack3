@@ -141,14 +141,27 @@ typedef struct {
 	unsigned char  gpio_status;
 	unsigned char  dev_power_level;
 	unsigned short create_cycle_time; /* unit : sec */
-	unsigned char version[3];
+	char version[3];
 	unsigned char reseved;
+#ifdef SERVER_ABBR_NIS1
+	char invoice_date[8];
+	char invoice_num_1[8];
+	char invoice_num_2[8];
+#endif
 }__attribute__((packed))nisso_packet2_t;
 
 typedef struct {
 	unsigned short time;
 	gps_pos_t gps_pos;
 }__attribute__((packed))etrace_packet_t;
+
+typedef struct {
+	unsigned char invoice;
+	char p_str_invoice_date[8+1];
+	char p_str_invoice_info_num_1[8+1];
+	char p_str_invoice_info_num_2[8+1];
+}__attribute__((packed))invoice_info_2_t;
+
 
 #pragma pack(pop)
 
@@ -157,14 +170,22 @@ void print_report2_data(nisso_packet2_t packet);
 int create_report2_divert_buffer(unsigned char **buf, int num);
 int is_available_report_divert_buffer(int cnt);
 
+// -- invoice api ver1
 char set_nisso_pkt__invoice_info(int invoice);
 char get_nisso_pkt__invoice_info();
+
+// -- invoice api ver2
+int init_nisso_pkt__invoice_info_2();
+int set_nisso_pkt__invoice_info_2(invoice_info_2_t* p_invoice_info_2);
+int get_nisso_pkt__invoice_info_2(invoice_info_2_t* p_invoice_info_2);
+void print_nisso_pkt__invoice_info_2();
 
 #define EXTERNAL_PWR_ON		1
 #define EXTERNAL_PWR_OFF	0
 
 char set_nisso_pkt__external_pwr(char pwr_stat);
 char get_nisso_pkt__external_pwr();
+
 
 
 #endif /* __MDT800_VEHICLE_GEO_TRACK_PACKET_HEADER_ */

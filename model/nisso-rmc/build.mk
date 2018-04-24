@@ -12,6 +12,7 @@ OBJS_MODEL	+= $(MODEL_PATH)/validation.o
 
 OBJS_MODEL	+= $(MODEL_PATH)/at_noti.o
 OBJS_MODEL	+= $(MODEL_PATH)/server_resp.o
+OBJS_MODEL	+= $(MODEL_PATH)/btn_key_mgr.o
 
 
 OBJS_MODEL	+= $(MODEL_PATH)/nisso_mdt800/file_mileage.o 
@@ -22,5 +23,4 @@ OBJS_MODEL	+= $(MODEL_PATH)/nisso_mdt800/gpsmng.o
 OBJS_MODEL	+= $(MODEL_PATH)/nisso_mdt800/hdlc_async.o 
 OBJS_MODEL	+= $(MODEL_PATH)/nisso_mdt800/packet.o 
 OBJS_MODEL	+= $(MODEL_PATH)/nisso_mdt800/sms.o 
-
 
