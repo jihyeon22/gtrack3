@@ -81,7 +81,7 @@ void init_model_callback(void)
 	LOGI(LOG_TARGET, "init_model_callback\n");	
 	load_mileage_file(&mileage);
 	set_server_mileage(mileage);
-
+    init_nisso_pkt__invoice_info_2();
 }
 
 void network_on_callback(void)
@@ -155,10 +155,15 @@ void ignition_on_callback(void)
 		therm_clear_fault();
 		therm_set_sense_cycle(conf->model.tempature_cycle);
 	}
-
+	
+	nisso_btn_mgr__init();
+	
 	wait_time_sync();
 
 	sender_add_data_to_buffer(eIGN_ON_EVT, NULL, ePIPE_1);
+
+
+    
 
 	//parse_model_sms("0000", "000111122222", "&12,1, 0,2,37.4756163,126.8818914,60 ,1,2,00.0000000,000.0000000,0 ,2,2,00.0000000,000.0000000,0,3,2,37.399693, 127.100937,11,1");
 
@@ -175,6 +180,9 @@ void ignition_off_callback(void)
 	{
 		therm_set_sense_cycle(conf->model.tempature_cycle*3);
 	}
+	
+	nisso_btn_mgr__init();
+	
 	wait_time_sync();
 
 	//TODO : last gps pos file save for correcting more gen-fence
@@ -184,6 +192,7 @@ void ignition_off_callback(void)
 	sender_add_data_to_buffer(eIGN_OFF_EVT, NULL, ePIPE_1);
 	sender_add_data_to_buffer(eCYCLE_REPORT_EVC, NULL, ePIPE_1);
 	save_mileage_file(get_server_mileage() + get_gps_mileage());
+
     
 }
 
@@ -244,8 +253,8 @@ void gps_parse_one_context_callback(void)
 	if ( gps_chk_valid_time(&cur_gpsdata) <= 0 )
 		return;
 
-    // key off ÀÏ¶§´Â ¾Æ¹«·± µ¿ÀÛÀ» ÇÏÁö ¾Ê°ÔÇÑ´Ù. 
-    // nisso ¿äÃ»»çÇ×
+    // key off ï¿½Ï¶ï¿½ï¿½ï¿½ ï¿½Æ¹ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ê°ï¿½ï¿½Ñ´ï¿½. 
+    // nisso ï¿½ï¿½Ã»ï¿½ï¿½ï¿½ï¿½
     if ( is_run_ignition_off == 1 )
     {
         int data_cnt = get_gps_data_count();

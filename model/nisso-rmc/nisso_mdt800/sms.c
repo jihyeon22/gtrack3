@@ -47,6 +47,7 @@ static int _fence_set (int argc, char **argv);
 static int _rpt_cycle2(int argc, char **argv);
 static int _mdt_reset (int argc, char **argv);
 static int _invoice_set (int argc, char **argv);
+static int _invoice_set_2 (int argc, char **argv);
 
 #ifdef BOARD_TL500K
 #ifdef KT_FOTA_ENABLE
@@ -186,7 +187,11 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 			ret = _fence_set(model_argc, model_argv);
 			break;
 		case eSMS_INVOICE_INFO:
+#ifdef SERVER_ABBR_NIS0
 			ret = _invoice_set(model_argc, model_argv);
+#elif SERVER_ABBR_NIS1
+			ret = _invoice_set_2(model_argc, model_argv);
+#endif
 			break;
 #ifdef BOARD_TL500K
 #ifdef KT_FOTA_ENABLE
@@ -578,20 +583,20 @@ static int _fence_set (int argc, char **argv)
 	char *p_str_lat;
 	char *p_str_lon;
 	char *p_str_range;
-	char *p_str_response;
+//	char *p_str_response;
 
 	int fence_address;
 
 	gpsData_t cur_gpsdata;
 	geo_fence_data_mgr_t parse_fence[MAX_FENCE_DATA_CNT]; // max support geofence count :: 5
-	geo_fence_data_t fence; // max support geofence count :: 5
+//	geo_fence_data_t fence; // max support geofence count :: 5
 	
 	int ret;
 
-	int i = 0;
+//	int i = 0;
 	int j = 0;
 	int geofence_data_idx = 0;
-	int genfence_data_cnt = 0;
+//	int genfence_data_cnt = 0;
 
 	int argc_remain_cnt = 0;
 	int arg_geofence_cnt = 0;
@@ -781,7 +786,7 @@ static int _fence_set (int argc, char **argv)
 
 	if(atoi(argv[argc-1]) == SMS_CMD_RESPONSE_NEED)
 	{
-		char smsmsg[100] = {0,};
+//		char 597[100] = {0,};
 		sender_add_data_to_buffer(eGEO_FENCE_SETUP, NULL, ePIPE_1);
 		
 		//sprintf(smsmsg, "geo fence> %d:%d:%3.5f:%3.5f:%d\n", fence_address, fence_cond, sms_lat, sms_lon, fence_range);
@@ -818,6 +823,55 @@ static int _invoice_set (int argc, char **argv)
 	
 	return 0;
 }
+
+
+static int _invoice_set_2 (int argc, char **argv)
+{
+	char *p_str_invoice_info;
+    char* p_str_invoice_date;
+    char* p_str_invoice_info_num_1;
+    char* p_str_invoice_info_num_2;
+	char *p_str_response;
+
+
+	if(argc != 5)
+	{
+		LOGE(LOG_TARGET, "<%s> Incorrect SMS\n", __FUNCTION__);
+		return -1;
+	}
+
+	p_str_invoice_info   = argv[1];
+    p_str_invoice_date       = argv[2];
+    p_str_invoice_info_num_1       = argv[3];
+    p_str_invoice_info_num_2       = argv[4];
+	p_str_response       = argv[5];
+    
+
+	LOGD(LOG_TARGET, "%s> invoice msg = %s \n", __func__, p_str_invoice_info);
+    LOGD(LOG_TARGET, "%s> p_str_invoice_date msg = %s \n", __func__, p_str_invoice_date);
+    LOGD(LOG_TARGET, "%s> p_str_invoice_info_num_1 msg = %s \n", __func__, p_str_invoice_info_num_1);
+    LOGD(LOG_TARGET, "%s> p_str_invoice_info_num_2 msg = %s \n", __func__, p_str_invoice_info_num_2);
+	LOGD(LOG_TARGET, "%s> response = %s \n"    , __func__, p_str_response);
+
+    {
+        invoice_info_2_t invoice_info = {0,};
+        //init_nisso_pkt__invoice_info_2();
+        invoice_info.invoice = atoi(p_str_invoice_info);
+        sprintf(invoice_info.p_str_invoice_date, "%8s", p_str_invoice_date);
+        sprintf(invoice_info.p_str_invoice_info_num_1, "%8s", p_str_invoice_info_num_1);
+        sprintf(invoice_info.p_str_invoice_info_num_2, "%8s", p_str_invoice_info_num_2);
+        set_nisso_pkt__invoice_info_2(&invoice_info);
+        print_nisso_pkt__invoice_info_2();
+    }
+
+	if(atoi(p_str_response) == SMS_CMD_RESPONSE_NEED)
+	{
+		sender_add_data_to_buffer(eINVOCE_RECV_EVT, NULL, ePIPE_1);
+	}
+	
+	return 0;
+}
+
 
 
 #ifdef BOARD_TL500K
