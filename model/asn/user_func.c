@@ -33,7 +33,7 @@
 
 
 #define UART_BUFFER_MAX_SIZE	(1024*1024)
-static char *g_uart_dev_name = UART0_DEV_NAME;
+static char *g_uart_dev_name = UART1_DEV_NAME;
 static int g_uart_br = 57600;
 static char g_phone_number[20] = {0, };
 static int g_uart_buffer_idx = 0;
