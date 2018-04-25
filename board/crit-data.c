@@ -33,13 +33,16 @@ void _crit_init_simul()
 	// critical_data.hd_raw <= DEFAULT_CRITICAL_DATA
 	if ( mds_api_check_exist_file(CRITICAL_DATA_TMP_FS,0) == DEFINES_MDS_API_OK )
 	{
-		mds_api_write_data(CRITICAL_DATA_TMP_FS, &critical_data_tmp, sizeof(critStruct_t), 0);
+        // mds_api_write_data(CRITICAL_DATA_TMP_FS, &critical_data_tmp, sizeof(critStruct_t), 0);
+        // mds_api_read_data(CRITICAL_DATA_TMP_FS, &critical_data, sizeof(critStruct_t));
+        mds_api_cp(CRITICAL_DATA_TMP_FS, CRITICAL_DATA_NAND_FS, 1);
 		return;
 	}
 	
 	if ( mds_api_check_exist_file(CRITICAL_DATA_NAND_FS,1) == DEFINES_MDS_API_OK )
 	{
 		mds_api_cp(CRITICAL_DATA_NAND_FS, CRITICAL_DATA_TMP_FS, 1);
+        // mds_api_read_data(CRITICAL_DATA_TMP_FS, &critical_data, sizeof(critStruct_t));
 		return;
 	}
 }
@@ -52,6 +55,7 @@ void crit_backup_simul(void)
 int crit_init(void)
 {
 	int n_try = 3;
+    int crit_read_ret = 0;
 	unsigned short crc16 = 0;
 	
 	printf("++Init Critical-data++\n");
@@ -62,13 +66,39 @@ int crit_init(void)
 
 	_crit_init_simul();
 
-	if(mds_api_read_data(CRITICAL_DATA_TMP_FS, &critical_data, sizeof(critStruct_t)) < 0)
-	{
-		printf("ERROR : Doesn't support critical data function.\n");	
-		return -1;
-	}
+    while(n_try -- )
+    {
+	    if(mds_api_read_data(CRITICAL_DATA_TMP_FS, &critical_data, sizeof(critStruct_t)) < 0)
+	    {
+    		printf("ERROR : Doesn't support critical data function.\n");	
+            usleep(10000);
+            continue;
+	    }
+
+	    if ( (critical_data.bd_data.g.lat == 0 ) ||
+	         (critical_data.bd_data.g.lon == 0 ) ||
+	         (critical_data.bd_data.g.utc_sec == 0) ||
+             (critical_data.bd_data.m.mileage == 0) )
+        {
+            printf("ERROR :invalid crit data...  \n");	
+            usleep(10000);
+            continue;
+        }
+        else
+        {
+            crit_read_ret = 1;
+            break;
+        }
+    }
 
 	crit_dump_data();
+
+    if ( crit_read_ret == 0 )
+    {
+        printf("ERROR RET : non vaild data");
+        memset(&critical_data, 0, sizeof(critical_data));
+        return 0;
+    }
 
 	if(!strcmp(critical_data.hd_raw, DEFAULT_CRITICAL_DATA))
 	{
@@ -241,8 +271,6 @@ int crit_get_data_gps(float *lat, float *lon, unsigned int *utc_sec)
 
 int crit_set_data_gps(float lat, float lon, unsigned int utc_sec)
 {
-
-	
 	critical_data.bd_data.g.lat = lat;
 	critical_data.bd_data.g.lon = lon;
 	critical_data.bd_data.g.utc_sec = utc_sec;

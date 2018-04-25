@@ -1459,44 +1459,76 @@ int gps_valid_data_read(void)
 	unsigned int crit_utc = 0;
 	int res_load_file = 0;
 	
+    int i = 3;
+
+    memset(&last, 0x00, sizeof(last));
+
 	if(conf->gps.gps_err_enable == 0)
 	{
+        LOGE(LOG_TARGET, "WARN : CRIT GPS DATA return fail 0\n");
+        printf("WARN : CRIT GPS DATA return fail 0\r\n");
 		return 0;
 	}
 
-	res_load_file = storage_load_file(GPS_DATA_PATH, &last, sizeof(last));	
-	if(res_load_file < 0)
-	{
-		gps_valid_data_clear();
-	}
+    while(i--)
+    {
+	    res_load_file = storage_load_file(GPS_DATA_PATH, &last, sizeof(last));	
+	    if(res_load_file < 0)
+	    {
+            printf("CRIT GPS DATA ++ [%d] \r\n", __LINE__);
+            LOGE(LOG_TARGET, "WARN : CRIT GPS DATA return fail 1\n");
+            printf("WARN : CRIT GPS DATA return fail 1\r\n");
+		    gps_valid_data_clear();
+            usleep(100);
+            continue;
+	    }
+        break;
+    }
+
 	
 	if(res_load_file < 0 && crit_get_support_stat() == 0)
 	{		
+        printf("CRIT GPS DATA ++ [%d] \r\n", __LINE__);
 		LOGE(LOG_TARGET, "read valid gps fail\n");
-		
+		LOGE(LOG_TARGET, "WARN : CRIT GPS DATA return fail 3\n");
+        printf("WARN : CRIT GPS DATA return fail 3\r\n");
 		return -1;
 	}
 
 	crit_get_data_gps(&crit_lat, &crit_lon, &crit_utc);
+
+    if(last.utc_sec == crit_utc)
+    {
+        devel_webdm_send_log("INFO : CRIT GPS DATA 0 : last [%d] / crit [%d] / [%f, %f] .\n", last.utc_sec, crit_utc, last.lat,last.lon);
+        LOGE(LOG_TARGET, "INFO : CRIT GPS DATA 0 : last [%d] / crit [%d] / [%f, %f] .\n", last.utc_sec, crit_utc, last.lat,last.lon);
+        printf( "INFO : CRIT GPS DATA 0 : last [%d] / crit [%d] / [%f, %f] .\r\n", last.utc_sec, crit_utc, last.lat,last.lon);
+    }
 
 	if(last.utc_sec < crit_utc)
 	{	
 		last.lat = crit_lat;
 		last.lon = crit_lon;
 		last.utc_sec = crit_utc;
-		LOGI(LOG_TARGET, "INFO : Load critical data(gps).\n");
+        devel_webdm_send_log("WARN : CRIT GPS DATA 1 : last [%d] / crit [%d] / [%f, %f] .\n", last.utc_sec, crit_utc, last.lat,last.lon);
+		LOGE(LOG_TARGET, "WARN : CRIT GPS DATA 1 : last [%d] / crit [%d] / [%f, %f] .\n", last.utc_sec, crit_utc, last.lat,last.lon);
+        printf( "WARN : CRIT GPS DATA 1 : last [%d] / crit [%d] / [%f, %f] .\r\n", last.utc_sec, crit_utc, last.lat,last.lon);
 	}
 
 	//Only for debugging.
 	if(crit_utc < last.utc_sec)
 	{
-		LOGE(LOG_TARGET, "WARN : Critical data(gps) is older than nand data.\n");
-		devel_webdm_send_log("WARN : Critical data(gps) is older than nand data.\n");
+        printf("CRIT GPS DATA ++ [%d] \r\n", __LINE__);
+		LOGE(LOG_TARGET, "WARN : CRIT GPS DATA 2 : last [%d] / crit [%d] / [%f, %f] .\n", last.utc_sec, crit_utc, last.lat,last.lon);
+		devel_webdm_send_log("WARN : CRIT GPS DATA 2 : last [%d] / crit [%d] / [%f, %f] .\n", last.utc_sec, crit_utc, last.lat,last.lon);
+        printf( "WARN : CRIT GPS DATA 2 : last [%d] / crit [%d] / [%f, %f] .\r\n", last.utc_sec, crit_utc, last.lat,last.lon);
 	}
 	
-	gps_valid_data_set(&last);
-	memcpy(&saved_valid_gpsdata, &last, sizeof(saved_valid_gpsdata));
-	
+    if ( ( last.lat != 0 ) && ( last.lon != 0 ))
+    {
+        gps_valid_data_set(&last);
+	    memcpy(&saved_valid_gpsdata, &last, sizeof(saved_valid_gpsdata));
+    }
+
 	LOGT(LOG_TARGET, "read valid gps [%f, %f]\n", last_valid_gpsdata.lat, last_valid_gpsdata.lon);
 	
 	return 0;
