@@ -273,6 +273,9 @@ SERVER_ABBR   :=      MRM0
 else ifeq ($(SUB),moram1)
 #MDT + DTG + Temperature Service
 SERVER_ABBR   :=      MRM1
+else ifeq ($(SUB),bizincar1)
+#ALWAYS SAVE GPS DATA
+SERVER_ABBR   :=      BIC1
 else
 $(error SUB is not registerd in Makefile, please input registred sub-model)
 endif

@@ -22,6 +22,7 @@
 #include "data-list.h"
 #include "debug.h"
 #include "netcom.h"
+#include <base/mileage.h>
 
 #include "thread-keypad.h"
 
@@ -240,6 +241,12 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 		keypad_server_result__set_result(op, KEY_RESULT_FALSE);
 		return -1;
 	}
+
+#ifdef SERVER_ABBR_BIC1
+    // every time save gps data.. 
+    gps_valid_data_write();
+    mileage_write();
+#endif
 
 	keypad_server_result__set_result(op, KEY_RESULT_TRUE);
 	LOGI(LOG_TARGET, "send_packet op[%d] send success\n", op);

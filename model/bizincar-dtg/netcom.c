@@ -113,7 +113,9 @@ int mdt__send_packet(char op, unsigned char *packet_buf, int packet_len)
 		if(res == 0) //send and recv success
         {
             res = bizincar_mdt__parse_resp(&resp);
-            //printf("mdt send success?@!?!?!?!?!?!?! [%d] [%d]\r\n", resp.packet_ret_code, res);
+            LOGI(LOG_TARGET, "mdt send success?@!?!?!?!?!?!?! [%d] [%d]\r\n", resp.packet_ret_code, res);
+            LOGI(LOG_TARGET, "mdt send success?@!?!?!?!?!?!?! [%d] [%d]\r\n", resp.packet_ret_code, res);
+            LOGI(LOG_TARGET, "mdt send success?@!?!?!?!?!?!?! [%d] [%d]\r\n", resp.packet_ret_code, res);
 			break;
         }
 
@@ -168,7 +170,10 @@ int dtg__send_packet(char op, unsigned char *packet_buf, int packet_len)
         {
             //rintf("dtg send success?@!?!?!?!?!?!?! [%d] [%d]\r\n", resp.packet_ret_code, res);
             res = bizincar_dtg__parse_pkt(&resp);
-            //printf("dtg send success?@!?!?!?!?!?!?! [%d] [%d]\r\n", resp.packet_ret_code, res);
+            LOGI(LOG_TARGET, "dtg send success?@!?!?!?!?!?!?! [%d] [%d]\r\n", resp.packet_ret_code, res);
+            LOGI(LOG_TARGET, "dtg send success?@!?!?!?!?!?!?! [%d] [%d]\r\n", resp.packet_ret_code, res);
+            LOGI(LOG_TARGET, "dtg send success?@!?!?!?!?!?!?! [%d] [%d]\r\n", resp.packet_ret_code, res);
+
 			break;
         }
 
@@ -256,10 +261,13 @@ int dvr__send_packet(char op, unsigned char *packet_buf, int packet_len)
 }
 
 
+#define MAX_RETRY_CNT   5
 
 int send_packet(char op, unsigned char *packet_buf, int packet_len)
 {
 	int ret;
+    int retry_cnt = MAX_RETRY_CNT;
+
 	setting_network_param(); //real-time ip/port change
 
     printf(" call send pkt [%d]\r\n", op);
@@ -270,29 +278,37 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
     printf(" call send pkt [%d]\r\n", op);
     printf(" call send pkt [%d]\r\n", op);
     
-	switch(op)
-	{
-        case eDTG_CUSTOM_EVT__DTG_KEY_ON:
-        case eDTG_CUSTOM_EVT__DTG_KEY_OFF:
-        case eDTG_CUSTOM_EVT__DTG_POWER_ON:
-        case eDTG_CUSTOM_EVT__DTG_POWER_OFF:
-        case eDTG_CUSTOM_EVT__DTG_REPORT:
-            ret = dtg__send_packet(op, packet_buf, packet_len);
-            break;
-        case eDVR_CUSTOM_EVT__DVR_REPORT:
-            ret = dvr__send_packet(op, packet_buf, packet_len);
-            break;
-        default :
-        	LOGI(LOG_TARGET, "ip %s : %d send packet!!\n", gSetting_mdt_report.ip, gSetting_mdt_report.port);
-	        ret = mdt__send_packet(op, packet_buf, packet_len);
-            break;
-    }
+    while(retry_cnt--)
+    {
+        switch(op)
+        {
+            case eDTG_CUSTOM_EVT__DTG_KEY_ON:
+            case eDTG_CUSTOM_EVT__DTG_KEY_OFF:
+            case eDTG_CUSTOM_EVT__DTG_POWER_ON:
+            case eDTG_CUSTOM_EVT__DTG_POWER_OFF:
+            case eDTG_CUSTOM_EVT__DTG_REPORT:
+                ret = dtg__send_packet(op, packet_buf, packet_len);
+                break;
+            case eDVR_CUSTOM_EVT__DVR_REPORT:
+                ret = dvr__send_packet(op, packet_buf, packet_len);
+                break;
+            default :
+                LOGI(LOG_TARGET, "ip %s : %d send packet!!\n", gSetting_mdt_report.ip, gSetting_mdt_report.port);
+                ret = mdt__send_packet(op, packet_buf, packet_len);
+                break;
+        }
 
-	if(ret < 0) {
-		LOGE(LOG_TARGET, "op[%d] mdt__send_packet error return\n", op);
-		keypad_server_result__set_result(op, KEY_RESULT_FALSE);
-		return -1;
-	}
+        if(ret < 0) 
+        {
+            LOGE(LOG_TARGET, "op[%d] mdt__send_packet error return [%d]\n", op, retry_cnt);
+            sleep(3);
+        }
+        else
+        {
+            LOGI(LOG_TARGET, "op[%d] mdt__send_packet success return [%d]\n", op, retry_cnt);
+            break;
+        }
+    }
 
 	keypad_server_result__set_result(op, KEY_RESULT_TRUE);
 	LOGI(LOG_TARGET, "send_packet op[%d] send success\n", op);

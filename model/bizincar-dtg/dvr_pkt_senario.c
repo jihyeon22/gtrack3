@@ -137,6 +137,10 @@ int bizincar_dvr__parse_resp(bizincar_dvr__server_resp_t* resp)
     printf("%s() -> [%d]\r\n", __func__, __LINE__);
     resp_code = resp->packet_ret_code;
 
+    LOGI(LOG_TARGET, "%s > retcode [%d]\n", __func__, resp_code);
+    LOGI(LOG_TARGET, "%s > retcode [%d]\n", __func__, resp_code);
+    LOGI(LOG_TARGET, "%s > retcode [%d]\n", __func__, resp_code);
+    
     switch (resp_code)
     {
         case 0 : 
