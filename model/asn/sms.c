@@ -19,6 +19,7 @@ int parse_model_sms(const char *time, const char *phonenum, const char *sms)
     int len = 0;
     char *base = 0;
 	int port;
+    int i;
 
     char sms_trans_buffer[256] = {0};
 
@@ -67,8 +68,16 @@ int parse_model_sms(const char *time, const char *phonenum, const char *sms)
     }
     argc--;
 	
-	if(argc < 4) {
-		LOGE(eSVC_COMMON, "%s> err SMS format is wrong\n", __func__);
+    for(i = 0; i <= argc; i++)
+	{
+		LOGI(eSVC_COMMON, "%d %s\n", i, argv[i]);
+        LOGI(eSVC_COMMON, "%d %s\n", i, argv[i]);
+        LOGI(eSVC_COMMON, "%d %s\n", i, argv[i]);
+        usleep(100);
+	}
+
+	if(argc < 3) {
+		LOGE(eSVC_COMMON, "%s> err SMS format is wrong => argc is [%d]\n", __func__, argc);
 		return -1;
 	}
 	if(strncmp(argv[1], "KFRI1234", 8)) {
