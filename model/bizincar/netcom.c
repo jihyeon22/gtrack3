@@ -244,6 +244,10 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 
 #ifdef SERVER_ABBR_BIC1
     // every time save gps data.. 
+    LOGI(LOG_TARGET, "send success save gps info!\n");
+    LOGI(LOG_TARGET, "send success save gps info!\n");
+    LOGI(LOG_TARGET, "send success save gps info!\n");
+    
     gps_valid_data_write();
     mileage_write();
 #endif
