@@ -149,9 +149,22 @@ int create_report2_data(int ev_code, nisso_packet2_t *packet, gpsData_t gpsdata,
 	packet->date.sec  = gpsdata.sec;
 
 	if(gpsdata.active == 1)
+    {
 		packet->gps_status = eSAT_GSP;
+    }
 	else
+    {
 		packet->gps_status = eWCDMA_GSP;
+    }
+
+    if ( ( gpsdata.lat == 0 ) || (gpsdata.lon == 0) )
+    {
+        // last data..
+        gpsData_t last_gpsdata = {0,};
+		gps_valid_data_get(&last_gpsdata);
+		gpsdata.lat = last_gpsdata.lat;
+		gpsdata.lon = last_gpsdata.lon;
+    }
 
 	packet->gps_pos.latitude = gpsdata.lat * 10000000.0;
 	packet->gps_pos.longitude = gpsdata.lon * 10000000.0;

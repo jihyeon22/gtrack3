@@ -13,14 +13,14 @@
 //      FEATURE_INVALD_GPS_COPY_LAST_FIX_GPS
 // inactive gps replace latest credible gps position
 // time field have to create with current system time.
-//#define FEATURE_INVALD_GPS_COPY_LAST_FIX_GPS
+#define FEATURE_INVALD_GPS_COPY_LAST_FIX_GPS
 //======================================================
 
 //======================================================
 //      FEATURE_INVALD_GPS_COPY_LAST_FIX_GPS
 // inactive gps replace latest credible gps position
 // time field have to create with current system time.
-#define FEATURE_INVALID_GPS_COPY_ZERO
+// #define FEATURE_INVALID_GPS_COPY_ZERO
 //======================================================
 
 //======================================================
@@ -33,7 +33,7 @@
 
 
 #define MILEAGE_NOT_INIT				(-1)
-#define GPS_INIT_MAX_WAITING_TIME		(120)  //unit : sec
+#define GPS_INIT_MAX_WAITING_TIME		(1)  //unit : sec
 #define MILEAGE_INTERVAL	10
 
 typedef enum gps_active_status gps_active_status_t;
