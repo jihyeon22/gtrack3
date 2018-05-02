@@ -527,8 +527,9 @@ int current_dtg_parsing(unsigned char *std_buff, int std_buff_len, unsigned char
 #if defined(DEVICE_MODEL_INNOCAR)
 	set_factor_value(p_std_data->k_factor, p_std_data->rpm_factor, p_std_data->weight1, p_std_data->weight2, p_std_hdr->dtg_fw_ver);
 #endif
+    dest_idx += sizeof(dtg_dsic_user_data_payload_t);
 
-	return sizeof(dtg_dsic_packet_body_t) + sizeof(dtg_dsic_user_data_hdr_t) + sizeof(dtg_dsic_user_data_summary_t) + sizeof(dtg_dsic_user_data_payload_t);
+	return dest_idx;
 }
 
 
@@ -543,6 +544,9 @@ int dtg_dsic__make_bulk_pkt(char* stream, int len, char** buf)
     cnt = (len - sizeof(tacom_std_hdr_t)) / sizeof(tacom_std_data_t) + 1;
 	pack_buffer_size = sizeof(dtg_dsic_packet_body_t) + sizeof(dtg_dsic_user_data_hdr_t) + sizeof(dtg_dsic_user_data_summary_t) + (sizeof(dtg_dsic_user_data_payload_t) * (cnt+5)) + 2;
 
+#ifdef SERVER_ABBR_BICD
+    pack_buffer_size += sizeof(gtrace_dtg_pkt_suffix_t);
+#endif
 	//DTG_LOGD("pack_buffer malloc size = [%d]\n", pack_buffer_size);
 
 	dtg_pack_buf = (unsigned char *)malloc(pack_buffer_size);
@@ -554,7 +558,16 @@ int dtg_dsic__make_bulk_pkt(char* stream, int len, char** buf)
 
 	send_pack_size = bulk_dtg_parsing(stream, len, dtg_pack_buf);
 
+#ifdef SERVER_ABBR_BICD
+    dtg_pack_buf[pack_buffer_size - 4] = 0xff;
+    dtg_pack_buf[pack_buffer_size - 3] = 0xff;
+    dtg_pack_buf[pack_buffer_size - 2] = 0xff;
+    dtg_pack_buf[pack_buffer_size - 1] = 0xff;
+#endif
+
     *buf = dtg_pack_buf;
+
+
 
 	return pack_buffer_size;
 }
@@ -569,6 +582,10 @@ int dtg_dsic__make_evt_pkt(char* stream, int len, char** buf, int evt)
     
     pack_buffer_size = sizeof(dtg_dsic_packet_body_t) + sizeof(dtg_dsic_user_data_hdr_t) + sizeof(dtg_dsic_user_data_summary_t) + sizeof(dtg_dsic_user_data_payload_t);
     
+#ifdef SERVER_ABBR_BICD
+    pack_buffer_size += sizeof(gtrace_dtg_pkt_suffix_t);
+#endif
+
 	//DTG_LOGD("pack_buffer malloc size = [%d]\n", pack_buffer_size);
 
 	dtg_pack_buf = (unsigned char *)malloc(pack_buffer_size);
@@ -579,6 +596,13 @@ int dtg_dsic__make_evt_pkt(char* stream, int len, char** buf, int evt)
 	}
 
 	send_pack_size = current_dtg_parsing(stream, len, dtg_pack_buf, evt);
+
+#ifdef SERVER_ABBR_BICD
+    dtg_pack_buf[pack_buffer_size - 4] = 0xff;
+    dtg_pack_buf[pack_buffer_size - 3] = 0xff;
+    dtg_pack_buf[pack_buffer_size - 2] = 0xff;
+    dtg_pack_buf[pack_buffer_size - 1] = 0xff;
+#endif
 
     *buf = dtg_pack_buf;
 

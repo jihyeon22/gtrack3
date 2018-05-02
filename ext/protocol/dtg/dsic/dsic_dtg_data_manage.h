@@ -135,6 +135,14 @@ struct gtrace_dtg_server_response {
 }__attribute__((packed));
 typedef struct gtrace_dtg_server_response dtg_disc_server_response_t;
 
+#ifdef SERVER_ABBR_BICD
+struct gtrace_dtg_pkt_suffix {
+	unsigned char data[4];
+}__attribute__((packed));
+typedef struct gtrace_dtg_pkt_suffix gtrace_dtg_pkt_suffix_t;
+#endif
+
+
 #if defined(DEVICE_MODEL_INNOCAR)
 	#define SET_FLAG_WEIGHT2			0x0001
 	#define SET_FLAG_WEIGHT1			0x0002

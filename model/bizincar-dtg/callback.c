@@ -255,6 +255,8 @@ void main_loop_callback(void)
 	
 	setting_network_param();
 
+    remove("/data/mds/data/pktlog.log");
+
 	while(flag_run_thread_main && nettool_get_state() != DEFINES_MDS_OK) {
 		LOGI(LOG_TARGET, "%s : first time wating untill network enable..\n", __func__);
 		sleep(3);

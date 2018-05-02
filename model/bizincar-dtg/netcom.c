@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 
 #include <base/config.h>
+#include <base/watchdog.h>
 #include <at/at_util.h>
 #include <board/power.h>
 #include <board/led.h>
@@ -110,6 +111,10 @@ int mdt__send_packet(char op, unsigned char *packet_buf, int packet_len)
 	while(retry-- > 0) 
 	{
 		res = transfer_packet_recv(&gSetting_mdt_report, packet_buf, packet_len, &resp, sizeof(bizincar_mdt_response_t));
+
+        watchdog_set_cur_ktime(eWdNet1);
+        watchdog_set_cur_ktime(eWdNet2);
+
 		if(res == 0) //send and recv success
         {
             res = bizincar_mdt__parse_resp(&resp);
@@ -148,7 +153,35 @@ int mdt__send_packet(char op, unsigned char *packet_buf, int packet_len)
 	return res;
 }
 
+//#define DTG_PKT_FAIL_WRITE_TO_FILE
+#define DEBUG_DTG_PKT_LOG   "/data/mds/data/pktlog.log"
 
+#ifdef DTG_PKT_FAIL_WRITE_TO_FILE
+
+
+void mds_api_debug_hexdump_to_log(unsigned char *buff, const int buff_len)
+{
+	int i;
+    int msg_buff_len = 0;
+    char log_msgbuff[1024] = {0,};
+
+    sprintf(log_msgbuff, "  >>  buff size [%d] +++", buff_len);
+	mds_api_write_time_and_log(DEBUG_DTG_PKT_LOG, log_msgbuff);
+	for(i = 0; i < buff_len; i++)
+	{
+        msg_buff_len += sprintf(log_msgbuff+msg_buff_len, "0x%02x ", buff[i]);
+        if ( msg_buff_len >= 128 )
+        {
+            mds_api_write_time_and_log(DEBUG_DTG_PKT_LOG, log_msgbuff);
+            memset(&log_msgbuff, 0x00, sizeof(log_msgbuff));
+            msg_buff_len = 0;
+        }
+	}
+
+    mds_api_write_time_and_log(DEBUG_DTG_PKT_LOG, log_msgbuff);
+	mds_api_write_time_and_log(DEBUG_DTG_PKT_LOG, " >> ---------------");
+}
+#endif
 
 int dtg__send_packet(char op, unsigned char *packet_buf, int packet_len)
 {
@@ -165,7 +198,12 @@ int dtg__send_packet(char op, unsigned char *packet_buf, int packet_len)
 
 	while(retry-- > 0) 
 	{
+
 		res = transfer_packet_recv(&gSetting_dtg_report, packet_buf, packet_len, &resp, sizeof(bizincar_dtg_respose_t));
+
+        watchdog_set_cur_ktime(eWdNet1);
+        watchdog_set_cur_ktime(eWdNet2);
+
 		if(res == 0) //send and recv success
         {
             //rintf("dtg send success?@!?!?!?!?!?!?! [%d] [%d]\r\n", resp.packet_ret_code, res);
@@ -176,9 +214,19 @@ int dtg__send_packet(char op, unsigned char *packet_buf, int packet_len)
 
 			break;
         }
-
 		sleep(WAIT_INTERVAL_TIME);
+
 	}
+
+#ifdef DTG_PKT_FAIL_WRITE_TO_FILE
+    if ( resp.packet_ret_code != 1 )
+    {
+        char log_msgbuff[1024] = {0,};
+        sprintf(log_msgbuff, "server get ret fail [%d] start ++ ",  resp.packet_ret_code);
+        mds_api_write_time_and_log(DEBUG_DTG_PKT_LOG, log_msgbuff);
+        mds_api_debug_hexdump_to_log(packet_buf,packet_len);
+    }
+#endif
 
 #if SEND_MIRRORED_PACKET
 	int retry_mirrored = PACKET_RETRY_COUNT;
@@ -191,17 +239,6 @@ int dtg__send_packet(char op, unsigned char *packet_buf, int packet_len)
 		sleep(5);
 	}
 #endif
-
-	if(retry <= 0)
-	{
-		wait_count = MAX_WAIT_RETRY_TIME/WAIT_INTERVAL_TIME;
-		while(wait_count-- > 0) {
-			LOGI(LOG_TARGET, "%s> wait time count [%d]\n", __func__, wait_count);
-			sleep(WAIT_INTERVAL_TIME);
-		}
-		LOGI(LOG_TARGET, "%s> keep packet, but to move end of buffer. %d\n", __func__, wait_count);
-		return -1; //
-	}
 
 	return res;
 }
@@ -223,6 +260,10 @@ int dvr__send_packet(char op, unsigned char *packet_buf, int packet_len)
 	while(retry-- > 0) 
 	{
 		res = transfer_packet_recv(&gSetting_dvr_report, packet_buf, packet_len, &resp, sizeof(bizincar_dtg_respose_t));
+
+        watchdog_set_cur_ktime(eWdNet1);
+        watchdog_set_cur_ktime(eWdNet2);
+
 		if(res == 0) //send and recv success
         {
             //printf("dvr send success?@!?!?!?!?!?!?! [%d] [%d]\r\n", resp.packet_ret_code, res);
@@ -308,6 +349,10 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
             LOGI(LOG_TARGET, "op[%d] mdt__send_packet success return [%d]\n", op, retry_cnt);
             break;
         }
+
+        watchdog_set_cur_ktime(eWdNet1);
+        watchdog_set_cur_ktime(eWdNet2);
+
     }
 
 	keypad_server_result__set_result(op, KEY_RESULT_TRUE);

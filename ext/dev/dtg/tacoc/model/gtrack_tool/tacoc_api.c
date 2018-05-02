@@ -26,6 +26,8 @@
 #include <standard_protocol.h>
 
 
+#include "logd/logd_rpc.h"
+
 static pthread_mutex_t dtg_gtrack_tool_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 
@@ -497,7 +499,12 @@ int taco_gtrack_tool__conv_dtg_to_gps(tacom_std_data_t *p_std_data, gpsData_t * 
     else
         p_gps_data->active = 0;
     
-    p_gps_data->angle = char_mbtof(p_std_data->azimuth, 3);;
+    p_gps_data->angle = char_mbtol(p_std_data->azimuth, 3);;
+
+    {
+        LOGI(eSVC_MODEL, "DEBUG : p_gps_data->angle [%f]\n", p_gps_data->angle);
+    }
+
     p_gps_data->hdop = 0 ;
     p_gps_data->altitude = 0;  // meter.. new filed (170913)
 

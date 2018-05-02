@@ -21,6 +21,8 @@
 #include <mdsapi/mds_api.h>
 #include <board/power.h>
 
+#include "logd/logd_rpc.h"
+
 #define UART_REOPEN_ENABLE_FLAG
 
 extern int dtg_uart_fd;
@@ -741,6 +743,12 @@ static int data_convert(tacom_std_data_t *std_data, tacom_cy_data_t *cy_data) {
 	memcpy(std_data->gps_x, cy_data->gps_x, 9);
 	memcpy(std_data->gps_y, cy_data->gps_y, 9);
 	memcpy(std_data->azimuth, cy_data->azimuth, 3);
+
+    {
+        char tmp_buff[4] = {0,};
+        memcpy(&tmp_buff, std_data->azimuth, 3);
+        LOGI(eSVC_MODEL, "DEBUG : std_data->azimuth [%s]\n", tmp_buff);
+    }
 
 	std_data->accelation_x[0] = cy_data->accelation_x[0];
 	std_data->accelation_x[1] = cy_data->accelation_x[1];
