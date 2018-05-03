@@ -46,6 +46,11 @@
 #include <tacom/tacom_std_protocol.h>
 #include "mdt_pkt_senario.h"
 
+#include "dtg_pkt_senario.h"
+#include "dtg_gtrack_tool.h"
+#include "disc_dtg_pkt.h"
+#include "tacom_choyoung_protocol.h"
+
 extern int is_run_ignition_off;
 
 // ------------------------------------------------------------------------
