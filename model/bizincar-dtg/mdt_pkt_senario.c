@@ -133,12 +133,12 @@ void gps_parse_one_context_callback_fake(void)
     if ( bizincar_dtg__key_stat() == 1)
     {
         printf("make key on report pkt\r\n");
-	    create_report_data(eCYCLE_REPORT_EVC, p_packet, gpsdata);
+	    create_report_data(eBIZINCAR_MDT_KEY_ON_DATA, p_packet, gpsdata);
     }
     else
     {
         printf("make key off report pkt\r\n");
-        create_report_data(eIGN_OFF_EVT, p_packet, gpsdata);
+        create_report_data(eBIZINCAR_MDT_KEY_OFF_DATA, p_packet, gpsdata);
     }
 
     // init odo and fill dtg data..
@@ -174,6 +174,8 @@ void fake_ignition_off_callback_mdt(void) // do not use
 	sender_add_data_to_buffer(eCYCLE_REPORT_EVC, NULL, ePIPE_1);
 	save_mileage_file(get_server_mileage() + get_gps_mileage());
     */
+
+    sender_add_data_to_buffer(eIGN_OFF_EVT, NULL, ePIPE_2);
     dmmgr_send(eEVENT_KEY_OFF, NULL, 0); 
 }
 
