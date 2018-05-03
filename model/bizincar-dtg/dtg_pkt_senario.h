@@ -18,6 +18,8 @@ typedef struct bizincar_dtg_respose bizincar_dtg_respose_t;
 
 
 int bizincar_dtg__vehicle_odo();
+int bizincar_dtg__vehicle_odo_diff_mdt();
+int bizincar_dtg__vehicle_odo_diff_dvr();
 int bizincar_dtg__key_stat();
 
 #endif

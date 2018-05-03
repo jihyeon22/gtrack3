@@ -79,6 +79,44 @@ printf("%d, %d, %d, %d\n", g_current_std_data.k_factor, g_current_std_data.rpm_f
 }
 
 
+int set_current_dtg_data_2(unsigned char *std_buff, int std_buff_len)
+{
+    char tmp_vehicle_model[32] = {0,};
+    char tmp_vehicle_id_num[32] = {0,};
+
+    tacom_std_hdr_t tmp_g_current_std_hdr;
+    tacom_std_data_t tmp_g_current_std_data;
+
+	memcpy(&tmp_g_current_std_hdr, std_buff, sizeof(tacom_std_hdr_t));
+	memcpy(&tmp_g_current_std_data, &std_buff[sizeof(tacom_std_hdr_t)], sizeof(tacom_std_data_t));
+
+    memcpy(&tmp_vehicle_model, tmp_g_current_std_hdr.vehicle_model, sizeof(tmp_g_current_std_hdr.vehicle_model));
+    memcpy(&tmp_vehicle_id_num, tmp_g_current_std_hdr.vehicle_id_num, sizeof(tmp_g_current_std_hdr.vehicle_id_num));
+
+    if ( ( strlen(tmp_vehicle_model) > 0 ) && ( strlen(tmp_vehicle_id_num) > 0) )
+    {
+        memcpy(&tmp_g_current_std_hdr, std_buff, sizeof(tacom_std_hdr_t));
+	    memcpy(&tmp_g_current_std_data, &std_buff[sizeof(tacom_std_hdr_t)], sizeof(tacom_std_data_t));
+
+        DTG_LOGI("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ : set_current_dtg_data_2 success [%s] ++++\r\n", tmp_vehicle_model);
+        DTG_LOGI("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ : set_current_dtg_data_2 success [%s] ++++\r\n", tmp_vehicle_id_num);
+        memcpy(&g_current_std_data, &tmp_g_current_std_hdr, sizeof(tacom_std_data_t));
+        memcpy(&g_current_std_data, &tmp_g_current_std_data, sizeof(tacom_std_data_t));
+        return 1;
+    }
+    else
+    {
+        DTG_LOGE("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ : set_current_dtg_data_2 fail\r\n");
+        return -1;
+    }
+
+#if defined(DEVICE_MODEL_INNOCAR)
+printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ : set_current_dtg_data-----\n");
+printf("%d, %d, %d, %d\n", g_current_std_data.k_factor, g_current_std_data.rpm_factor, g_current_std_data.weight1, g_current_std_data.weight2);
+	set_factor_value(g_current_std_data.k_factor, g_current_std_data.rpm_factor, g_current_std_data.weight1, g_current_std_data.weight2, g_current_std_hdr.dtg_fw_ver);
+#endif
+    return -1;
+}
 
 
 

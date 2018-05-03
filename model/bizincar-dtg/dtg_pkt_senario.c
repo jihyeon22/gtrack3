@@ -84,14 +84,26 @@ int bizincar_dtg_init()
 
     while(max_init_wait --)
     {
+        cy_send_cmd_force_send(CY_DTG_CMD__DTG_DEV_INFO);
+
         ret_bufflen = taco_gtrack_tool__get_current_data(&tmp_buff);
 
-        if ( taco_gtrack_tool__get_current_data(&tmp_buff) > 0 )
+        if ( ret_bufflen <= 0 )
         {
-            set_current_dtg_data(tmp_buff, ret_bufflen);
+            LOGI(LOG_TARGET, "bizincar_dtg_init is fail... 1 retry...\r\n");
+            sleep(1);
+            continue;
+        }
+
+        if (set_current_dtg_data_2(tmp_buff, ret_bufflen) > 0)
+        {
+            LOGI(LOG_TARGET, "bizincar_dtg_init is fail... 2 retry...\r\n");
             free(tmp_buff);
             break;
         }
+        
+        free(tmp_buff);
+
         sleep(1);
     }
     
@@ -222,6 +234,52 @@ int bizincar_dtg__vehicle_odo()
     vehicle_odo = _char_mbtoi(std_taco_data.cumulative_run_distance, 7);
     printf(" bizincar_dtg__vehicle_odo() => [%d]\r\n", vehicle_odo);
     LOGI(LOG_TARGET, "%s > dtg odo [%d]\n", __func__, vehicle_odo);
+    return vehicle_odo;
+}
+
+
+int bizincar_dtg__vehicle_odo_diff_mdt()
+{
+    static int last_odo = -1;
+    int current_odo = bizincar_dtg__vehicle_odo();
+    
+    int vehicle_odo = 0;
+
+    if ( last_odo == -1 )
+        last_odo = current_odo;
+    
+    if ( current_odo > last_odo )
+    {
+        vehicle_odo = current_odo - last_odo;
+        last_odo = current_odo;
+    }
+
+    printf(" bizincar_dtg__vehicle_odo_diff_mdt() => [%d]\r\n", vehicle_odo);
+    LOGI(LOG_TARGET, "%s > dtg odo [%d]\n", __func__, vehicle_odo);
+
+    return vehicle_odo;
+}
+
+
+int bizincar_dtg__vehicle_odo_diff_dvr()
+{
+    static int last_odo = -1;
+    int current_odo = bizincar_dtg__vehicle_odo();
+    
+    int vehicle_odo = 0;
+
+    if ( last_odo == -1 )
+        last_odo = current_odo;
+
+    if ( current_odo > last_odo )
+    {
+        vehicle_odo = current_odo - last_odo;
+        last_odo = current_odo;
+    }
+
+    printf(" bizincar_dtg__vehicle_odo_diff_dvr() => [%d]\r\n", vehicle_odo);
+    LOGI(LOG_TARGET, "%s > dtg odo [%d]\n", __func__, vehicle_odo);
+
     return vehicle_odo;
 }
 

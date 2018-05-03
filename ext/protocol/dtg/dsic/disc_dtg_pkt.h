@@ -6,6 +6,7 @@
 
 // dtg gtrack tool util..
 void set_current_dtg_data(unsigned char *std_buff, int std_buff_len);
+int set_current_dtg_data_2(unsigned char *std_buff, int std_buff_len);
 int bulk_dtg_parsing(unsigned char *std_buff, int std_buff_len, unsigned char *dest);
 int current_dtg_parsing(unsigned char *std_buff, int std_buff_len, unsigned char *dest, int ev);
 

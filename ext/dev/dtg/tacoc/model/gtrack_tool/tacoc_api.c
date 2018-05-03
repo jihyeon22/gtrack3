@@ -86,6 +86,7 @@ void mdmc_power_off()
 int main_process()
 {
     DTG_LOGD("[DTG GTRACK TOOL] %s() call \r\n", __func__);
+    taco_gtrack_tool__pre_init();
     return 0;
 }
 
@@ -501,10 +502,11 @@ int taco_gtrack_tool__conv_dtg_to_gps(tacom_std_data_t *p_std_data, gpsData_t * 
     
     p_gps_data->angle = char_mbtol(p_std_data->azimuth, 3);;
 
+/*
     {
         LOGI(eSVC_MODEL, "DEBUG : p_gps_data->angle [%f]\n", p_gps_data->angle);
     }
-
+*/
     p_gps_data->hdop = 0 ;
     p_gps_data->altitude = 0;  // meter.. new filed (170913)
 

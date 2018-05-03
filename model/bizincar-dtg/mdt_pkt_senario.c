@@ -137,7 +137,7 @@ void gps_parse_one_context_callback_fake(void)
     }
 
     // init odo and fill dtg data..
-    p_packet->vehicle_odo = bizincar_dtg__vehicle_odo();
+    p_packet->vehicle_odo = bizincar_dtg__vehicle_odo_diff_mdt();
 
 	if(list_add(&gps_buffer_list, p_packet) < 0)
 	{
@@ -350,7 +350,7 @@ int bizincar_mdt__make_event_pkt(unsigned char **pbuf, unsigned short *packet_le
 	create_report_data(eventCode, &packet, gpsdata);
 
      // init odo and fill dtg data..
-    packet.vehicle_odo = bizincar_dtg__vehicle_odo();
+    packet.vehicle_odo = bizincar_dtg__vehicle_odo_diff_mdt();
 
     //print_report_data(packet);
 

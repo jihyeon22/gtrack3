@@ -113,9 +113,7 @@ int bizincar_dvr__make_evt_pkt(unsigned char **pbuf, unsigned short *packet_len,
 	
 	create_report2_data(DVR_EVT_CODE, &packet, gpsdata, record, rec_len);
 
-    packet.vehicle_odo = bizincar_dtg__vehicle_odo();
-
-
+    packet.vehicle_odo = bizincar_dtg__vehicle_odo_diff_dvr();
 
 	crc = crc8(crc, (unsigned char *)&packet, sizeof(lotte_packet2_t));
 	enclen = hdlc_async_encode(p_encbuf, (unsigned char *)&packet, sizeof(lotte_packet2_t));
