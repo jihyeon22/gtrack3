@@ -386,6 +386,10 @@ int bizincar_mdt__parse_resp(bizincar_mdt_response_t* resp)
         case 1 : // success
             ret_val = 0;
             break;
+        case 2 : // success
+            ret_val = 0;
+            cy_send_cmd_force_send(CY_DTG_CMD__LOC_LOOKUP);
+            break;
         default : 
             ret_val = -1;
             break;
