@@ -462,3 +462,104 @@ struct hostent *_get_host_by_name(const char *name, struct hostent *hbuf)
 	
 	return result;
 }
+
+
+mdsReturn_t nettool_set_state(int flag)
+{
+	static int force_disconn = 0 ;
+	static int disconn_fail_cnt = 0;
+
+    int wait_time_sec = NET_TOOL_SET__MAX_CHK_TIME_SEC;
+
+	int ret = DEFINES_MDS_NOK; // DEFINES_MDS_OK
+
+    if ( flag == NET_TOOL_SET__DISABLE)
+    {
+        LOGI(LOG_TARGET, "[nettool_set_state] SET TO DISABLE\r\n");
+        LOGI(LOG_TARGET, "[nettool_set_state] SET TO DISABLE\r\n");
+        LOGI(LOG_TARGET, "[nettool_set_state] SET TO DISABLE\r\n");
+        LOGI(LOG_TARGET, "[nettool_set_state] SET TO DISABLE\r\n");
+
+        if ( nettool_get_state() == DEFINES_MDS_OK)
+        {
+            system(NETIF_DOWN_CMD);
+		    send_at_cmd("at$$apcall=0");
+        }
+
+        // check result..
+        while(wait_time_sec--)
+        {
+            if ( nettool_get_state() == DEFINES_MDS_NOK)
+            {
+                ret = DEFINES_MDS_OK;
+                break;
+            }
+            sleep(1);
+        }
+    }
+
+    if ( flag == NET_TOOL_SET__ENABLE)
+    {
+        LOGI(LOG_TARGET, "[nettool_set_state] SET TO ENABLE\r\n");
+        LOGI(LOG_TARGET, "[nettool_set_state] SET TO ENABLE\r\n");
+        LOGI(LOG_TARGET, "[nettool_set_state] SET TO ENABLE\r\n");
+        LOGI(LOG_TARGET, "[nettool_set_state] SET TO ENABLE\r\n");
+
+        if ( nettool_get_state() == DEFINES_MDS_NOK)
+        {
+            send_at_cmd("at$$apcall=0");
+            sleep(2);
+            send_at_cmd("at$$apcall=1");
+            system(NETIF_UP_CMD);
+        }
+
+        // check result..
+        while(wait_time_sec--)
+        {
+            if ( nettool_get_state() == DEFINES_MDS_OK)
+            {
+                ret = DEFINES_MDS_OK;
+                break;
+            }
+            sleep(1);
+        }
+    }
+
+    return ret;
+}
+
+
+mdsReturn_t nettool_set_rf_pwr(int flag)
+{
+	static int force_disconn = 0 ;
+	static int disconn_fail_cnt = 0;
+
+    int wait_time_sec = NET_TOOL_SET__MAX_CHK_TIME_SEC;
+
+	int ret = DEFINES_MDS_NOK; // DEFINES_MDS_OK
+
+    if ( flag == NET_TOOL_SET__RF_DISABLE)
+    {
+        LOGI(LOG_TARGET, "[nettool_set_rf_pwr] SET TO RF DISABLE\r\n");
+        LOGI(LOG_TARGET, "[nettool_set_rf_pwr] SET TO RF DISABLE\r\n");
+        LOGI(LOG_TARGET, "[nettool_set_rf_pwr] SET TO RF DISABLE\r\n");
+        LOGI(LOG_TARGET, "[nettool_set_rf_pwr] SET TO RF DISABLE\r\n");
+
+        send_at_cmd("at+cfun=4");
+
+    }
+
+    if ( flag == NET_TOOL_SET__RF_ENABLE)
+    {
+        LOGI(LOG_TARGET, "[nettool_set_rf_pwr] SET TO RF ENABLE\r\n");
+        LOGI(LOG_TARGET, "[nettool_set_rf_pwr] SET TO RF ENABLE\r\n");
+        LOGI(LOG_TARGET, "[nettool_set_rf_pwr] SET TO RF ENABLE\r\n");
+        LOGI(LOG_TARGET, "[nettool_set_rf_pwr] SET TO RF ENABLE\r\n");
+
+        send_at_cmd("at+cfun=1");
+        
+    }
+
+    return ret;
+}
+

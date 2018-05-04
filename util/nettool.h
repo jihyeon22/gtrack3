@@ -15,4 +15,14 @@ ssize_t nettool_recv_timedwait(int sockfd, void *buf, size_t len, int flags, int
 unsigned long int nettool_get_host_name(const char *host_name);
 void nettool_init_hostbyname_func(void);
 
+#define NET_TOOL_SET__ENABLE    0
+#define NET_TOOL_SET__DISABLE    1
+#define NET_TOOL_SET__MAX_CHK_TIME_SEC 10
+mdsReturn_t nettool_set_state(int flag);
+
+#define NET_TOOL_SET__RF_ENABLE    0
+#define NET_TOOL_SET__RF_DISABLE    1
+mdsReturn_t nettool_set_rf_pwr(int flag)
+
+
 #endif

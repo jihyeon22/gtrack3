@@ -146,13 +146,21 @@ void *thread_network(void *args)
                     max_network_fail_reset_cnt = DEFAULT_NETWORK_FAIL_RESET_CNT_2;
                 }
 
+// No use network senario need not reset.
+#if defined (KT_FOTA_TEST_SVR) || defined (NO_USE_NETWORK)
+                // do nothing
+                LOGE(LOG_TARGET, "NO_USE_NETWORK DO NOTHING.. \r\n");
+#else
                 if ( network_fail_cnt > max_network_fail_reset_cnt )
                 {
+                    LOGE(LOG_TARGET, "NET FAIL DO RESET!!!!.. \r\n");
                     saved_network_fail_cnt += 1;
                     set_net_conn_fail_cnt(saved_network_fail_cnt);
                     network_fail_emergency_reset_callback();
                     poweroff(NULL,0);
                 }
+#endif
+
             }
 
 		}
@@ -179,9 +187,13 @@ void *thread_network(void *args)
 		watchdog_set_cur_ktime(eWdNet1);
         watchdog_process();
 
-#ifndef KT_FOTA_TEST_SVR    // skip kt iot cert
+#if defined (KT_FOTA_TEST_SVR) || defined (NO_USE_NETWORK)
+        // donoting..
+        LOGE(LOG_TARGET, "NO_USE_NETWORK DO NOTHING.. \r\n");
+#else
         chk_runtime_network_chk();
 #endif
+
 		wd_dbg[eWdNet1] = 1;
 		dmmgr_alive_send();
 
