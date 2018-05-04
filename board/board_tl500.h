@@ -78,3 +78,7 @@
 #define LED_COLOR_CYAN		"cyan"
 #define LED_COLOR_WHITE		"white"
 
+
+#define NETIF_DOWN_CMD			"/sbin/ifconfig rmnet_data0 down &"
+#define NETIF_UP_CMD			"/sbin/ifconfig rmnet_data0 up &"
+

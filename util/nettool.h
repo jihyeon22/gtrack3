@@ -22,7 +22,7 @@ mdsReturn_t nettool_set_state(int flag);
 
 #define NET_TOOL_SET__RF_ENABLE    0
 #define NET_TOOL_SET__RF_DISABLE    1
-mdsReturn_t nettool_set_rf_pwr(int flag)
+mdsReturn_t nettool_set_rf_pwr(int flag);
 
 
 #endif
