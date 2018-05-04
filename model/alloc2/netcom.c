@@ -23,6 +23,8 @@
 #include "alloc2_senario.h"
 #include "netcom.h"
 
+#include <util/nettool.h>
+
 #define MAX_SVR_RETRY_MDM_SETTING_VAL 3
 
 int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len, const void *param)
@@ -196,6 +198,11 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
     int send_pkt_ret = -1;
     int fifo_pkt_fail_cnt = 0;
 
+    static int get_server_conf = 0;
+    
+
+    
+
     ALLOC_PKT_RECV__MDM_SETTING_VAL *p_mdm_setting_val = NULL;
 
     network_setting_info.retry_count_connect = 3;
@@ -221,8 +228,14 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
     }
 
 RETRY_SEND:
-    LOGI(eSVC_MODEL, "op [0x%x] ==> pipe [%d] / fifo fail cnt [%d]\r\n", op, get_pkt_pipe_type(op, 0), fifo_pkt_fail_cnt);
 
+    LOGI(eSVC_MODEL, "op [0x%x] ==> pipe [%d] / fifo fail cnt [%d]\r\n", op, get_pkt_pipe_type(op, 0), fifo_pkt_fail_cnt);
+#ifdef NO_USE_NETWORK
+    nettool_set_rf_pwr(NET_TOOL_SET__RF_ENABLE);
+    sleep(10);
+    nettool_set_state(NET_TOOL_SET__ENABLE);
+    sleep(10);
+#endif
     if (fifo_pkt_fail_cnt > MAX_FIFO_FAIL_CNT)
         devel_webdm_send_log("SEND FIFO FAIL CNT :: [%d]\n", fifo_pkt_fail_cnt);
 
@@ -254,6 +267,8 @@ RETRY_SEND:
                 send_pkt_ret = parse_pkt__mdm_setting_val(&recv_buff, network_setting_info.ip, network_setting_info.port);
                 // printf("[ALLOC2 PKT TRANS] evtcode [%d] success!!!", e_mdm_setting_val);
 
+                if ( send_pkt_ret >= 0 )
+                    get_server_conf = 1; // get config success..
             }
             else
             {
@@ -292,8 +307,10 @@ RETRY_SEND:
                 send_pkt_ret = parse_pkt__mdm_stat_evt(&recv_buff);
 
                 // 한번이라도 통신성공해야... 저장
-                if ( send_pkt_ret >= 0 )
+                if ( ( send_pkt_ret >= 0 ) && ( get_server_conf == 1) )
                 {
+                    LOGI(eSVC_MODEL, "[ALLOC2 PKT TRANS] NEED TO SERVER CHAGE [%d] \r\n", send_pkt_ret);
+                    get_server_conf = 0;
                     set_user_cfg_report_ip(network_setting_info.ip);
                     set_user_cfg_report_port(network_setting_info.port);
                 }
@@ -585,6 +602,17 @@ RETRY_SEND:
     }
 
     printf("------------- send packet :: pkt id [0x%x] end -------------------\r\n", op);
+
+#ifdef NO_USE_NETWORK
+    if ( send_pkt_ret >= 0 )
+    {
+        nettool_set_state(NET_TOOL_SET__DISABLE);
+        sleep(10);
+        nettool_set_rf_pwr(NET_TOOL_SET__RF_DISABLE);
+        sleep(10);
+    }
+#endif
+
     return send_pkt_ret;
 }
 

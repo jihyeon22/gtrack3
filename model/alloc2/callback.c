@@ -38,6 +38,8 @@ static int model_ignition_stat = 0;
 #include "allkey_bcm_1.h"
 #include "seco_obd_1.h"
 
+#include <util/nettool.h>
+
 ALLKEY_BCM_1_INFO_T g_allkey_bcm_info = {0,};
 
 int mdm_bcm_evt_proc(const int evt_code, const unsigned char stat_1, const unsigned char stat_2, const unsigned char err_list);
@@ -388,6 +390,13 @@ void main_loop_callback(void)
 		sleep(1);
 	}*/
 
+#ifdef NO_USE_NETWORK
+    nettool_set_rf_pwr(NET_TOOL_SET__RF_ENABLE);
+    sleep(10);
+    nettool_set_state(NET_TOOL_SET__ENABLE);
+    sleep(10);
+#endif
+
 	while(1)
 	{
 		ALLOC_PKT_RECV__OBD_DEV_INFO* p_obd_dev_info = NULL;
@@ -406,8 +415,9 @@ void main_loop_callback(void)
         // ----------------------------------------------------
         // net check..
         // ----------------------------------------------------
+#ifndef NO_USE_NETWORK
         chk_runtime_network_chk();
-
+#endif
 		// ---------------------------------------------------------------------
 		// batt chk 
 		// ---------------------------------------------------------------------
