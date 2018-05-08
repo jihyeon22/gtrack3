@@ -17,8 +17,8 @@ int make_record(char *record);
 
 //only for lotte ++
 #define MAX_WAIT_RETRY_TIME		180	//unit : sec
-#define WAIT_INTERVAL_TIME		1	//unit : sec
-#define PACKET_RETRY_COUNT		20
+#define WAIT_INTERVAL_TIME		5	//unit : sec
+#define PACKET_RETRY_COUNT		10
 //only for lotte --
 
 //======================================================

@@ -201,8 +201,11 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
 	int res;
 	int wait_count;
 	char svr_resp[SERVER_RESP_MAX_LEN] = {0,};
+    char svr_resp_2[SERVER_RESP_MAX_LEN] = {0,};
 	int ret_val = -1;
     int fail_count = 0;
+
+    int conn_api_ret_val = 0;
 
     static int last_success_server_port = 0;
     static char last_success_server_ip[40] = {0,};
@@ -226,18 +229,25 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
         else
             strcpy(svr_resp, "[2]");
 #else
-        transfer_packet_recv_nisso(&gSetting_report, packet_buf, packet_len, (unsigned char *)&svr_resp, SERVER_RESP_MAX_LEN);
+        conn_api_ret_val = transfer_packet_recv_nisso(&gSetting_report, packet_buf, packet_len, (unsigned char *)&svr_resp, SERVER_RESP_MAX_LEN);
 #endif
-        if ( strlen(svr_resp) )
-        {
-            if ( strlen(svr_resp) > 3 )
-                devel_webdm_send_log("pkt send recv \"%s\"", svr_resp);
+        mds_api_remove_etc_char(svr_resp, svr_resp_2, sizeof(svr_resp_2));
 
-            LOGI(LOG_TARGET, "%s> send success : get data >> \"%s\"\n", __func__, svr_resp);
-            ret_val = server_resp_proc(svr_resp);
+        if ( strlen(svr_resp_2) )
+        {
+            if ( strlen(svr_resp_2) > 3 )
+                devel_webdm_send_log("pkt send recv \"%s\"", svr_resp_2);
+
+            LOGI(LOG_TARGET, "%s> send success : get data 2 >> \"%s\"\n", __func__, svr_resp_2);
+            ret_val = server_resp_proc(svr_resp_2);
+
+            if ( ret_val < 0)
+                devel_webdm_send_log("[%s:%d] op[%d] -> PARSE FAIL \"%s\"", gSetting_report.ip, gSetting_report.port, op, svr_resp_2);
         }
         else
-            devel_webdm_send_log("pkt send recv fail");
+        {
+            devel_webdm_send_log("[%s:%d] op[%d] -> RECV FAIL [%d], [%d]  ", gSetting_report.ip, gSetting_report.port, op, fail_count, conn_api_ret_val);
+        }
 
         if (ret_val >= 0)
         {
@@ -252,11 +262,10 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
            	gps_valid_data_write();
 	        mileage_write();
 
+            if (fail_count > 0)
+                devel_webdm_send_log("[%s:%d] op[%d] -> RECV SUCCESS CASE 1 [%d], [%d]  ", gSetting_report.ip, gSetting_report.port, op, fail_count, conn_api_ret_val);
+
             break;
-        }
-        else
-        {
-            devel_webdm_send_log("pkt parse fail [%d]", fail_count);
         }
 
 		LOGE(LOG_TARGET, "%s> Fail to send packet [%d]\n", __func__, op);
@@ -264,12 +273,12 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
 		//wait_count = MAX_WAIT_RETRY_TIME/WAIT_INTERVAL_TIME;
 		//while(wait_count-- > 0) {
 		//	LOGI(LOG_TARGET, "%s> wait time count [%d]\n", __func__, wait_count);
-
-        if ( fail_count > 30 )
+#if 0
+        if ( fail_count > 5 )
         {
             if ( last_success_server_port > 0 )
             {
-                #if 0
+                /*
                 LOGE(LOG_TARGET, "%s> recovery ip [%s][%d]\n", __func__, last_success_server_ip, last_success_server_port);
                 devel_webdm_send_log("recovery ip [%s][%d]", __func__, last_success_server_ip, last_success_server_port);
 
@@ -278,10 +287,11 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
 	            conf->model.report_port = last_success_server_port;
                 save_config_user("user:report_ip", last_success_server_ip);
                 save_config_user("user:report_port", last_success_server_port);
-                #endif
+                */
             }
         }
-        
+#endif
+
         fail_count ++;
 		sleep(WAIT_INTERVAL_TIME);
         if ( fail_count > PACKET_RETRY_COUNT )
@@ -311,7 +321,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 	int ret;
 	int max_send_try_cnt = MAX_SEND_RETRY_CNT_NISSO;
 
-	setting_network_param(); //real-time ip/port change
+//	setting_network_param(); //real-time ip/port change
 
 	LOGI(LOG_TARGET, "ip %s : %d send packet!!\n", gSetting_report.ip, gSetting_report.port);
 
@@ -320,10 +330,12 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 		ret = __send_packet(op, packet_buf, packet_len);
 		if ( ret >= 0 )
 			break;
+        devel_webdm_send_log("send pkt RETRY CASE 0");
 	}
 
 	if(ret < 0) {
 		LOGE(LOG_TARGET, "op[%d] __send_packet error return\n", op);
+        devel_webdm_send_log("send pkt FAIL CASE 0");
 		return -1;
 	}
 

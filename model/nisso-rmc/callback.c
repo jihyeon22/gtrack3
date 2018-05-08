@@ -45,7 +45,7 @@ void abort_callback(void);
 static int _process_poweroff(int now_poweroff_flag, char *log);
 static int flag_run_thread_main = 1;
 
-static int is_run_ignition_off = 0;
+int is_run_ignition_off = 0;
 static time_t prev_gps_active_time = 0;
 
 void wait_time_sync()
@@ -111,8 +111,9 @@ void button1_callback(void)
 	LOGI(LOG_TARGET, "button1_callback ++\n");
 
 	conf_model = get_config_model();
-
-	sender_add_data_to_buffer(eBUTTON_NUM0_EVT, NULL, ePIPE_1);
+    // only key on send 
+    if ( is_run_ignition_off == 0 )
+	    sender_add_data_to_buffer(eBUTTON_NUM0_EVT, NULL, ePIPE_1);
 
 #ifdef FEATURE_GEO_FENCE_SIMULATION
     //parse_model_sms("0000", "000111122222", "&12,1, 0,2,37.4756163,126.8818914,60 ,1,2,00.0000000,000.0000000,0 ,2,2,00.0000000,000.0000000,0,3,2,37.399693, 127.100937,10,1");
@@ -131,8 +132,9 @@ void button2_callback(void)
 
 	conf_model = get_config_model();
 
-	sender_add_data_to_buffer(eBUTTON_NUM1_EVT, NULL, ePIPE_1);
-	
+    if ( is_run_ignition_off == 0 )
+	    sender_add_data_to_buffer(eBUTTON_NUM1_EVT, NULL, ePIPE_1);
+
 #ifdef FEATURE_GEO_FENCE_SIMULATION
 	geo_test_flag = 1; //geo in
 #endif

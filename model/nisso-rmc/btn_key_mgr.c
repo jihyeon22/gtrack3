@@ -19,6 +19,8 @@
 
 #define LOG_TARGET eSVC_MODEL
 
+extern int is_run_ignition_off;
+
 GPIP_EVT_INFO_T gpio_evt[] = {
     {NISSO_EXT_GPIO_BTN_GPIO_NUM_1, GPIO_EVT_LEVEL_LOW, eGpioEdgeFalling}, 
     {NISSO_EXT_GPIO_BTN_GPIO_NUM_2, GPIO_EVT_LEVEL_LOW, eGpioEdgeFalling}, 
@@ -45,7 +47,11 @@ int nisso_btn_mgr__gpio_evt_proc(GPIP_EVT_INFO_T* evt_res)
         if ( (cur_time - last_key_0) > CHECK_EVENT_FILERING_SEC )
         {
             LOGI(LOG_TARGET, "[BIZINCAR : EXT BTN] %s> BTN EVT 1 !!! SEND PKT\n", __func__);
-            sender_add_data_to_buffer(eBUTTON_NUM0_EVT, NULL, ePIPE_1);
+
+            // only key on send 
+            if ( is_run_ignition_off == 0 )
+                sender_add_data_to_buffer(eBUTTON_NUM0_EVT, NULL, ePIPE_1);
+
             // devel_webdm_send_log("BTN 1 push");
             last_key_0 = cur_time;
         }
@@ -62,7 +68,11 @@ int nisso_btn_mgr__gpio_evt_proc(GPIP_EVT_INFO_T* evt_res)
         if ( (cur_time - last_key_1) > CHECK_EVENT_FILERING_SEC )
         {
             LOGI(LOG_TARGET, "[BIZINCAR : EXT BTN] %s> BTN EVT 2 !!! SEND PKT\n", __func__);
-            sender_add_data_to_buffer(eBUTTON_NUM1_EVT, NULL, ePIPE_1);
+
+            // only key on send 
+            if ( is_run_ignition_off == 0 )
+                sender_add_data_to_buffer(eBUTTON_NUM1_EVT, NULL, ePIPE_1);
+
             // devel_webdm_send_log("BTN 2 push");
             last_key_1 = cur_time;
         }
