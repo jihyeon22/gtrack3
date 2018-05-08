@@ -46,11 +46,18 @@ int nisso_btn_mgr__gpio_evt_proc(GPIP_EVT_INFO_T* evt_res)
     {
         if ( (cur_time - last_key_0) > CHECK_EVENT_FILERING_SEC )
         {
-            LOGI(LOG_TARGET, "[BIZINCAR : EXT BTN] %s> BTN EVT 1 !!! SEND PKT\n", __func__);
+            
 
             // only key on send 
             if ( is_run_ignition_off == 0 )
+            {
+                LOGI(LOG_TARGET, "[BIZINCAR : EXT BTN] %s> BTN EVT 1 !!! SEND PKT\n", __func__);
                 sender_add_data_to_buffer(eBUTTON_NUM0_EVT, NULL, ePIPE_1);
+            }
+            else
+            {
+                LOGI(LOG_TARGET, "[BIZINCAR : EXT BTN] %s> BTN EVT 1 !!! SEND PKT ->  but key off skip\n", __func__);
+            }
 
             // devel_webdm_send_log("BTN 1 push");
             last_key_0 = cur_time;
@@ -67,11 +74,16 @@ int nisso_btn_mgr__gpio_evt_proc(GPIP_EVT_INFO_T* evt_res)
     {
         if ( (cur_time - last_key_1) > CHECK_EVENT_FILERING_SEC )
         {
-            LOGI(LOG_TARGET, "[BIZINCAR : EXT BTN] %s> BTN EVT 2 !!! SEND PKT\n", __func__);
-
             // only key on send 
             if ( is_run_ignition_off == 0 )
+            {
+                LOGI(LOG_TARGET, "[BIZINCAR : EXT BTN] %s> BTN EVT 2 !!! SEND PKT\n", __func__);
                 sender_add_data_to_buffer(eBUTTON_NUM1_EVT, NULL, ePIPE_1);
+            }
+            else
+            {
+                LOGE(LOG_TARGET, "[BIZINCAR : EXT BTN] %s> BTN EVT 2 !!! SEND PKT ->  but key off skip\n", __func__);
+            }
 
             // devel_webdm_send_log("BTN 2 push");
             last_key_1 = cur_time;
