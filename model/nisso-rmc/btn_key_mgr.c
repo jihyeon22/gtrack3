@@ -46,12 +46,12 @@ int nisso_btn_mgr__gpio_evt_proc(GPIP_EVT_INFO_T* evt_res)
     {
         if ( (cur_time - last_key_0) > CHECK_EVENT_FILERING_SEC )
         {
-            
-
+            usleep(500);
             // only key on send 
-            if ( is_run_ignition_off == 0 )
+            if ( power_get_ignition_status() == POWER_IGNITION_ON )
             {
                 LOGI(LOG_TARGET, "[BIZINCAR : EXT BTN] %s> BTN EVT 1 !!! SEND PKT\n", __func__);
+                //devel_webdm_send_log("btn 0");
                 sender_add_data_to_buffer(eBUTTON_NUM0_EVT, NULL, ePIPE_1);
             }
             else
@@ -75,10 +75,12 @@ int nisso_btn_mgr__gpio_evt_proc(GPIP_EVT_INFO_T* evt_res)
         if ( (cur_time - last_key_1) > CHECK_EVENT_FILERING_SEC )
         {
             // only key on send 
-            if ( is_run_ignition_off == 0 )
+            usleep(500);
+            if ( power_get_ignition_status() == POWER_IGNITION_ON )
             {
                 LOGI(LOG_TARGET, "[BIZINCAR : EXT BTN] %s> BTN EVT 2 !!! SEND PKT\n", __func__);
                 sender_add_data_to_buffer(eBUTTON_NUM1_EVT, NULL, ePIPE_1);
+                //devel_webdm_send_log("btn 1");
             }
             else
             {
