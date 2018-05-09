@@ -394,6 +394,7 @@ void *thread_gps(void *args)
 			}
 			
 			wd_dbg[eWdGps] = 11;
+            gps_ant_chk();  // gps ant chk
 			gps_parse_one_context_callback();
 			wd_dbg[eWdGps] = 12;
 		}

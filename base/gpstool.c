@@ -1539,3 +1539,56 @@ void gps_restart_check_distance(void)
 	is_set_last_gpsdata = 0;
 }
 
+void gps_ant_chk(void)
+{
+    static int gps_ant_stat_ok = GPS_ANT_CHK_CALL_API_CNT; // first evt is ok
+    static int gps_ant_stat_nok = 0;
+
+    static int gps_ant_chk_cnt = 0;
+
+    static int gps_ant_stat_last = -99;
+
+    if ( gps_ant_chk_cnt++ <= GPS_ANT_CHK_INTERVAL_CNT ) 
+        return 0;
+
+    gps_ant_chk_cnt = 0;
+
+    if ( mds_api_gps_util_get_gps_ant() == DEFINES_MDS_API_OK )
+    {
+        LOGT(LOG_TARGET, "[GPS TOOLS] GPS ANT -> OK : [%d]/[%d]\r\n", gps_ant_stat_ok, gps_ant_stat_nok);
+        gps_ant_stat_ok += 1;
+        gps_ant_stat_nok = 0;
+    }
+    else
+    {
+        LOGE(LOG_TARGET, "[GPS TOOLS] GPS ANT -> NOK : [%d]/[%d]\r\n", gps_ant_stat_ok, gps_ant_stat_nok);
+        gps_ant_stat_ok = 0 ;
+        gps_ant_stat_nok += 1;
+    } 
+
+    if ( gps_ant_stat_ok > GPS_ANT_CHK_CALL_API_CNT )
+    {
+        if ( gps_ant_stat_last != DEFINES_MDS_API_OK )
+        {
+            // gps ant ok callback
+            gps_ant_ok_callback();
+            devel_webdm_send_log("GPS ANT OK");
+            gps_ant_stat_last = DEFINES_MDS_API_OK;
+        }
+
+        
+        // gps ant ok callback
+    }
+    else if ( gps_ant_stat_nok > GPS_ANT_CHK_CALL_API_CNT )
+    {
+        if ( gps_ant_stat_last != DEFINES_MDS_API_NOK )
+        {
+            // gps ant nok callback
+            gps_ant_nok_callback();
+            devel_webdm_send_log("GPS ANT NOK");
+            gps_ant_stat_last = DEFINES_MDS_API_NOK;
+        }
+        
+        
+    }
+}

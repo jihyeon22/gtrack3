@@ -62,6 +62,11 @@ int gps_valid_data_write(void);
 int gps_valid_data_read(void);
 void gps_restart_check_distance(void);
 
+#define GPS_ANT_CHK_INTERVAL_CNT	10
+#define GPS_ANT_CHK_CALL_API_CNT	6		// 6 * 10 => 60sec
+
+void gps_ant_chk(void);
+
 extern int gps_fd;
 extern char gps_dev_file[32];
 extern int g_skip_gps_when_error;
