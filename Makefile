@@ -383,7 +383,7 @@ endif
 
 ifeq ($(USE_GPS_MODEL),y)
 CFLAGS  += -DUSE_GPS_MODEL
-OBJS	+= base/gpstool.o base/mileage.o base/thread-gps.o
+OBJS	+= base/gpstool.o base/mileage.o base/thread-gps.o util/geofence-v2.o
 endif
 
 ifeq ($(USE_GPS_FAKE),y)
