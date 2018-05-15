@@ -153,6 +153,8 @@ else ifeq ($(SERVER),katech-obd)
 SERVER_ABBR := KATO
 USE_SECO_OBD_1=y
 USE_RDATE_TIME_SYNC=y
+else ifeq ($(SERVER),skyan)
+SERVER_ABBR	:=	SKAN
 else
 $(error SERVER is not registerd in Makefile, please input registred server)
 endif
@@ -201,6 +203,8 @@ else ifeq ($(CORP),dsme)
 CORP_ABBR := DSME
 else ifeq ($(CORP), katech)
 CORP_ABBR     :=      KAT
+else ifeq ($(CORP),skyan)
+CORP_ABBR := SKAN
 else
 $(error CORP is not registerd in Makefile, please input registred corporation)
 endif
