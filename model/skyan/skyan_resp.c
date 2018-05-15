@@ -54,6 +54,99 @@
 }
 */
 
+/*
+{"status":0,"packetLogList":[{"serviceId":"S","unitId":1220129234,"manageType":"B","msgCode":"v","reqDt":1526391525,"keyOnDt":1526391525,"keyOffDt":0,"keyStatus":1,"deviceStatus":0,"batteryVolt":0,"firmwareInfo":"VER","gpsStatus":1,"gpsEffectiveDt":0,"latitude":373998527,"longitude":1271017303,"direction":0,"drivingSpeed":0,"accumulDist":11096,"visitPointId":0,"keyOnReportInterval":60,"keyOffReportInterval":3600,"gpsColdWarm":0,"dischargeVoltLevel":0,"overSpeedDefault":0,"engineIdleDefault":0,"maxRpmDefault":0,"axisActivation":0,"visitList":[{"visitPointId":1,"visitPathId":0,"visitOrder":1,"latitude":"37.483245","longitude":"127.0420031","radius":1,"radiusUnit":"km"},{"visitPointId":2,"visitPathId":0,"visitOrder":2,"latitude":"37.483245","longitude":"127.0420031","radius":1,"radiusUnit":"km"},{"visitPointId":3,"visitPathId":0,"visitOrder":3,"latitude":"37.483245","longitude":"127.0420031","radius":1,"radiusUnit":"km"},{"visitPointId":4,"visitPathId":0,"visitOrder":4,"latitude":"37.483245","longitude":"127.0420031","radius":1,"radiusUnit":"km"},{"visitPointId":5,"visitPathId":0,"visitOrder":5,"latitude":"37.483245","longitude":"127.0420031","radius":1,"radiusUnit":"km"},{"visitPointId":6,"visitPathId":0,"visitOrder":6,"latitude":"37.483245","longitude":"127.0420031","radius":1,"radiusUnit":"km"}]}]}
+{
+	"status":0,
+	"packetLogList":[
+	{
+		"serviceId":"S",
+		"unitId":1220129234,
+		"manageType":"B",
+		"msgCode":"v",
+		"reqDt":1526391525,
+		"keyOnDt":1526391525,
+		"keyOffDt":0,
+		"keyStatus":1,
+		"deviceStatus":0,
+		"batteryVolt":0,
+		"firmwareInfo":"VER",
+		"gpsStatus":1,
+		"gpsEffectiveDt":0,
+		"latitude":373998527,
+		"longitude":1271017303,
+		"direction":0,
+		"drivingSpeed":0,
+		"accumulDist":11096,
+		"visitPointId":0,
+		"keyOnReportInterval":60,
+		"keyOffReportInterval":3600,
+		"gpsColdWarm":0,
+		"dischargeVoltLevel":0,
+		"overSpeedDefault":0,
+		"engineIdleDefault":0,
+		"maxRpmDefault":0,
+		"axisActivation":0,
+		"visitList":[
+			{
+			"visitPointId":1,
+			"visitPathId":0,
+			"visitOrder":1,
+			"latitude":"37.483245",
+			"longitude":"127.0420031",
+			"radius":1,
+			"radiusUnit":"km"
+			},
+			{
+			"visitPointId":2,
+			"visitPathId":0,
+			"visitOrder":2,
+			"latitude":"37.483245",
+			"longitude":"127.0420031",
+			"radius":1,
+			"radiusUnit":"km"
+			},
+			{
+			"visitPointId":3,
+			"visitPathId":0,
+			"visitOrder":3,
+			"latitude":"37.483245",
+			"longitude":"127.0420031",
+			"radius":1,
+			"radiusUnit":"km"
+			},
+			{
+			"visitPointId":4,
+			"visitPathId":0,
+			"visitOrder":4,
+			"latitude":"37.483245",
+			"longitude":"127.0420031",
+			"radius":1,
+			"radiusUnit":"km"
+			},
+			{
+			"visitPointId":5,
+			"visitPathId":0,
+			"visitOrder":5,
+			"latitude":"37.483245",
+			"longitude":"127.0420031",
+			"radius":1,
+			"radiusUnit":"km"
+			},
+			{
+			"visitPointId":6,
+			"visitPathId":0,
+			"visitOrder":6,
+			"latitude":"37.483245",
+			"longitude":"127.0420031",
+			"radius":1,
+			"radiusUnit":"km"
+			}
+		]
+	}
+	]
+}
+*/
 #define SKYAN_RESP_JSON_PARSER_DEBUG_MSG
 
 int _json_to_resp_pkt(char* recv_buff, SKY_AUTONET_PKT__RESP_PKT_T* resp_pkt)
@@ -221,6 +314,8 @@ int _json_to_resp_pkt(char* recv_buff, SKY_AUTONET_PKT__RESP_PKT_T* resp_pkt)
         if ( json_is_integer(json_object_get(packetLogList_element, "dischargeVoltLevel")) )    // 방전전압레벨	Unit16
         {
             resp_pkt->body.set_info.set_info__low_batt = json_integer_value(json_object_get(packetLogList_element, "dischargeVoltLevel"));
+            // set low batt level
+            skyan_tools__set_low_batt_level(resp_pkt->body.set_info.set_info__low_batt);
         #ifdef SKYAN_RESP_JSON_PARSER_DEBUG_MSG 
             printf("%s() [%d] => resp_pkt->body.set_info.set_info__low_batt [%d]\r\n", __func__, __LINE__, resp_pkt->body.set_info.set_info__low_batt);
         #endif
@@ -264,8 +359,9 @@ int _json_to_resp_pkt(char* recv_buff, SKY_AUTONET_PKT__RESP_PKT_T* resp_pkt)
         visitList_array_size = json_array_size(visitList_array);
         printf("visitList_array_size => [%d]\r\n", visitList_array_size);
         
-        resp_pkt->fence_cnt = packetLogList_array_size;
-        for(i = 0 ; i < packetLogList_array_size ; i++)
+        resp_pkt->fence_cnt = visitList_array_size;
+
+        for(i = 0 ; i < visitList_array_size ; i++)
         {
             visitList_element = json_array_get(visitList_array, i);
             int unit_scale = 0;
@@ -286,19 +382,19 @@ int _json_to_resp_pkt(char* recv_buff, SKY_AUTONET_PKT__RESP_PKT_T* resp_pkt)
             #endif
             }
 
-            if (json_is_integer(json_object_get(visitList_element, "latitude")))
+            if (json_is_string(json_object_get(visitList_element, "latitude")))
             {
-                float tmp_floatval = json_integer_value(json_object_get(visitList_element, "latitude"));
-                resp_pkt->fence[i].gps_lat = tmp_floatval / 1000000.0 ;              // 위도	Unit32
+                float tmp_floatval = atof(json_string_value(json_object_get(visitList_element, "latitude")));
+                resp_pkt->fence[i].gps_lat = tmp_floatval; // tmp_floatval / 1000000.0 ;              // 위도	Unit32
             #ifdef SKYAN_RESP_JSON_PARSER_DEBUG_MSG 
                 printf("%s() [%d] => resp_pkt->fence[%d].fence_path_id [%f]\r\n", __func__, __LINE__, i, resp_pkt->fence[i].gps_lat);
             #endif
             }
 
-            if (json_is_integer(json_object_get(visitList_element, "longitude")))
+            if (json_is_string(json_object_get(visitList_element, "longitude")))
             {
-                float tmp_floatval = json_integer_value(json_object_get(visitList_element, "longitude"));             // 경도	Unit32
-                resp_pkt->fence[i].gps_lon = tmp_floatval / 1000000.0 ;              // 위도	Unit32
+                float tmp_floatval = atof(json_string_value(json_object_get(visitList_element, "longitude")));             // 경도	Unit32
+                resp_pkt->fence[i].gps_lon = tmp_floatval; // tmp_floatval / 1000000.0 ;              // 위도	Unit32
             #ifdef SKYAN_RESP_JSON_PARSER_DEBUG_MSG 
                 printf("%s() [%d] => resp_pkt->fence[%d].gps_lon [%f]\r\n", __func__, __LINE__, i, resp_pkt->fence[i].gps_lon);
             #endif
@@ -306,7 +402,7 @@ int _json_to_resp_pkt(char* recv_buff, SKY_AUTONET_PKT__RESP_PKT_T* resp_pkt)
 
             if (json_is_integer(json_object_get(visitList_element, "visitOrder")))
             {
-                resp_pkt->fence[i].visit_order = json_object_get(visitList_element, "visitOrder");            // 방문 순서	Uint8
+                resp_pkt->fence[i].visit_order = json_integer_value(json_object_get(visitList_element, "visitOrder"));            // 방문 순서	Uint8
             #ifdef SKYAN_RESP_JSON_PARSER_DEBUG_MSG 
                 printf("%s() [%d] => resp_pkt->fence[%d].visit_order [%d]\r\n", __func__, __LINE__, i, resp_pkt->fence[i].visit_order);
             #endif
@@ -328,15 +424,17 @@ int _json_to_resp_pkt(char* recv_buff, SKY_AUTONET_PKT__RESP_PKT_T* resp_pkt)
             if (json_is_integer(json_object_get(visitList_element, "radius")))
             {
                 resp_pkt->fence[i].radius_m = json_integer_value(json_object_get(visitList_element, "radius"));                // 반경	Unit16
-                resp_pkt->fence[i].radius_m =  resp_pkt->fence[i].radius_m * unit_scale;
 
             #ifdef SKYAN_RESP_JSON_PARSER_DEBUG_MSG 
-                printf("%s() [%d] => resp_pkt->fence[%d].radius_m [%d] / [%d]\r\n", __func__, __LINE__, i, resp_pkt->fence[i].radius_m, json_integer_value(json_object_get(visitList_element, "radius")));
+                printf("%s() [%d] => resp_pkt->fence[%d].radius_m case 1 [%d] \r\n", __func__, __LINE__, i, resp_pkt->fence[i].radius_m);
+            #endif
+                resp_pkt->fence[i].radius_m =  resp_pkt->fence[i].radius_m * unit_scale;
+            #ifdef SKYAN_RESP_JSON_PARSER_DEBUG_MSG 
+                printf("%s() [%d] => resp_pkt->fence[%d].radius_m case 2 [%d] \r\n", __func__, __LINE__, i, resp_pkt->fence[i].radius_m);
             #endif
             }
 
             resp_pkt->fence[i].set_info = 1;
-
         }
 
     }
@@ -358,15 +456,15 @@ int skyan_resp__parse(char* recv_buff)
     printf("recv -----------------------------\r\n");
     printf("%s\r\n",recv_buff);
     printf("----------------------------------\r\n");
-    
+
     // fail check..
     if ( _json_to_resp_pkt(recv_buff, &resp_pkt) == SKYAN_JSON_PARSE_FAIL)
     {
-        return 0;
+        return SKYAN_JSON_PARSE_FAIL;
     }
     
     if ( resp_pkt.status != 0 )
-        return -1;
+        return SKYAN_JSON_PKT_RET_FAIL;
     
     // fence setting
     for ( i = 0 ; i < resp_pkt.fence_cnt ; i ++ )
@@ -387,11 +485,14 @@ int skyan_resp__parse(char* recv_buff)
         set_geo_fence_setup_info_v2(resp_pkt.fence[i].fence_point_id, &geosetup_info);
     }
     
+    if ( resp_pkt.fence_cnt > 0 )
+        print_geo_fence_status_v2(stdout);
+
     set_user_cfg_keyoff_interval(resp_pkt.body.set_info.set_info__keyoff_interval);
     set_user_cfg_keyon_interval(resp_pkt.body.set_info.set_info__keyon_interval);
 
     skyan_tools__set_setting_info(&resp_pkt.body.set_info);
 
-    return 0;
+    return SKYAN_JSON_PARSE_SUCCESS;
 }
 

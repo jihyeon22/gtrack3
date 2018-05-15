@@ -18,6 +18,7 @@
 // batt tools
 // ---------------------------------------------------
 static int g_car_batt_level = 0;
+static int g_low_batt_level = 0;
 int skyan_tools__get_car_batt_level()
 {
     return g_car_batt_level;
@@ -88,6 +89,16 @@ int skyan_tools__chk_car_batt_level(int low_batt, int chk_flag)
     return 0;
 }
 
+int skyan_tools__get_low_batt_level()
+{
+    return g_low_batt_level;
+}
+
+int skyan_tools__set_low_batt_level(int low_batt)
+{
+    g_low_batt_level = low_batt;
+    return g_low_batt_level;
+}
 
 
 // ---------------------------------------------------

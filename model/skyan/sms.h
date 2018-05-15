@@ -15,5 +15,13 @@ typedef enum
 }SMS_CMD_INDEX;
 
 
+typedef struct
+{
+	int index;
+    const char * cmd;
+    int (*proc_func)(char* arg, int size, const char* phonenum);
+}SMS_CMD_FUNC_T;
+
+
 #endif
 

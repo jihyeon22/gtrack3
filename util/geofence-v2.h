@@ -2,6 +2,7 @@
 
 #include <board/board_system.h>
 #include <base/gpstool.h>
+#include <stdio.h>
 
 //jwrho persistant data path modify++
 //#define GEO_FENCE_V2_SETUP_DATA_FILE    "/data/mds/data/geo_fence.dat"
@@ -85,3 +86,5 @@ int get_geo_fence_setup_info_v2(int idx, geo_fence_v2_setup_t *data);
 fence_v2_notification_t get_geofence_notification_v2(int *pfence_num, gpsData_t cur_gps);
 int save_geo_fence_status_info_v2();
 int save_geo_fence_setup_info_v2();
+
+void print_geo_fence_status_v2(FILE * fd);

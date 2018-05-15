@@ -51,6 +51,7 @@ int skyan_tools__clear_devstat(int bit);
 int skyan_tools__get_devstat_is_set(int bit);
 
 int skyan_tools__get_nostart_flag();
+int skyan_tools__set_nostart_flag(int mode);
 
 int skyan_tools__get_firm_ver(char* ver_str);
 

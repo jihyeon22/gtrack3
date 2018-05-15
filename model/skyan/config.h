@@ -53,7 +53,7 @@ int get_user_cfg_keyoff_interval();
 
 int set_user_cfg_report_ip(char* buff);
 int set_user_cfg_report_port(int port);
-int set_user_cfg_keyon_interval();
-int set_user_cfg_keyoff_interval();
+int set_user_cfg_keyon_interval(int sec);
+int set_user_cfg_keyoff_interval(int sec);
 
 #endif

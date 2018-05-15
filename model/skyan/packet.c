@@ -163,7 +163,7 @@ int create_sky_autonet_report_pkt(SKY_AUTONET__PKT_ARG_T* pkt_arg, unsigned char
     gps_pkt.body.set_info.set_info__keyon_interval = get_user_cfg_keyon_interval();;
     gps_pkt.body.set_info.set_info__keyoff_interval = get_user_cfg_keyoff_interval();
     gps_pkt.body.set_info.set_info__gps_on = 0;
-    gps_pkt.body.set_info.set_info__low_batt = 0;
+    gps_pkt.body.set_info.set_info__low_batt = skyan_tools__get_low_batt_level();
     gps_pkt.body.set_info.set_info__over_speed = 0;
     gps_pkt.body.set_info.set_info__idle = 0;
     gps_pkt.body.set_info.set_info__over_rpm = 0;

@@ -89,6 +89,45 @@ void _print_geo_fence_status()
 		fclose(fp);
 }
 
+
+
+void print_geo_fence_status_v2(FILE * fp)
+{
+	FILE *log_fd = NULL;
+
+	log_fd = fp;
+	
+	int i;
+	for(i = 0; i < GEO_FENCE_V2_MAX_COUNT; i++)
+	{
+		if(g_setup_data[i].enable == eGEN_FENCE_V2_ENABLE) 
+		{
+			fprintf(log_fd, "[GEO FENCE #%02d]\n", i);
+			fprintf(log_fd, "\tenable\n");
+			fprintf(log_fd, "\tlatitude = %06.6f\n", g_setup_data[i].latitude);
+			fprintf(log_fd, "\tlongitude = %06.6f\n", g_setup_data[i].longitude);
+			fprintf(log_fd, "\trange = %d\n", g_setup_data[i].range);
+			switch(g_setup_data[i].setup_fence_status) {
+				case eFENCE_V2_SETUP_UNKNOWN: fprintf(log_fd, "\tunkown setup\n"); break;
+				case eFENCE_V2_SETUP_ENTRY: fprintf(log_fd, "\tentry setup\n"); break;
+				case eFENCE_V2_SETUP_EXIT: fprintf(log_fd, "\texit setup\n"); break;
+				case eFENCE_V2_SETUP_ENTRY_EXIT: fprintf(log_fd, "\tentry & exit status\n"); break;
+				default: fprintf(log_fd, "\tunknown setup info error\n"); break;
+			}
+
+			switch(g_status_data[i].cur_fence_status) {
+				case eFENCE_V2_IN_NOTIFICATION: fprintf(log_fd, "\tIN status\n"); break;
+				case eFENCE_V2_OUT_NOTIFICATION: fprintf(log_fd, "\tOUT status\n"); break;
+				case eFENCE_V2_NONE_NOTIFICATION: fprintf(log_fd, "\tunkown status\n"); break;
+				default: fprintf(log_fd, "\tunknown current status error\n"); break;
+			}
+
+			fprintf(log_fd, "\n\n");
+		}
+	}
+
+}
+
 int  save_geo_fence_status_info_v2()
 {
 	int ret;

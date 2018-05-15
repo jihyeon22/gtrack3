@@ -50,11 +50,11 @@ void skyan_senario__start_callback()
     printf("%s() -> start\r\n", __func__);
     // batt check..
     if ( p_setting_info != NULL)
-        skyan_tools__chk_car_batt_level(p_setting_info->set_info__low_batt, BATT_CHK_INTERVAL_SEC);
+        skyan_tools__chk_car_batt_level(skyan_tools__get_low_batt_level(), BATT_CHK_INTERVAL_SEC);
 
     if ( gpsdata.active == 1 )
     {
-		fnoti = get_geofence_notification_v2(&fence_num, gpsdata);
+		fnoti = get_geofence_notification_v2(&fence_num,gpsdata);
 		if(fnoti != eFENCE_V2_NONE_NOTIFICATION)
 		{
             send_sky_autonet_geofence_evt(fence_num, fnoti);
@@ -88,6 +88,7 @@ void skyan_senario__start_callback()
 void skyan_senario__poweroff()
 {
     skyan_tools__save_resume_data();
+
     // deinit_geo_fence_v2();
 }
 

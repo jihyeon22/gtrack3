@@ -6,6 +6,7 @@
 #include <pthread.h>
 
 #include <base/config.h>
+#include <base/watchdog.h>
 #include <board/power.h>
 #include <board/led.h>
 #include <util/tools.h>
@@ -21,6 +22,7 @@
 
 #include "skyan_tools.h"
 #include "skyan_senario.h"
+#include "skyan_resp.h"
 #include "packet.h"
 
 transferSetting_t gSetting_report;
@@ -50,8 +52,9 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 }
 
 
-int send_packet(char op, unsigned char *packet_buf, int packet_len)
+int _send_packet(char op, unsigned char *packet_buf, int packet_len)
 {
+    int ret = -1;
     transferSetting_t network_setting_info = {
         0,
     };
@@ -67,6 +70,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
     switch(op)
     {
         case e_skyan_pkt__evt:
+        case e_skyan_pkt__geofence_evt:
         case e_skyan_pkt__normal_period:
         case e_skyan_pkt__req_geofence_info:
         {
@@ -79,28 +83,47 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
             
             recv_buff_len = sizeof(recv_buff);
             recv_ret = transfer_packet_recv(&network_setting_info, packet_buf, packet_len, (unsigned char *)&recv_buff, recv_buff_len);
+
+            // etc char remove.. : only string data..
             mds_api_remove_etc_char(recv_buff, recv_buff2, sizeof(recv_buff2));
 
-            // TODO: etc char remove..
-            // etc char remove..
-
-            if ( strlen(recv_buff2) > 20)
-                skyan_resp__parse(recv_buff);
+            if ( strlen(recv_buff2) > 10)
+                ret = skyan_resp__parse(recv_buff);
 
             break;
         }
-
     }
 
     /*
         e_skyan_pkt__evt,
     e_skyan_pkt__normal_period,
     */
-	return 0;
+	return ret;
 }
 
+
+int send_packet(char op, unsigned char *packet_buf, int packet_len)
+{
+    int ret = -1;
+    int retry_cnt = MAX_SEND_RETRY_CNT;
+
+    while(retry_cnt--)
+    {
+        ret = _send_packet(op, packet_buf, packet_len);
+        if ( ret == SKYAN_JSON_PARSE_SUCCESS )
+            break;
+        watchdog_set_cur_ktime(eWdNet1);
+        watchdog_set_cur_ktime(eWdNet2);
+        sleep(5);
+    }
+
+    return 0;
+}
 int free_packet(void *packet)
 {
+    gps_valid_data_write();
+    mileage_write();
+
 	if(packet != NULL)
 	{
 		free(packet);
