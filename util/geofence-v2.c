@@ -221,8 +221,13 @@ fence_v2_notification_t get_geofence_notification_v2(int *pfence_num, gpsData_t 
 	return result;
 }
 
+int clear_init_all_geo_fence_v2()
+{
+    _init_geo_fence_data();
+}
 
-int init_geo_fence_v2(geo_fence_v2_debug_mode_t debug_mode)
+
+int init_geo_fence_v2(geo_fence_v2_debug_mode_t debug_mode, geo_fence_v2_load_mode_t load_mode)
 {
 	int ret;
 
@@ -230,22 +235,26 @@ int init_geo_fence_v2(geo_fence_v2_debug_mode_t debug_mode)
 
 	_init_geo_fence_data();
 
-	ret = storage_load_file(GEO_FENCE_V2_SETUP_DATA_FILE, g_setup_data, sizeof(geo_fence_v2_setup_t)*GEO_FENCE_V2_MAX_COUNT);
-	printf("geo fence %s load_file = [%d]\n", GEO_FENCE_V2_SETUP_DATA_FILE, ret);
-	if(ret != ERR_NONE)
-	{
-		ret = storage_save_file(GEO_FENCE_V2_SETUP_DATA_FILE, g_setup_data, sizeof(geo_fence_v2_setup_t)*GEO_FENCE_V2_MAX_COUNT);
-		printf("geo fence default file save = [%d]\n", ret);
-	}
+    if ( load_mode == eGEN_FENCE_V2_READ_SAVED_DATA_MODE)
+    {
+        ret = storage_load_file(GEO_FENCE_V2_SETUP_DATA_FILE, g_setup_data, sizeof(geo_fence_v2_setup_t)*GEO_FENCE_V2_MAX_COUNT);
+        printf("geo fence %s load_file = [%d]\n", GEO_FENCE_V2_SETUP_DATA_FILE, ret);
+        if(ret != ERR_NONE)
+        {
+            ret = storage_save_file(GEO_FENCE_V2_SETUP_DATA_FILE, g_setup_data, sizeof(geo_fence_v2_setup_t)*GEO_FENCE_V2_MAX_COUNT);
+            printf("geo fence default file save = [%d]\n", ret);
+        }
 
-	ret = storage_load_file(GEO_FENCE_V2_STATUS_FILE, g_status_data, sizeof(geo_fence_v2_status_t)*GEO_FENCE_V2_MAX_COUNT);
-	printf("geo fence %s load_file = [%d]\n", GEO_FENCE_V2_STATUS_FILE, ret);
-	if(ret != ERR_NONE)
-	{
-		ret = storage_save_file(GEO_FENCE_V2_STATUS_FILE, g_status_data, sizeof(geo_fence_v2_status_t)*GEO_FENCE_V2_MAX_COUNT);
-		printf("geo fence default file save = [%d]\n", ret);
-	}
+        ret = storage_load_file(GEO_FENCE_V2_STATUS_FILE, g_status_data, sizeof(geo_fence_v2_status_t)*GEO_FENCE_V2_MAX_COUNT);
+        printf("geo fence %s load_file = [%d]\n", GEO_FENCE_V2_STATUS_FILE, ret);
+        if(ret != ERR_NONE)
+        {
+            ret = storage_save_file(GEO_FENCE_V2_STATUS_FILE, g_status_data, sizeof(geo_fence_v2_status_t)*GEO_FENCE_V2_MAX_COUNT);
+            printf("geo fence default file save = [%d]\n", ret);
+        }
 
+    }
+    
 	_print_geo_fence_status();
 
 	return 0;

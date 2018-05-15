@@ -52,6 +52,12 @@ enum geo_fence_v2_debug_mode{
 	eGEN_FENCE_V2_NORMAL_MODE,
 };
 
+typedef enum geo_fence_v2_load_mode geo_fence_v2_load_mode_t;
+enum geo_fence_v2_load_mode{
+	eGEN_FENCE_V2_READ_SAVED_DATA_MODE,
+	eGEN_FENCE_V2_NO_READ_SAVED_DATA_MODE,
+};
+
 
 #pragma pack(push, 1)
 
@@ -71,7 +77,8 @@ typedef struct {
 #pragma pack(pop)
 
 
-int init_geo_fence_v2(geo_fence_v2_debug_mode_t debug_mode);
+int init_geo_fence_v2(geo_fence_v2_debug_mode_t debug_mode, geo_fence_v2_load_mode_t load_mode );
+int clear_init_all_geo_fence_v2();
 int deinit_geo_fence_v2();
 int set_geo_fence_setup_info_v2(int idx, geo_fence_v2_setup_t *data);
 int get_geo_fence_setup_info_v2(int idx, geo_fence_v2_setup_t *data);
