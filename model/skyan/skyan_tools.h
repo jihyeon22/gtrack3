@@ -3,6 +3,8 @@
 
 #include "packet.h"
 
+#define SKYAN_APP_VER_STR   "01.01"
+
 #define SKYAN_KEY_STAT_ON       1
 #define SKYAN_KEY_STAT_OFF      0
 #define SKYAN_KEY_STAT_INVALID  -1
@@ -37,6 +39,9 @@ int skyan_tools__chk_car_batt_level(int low_batt, int chk_flag);
 int skyan_tools__chk_car_batt_level(int low_batt, int chk_flag);
 int skyan_tools__set_gps_ant_stat(int stat);
 int skyan_tools__get_gps_stat(int gps_stat);
+
+int skyan_tools__get_low_batt_level();
+int skyan_tools__set_low_batt_level(int low_batt);
 
 int skyan_tools__get_key_on_time();
 int skyan_tools__get_key_off_time();

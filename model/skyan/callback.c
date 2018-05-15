@@ -54,6 +54,7 @@ void network_on_callback(void)
 	printf("gtrack calback ::: network_on_callback !!!\r\n");
 }
 
+
 void button1_callback(void)
 {
 	printf("gtrack calback ::: button1_callback !!!\r\n");
@@ -71,12 +72,18 @@ void ignition_on_callback(void)
     skyan_tools__set_key_stat(SKYAN_KEY_STAT_ON);
     
     if ( skyan_tools__get_nostart_flag() == SKYAN_TOOLS__NORMAL_MODE )
+    {
+        clear_init_all_geo_fence_v2();
+        send_sky_autonet_evt_pkt(SKY_AUTONET_EVT__GEOFENCE__GET_FROM_SVR);
         send_sky_autonet_evt_pkt(SKY_AUTONET_EVT__KEYON);
+    }
     else
+    {
+        devel_webdm_send_log("FIRST NOSTART MODE");
         send_sky_autonet_evt_pkt(SKY_AUTONET_EVT__NOSTART);
+    }
 
-    clear_init_all_geo_fence_v2();
-    send_sky_autonet_evt_pkt(SKY_AUTONET_EVT__GEOFENCE__GET_FROM_SVR);
+
 
     first_key_send_evt = 1;
     // send to genfence req
@@ -114,7 +121,7 @@ void power_off_callback(void)
 
 void gps_parse_one_context_callback(void)
 {
-	printf("gtrack calback ::: gps_parse_one_context_callback !!!\r\n");
+	// printf("gtrack calback ::: gps_parse_one_context_callback !!!\r\n");
 
 }
 
@@ -129,6 +136,7 @@ void gps_ant_ok_callback(void)
 
         // if ( skyan_tools__get_key_stat() == SKYAN_KEY_STAT_ON )
     }
+
     printf("gtrack calback ::: gps_ant_ok_callback !!!\r\n");
 }
 
@@ -144,6 +152,7 @@ void gps_ant_nok_callback(void)
         if ( skyan_tools__get_key_stat() == SKYAN_KEY_STAT_ON )
             send_sky_autonet_evt_pkt(SKY_AUTONET_EVT__GPS_ANT_DISCONN);
     }
+
     printf("gtrack calback ::: gps_ant_nok_callback !!!\r\n");
 }
 
@@ -158,7 +167,7 @@ void main_loop_callback(void)
 
 	while(flag_run_thread_main)
 	{
-		printf("gtrack calback ::: main_loop_callback !!!\r\n");
+		// printf("gtrack calback ::: main_loop_callback !!!\r\n");
 		watchdog_set_cur_ktime(eWdMain);
 		watchdog_process();
 		sleep(1);

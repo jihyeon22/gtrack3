@@ -111,9 +111,13 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
     {
         ret = _send_packet(op, packet_buf, packet_len);
         if ( ret == SKYAN_JSON_PARSE_SUCCESS )
+        {
+            LOGI(eSVC_MODEL, "[SKYAN PKT] SEND PKT SUCCESS : op [%d]\r\n", op);
             break;
+        }
         watchdog_set_cur_ktime(eWdNet1);
         watchdog_set_cur_ktime(eWdNet2);
+        LOGE(eSVC_MODEL, "[SKYAN PKT] SEND PKT FAIL : op [%d]\r\n", op);
         sleep(5);
     }
 

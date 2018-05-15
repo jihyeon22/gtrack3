@@ -22,7 +22,7 @@
 #include "skyan_senario.h"
 #include "packet.h"
 #include "netcom.h"
-
+#include "config.h"
 
 
 
@@ -142,24 +142,32 @@ int create_sky_autonet_report_pkt(SKY_AUTONET__PKT_ARG_T* pkt_arg, unsigned char
     gps_pkt.body.dev_stat__main_volt = skyan_tools__get_car_batt_level();
     skyan_tools__get_firm_ver(gps_pkt.body.dev_stat__firm_ver);
     
-    gps_pkt.body.gps_dev__stat = skyan_tools__get_gps_stat(gpsdata.active);
-    if ( gps_pkt.body.gps_dev__stat == 2)
-        last_gps_fix_time = gps_pkt.body.report_time;
-    
-    gps_pkt.body.gps_dev__last_fix_time = last_gps_fix_time;
-    if ( gpsdata.active == 0 )
+    if ( gpsdata.active == 1 )
+    {
+        gps_pkt.body.gps_dev__lat = gpsdata.lat * 10000000.0; // (b-4) gps 위도 : WGS84좌표체계 예)127123456
+        gps_pkt.body.gps_dev__lon = gpsdata.lon * 10000000.0; // (b-4) gps 위도 : WGS84좌표체계 예)127123456
+        gps_pkt.body.gps_dev__dir = gpsdata.angle;
+    }
+    else if ( gpsdata.active == 0 )
     {
         gpsData_t last_gpsdata;
         gps_valid_data_get(&last_gpsdata);
 
         gps_pkt.body.gps_dev__lat = last_gpsdata.lat * 10000000.0; // (b-4) gps 위도 : WGS84좌표체계 예)127123456
         gps_pkt.body.gps_dev__lon = last_gpsdata.lon * 10000000.0; // (b-4) gps 위도 : WGS84좌표체계 예)127123456
+        gps_pkt.body.gps_dev__dir = 0;
     }
+
+    gps_pkt.body.gps_dev__stat = skyan_tools__get_gps_stat(gpsdata.active);
+    if ( gps_pkt.body.gps_dev__stat == 2)
+        last_gps_fix_time = gps_pkt.body.report_time;
+    
+    gps_pkt.body.gps_dev__last_fix_time = last_gps_fix_time;
+
     gps_pkt.body.gps_dev__speed = gpsdata.speed;
     gps_pkt.body.gps_dev__total_dist = mileage_get_m();
     gps_pkt.body.gps_dev__geofence_id = pkt_arg->fence_id;
 
-    
     gps_pkt.body.set_info.set_info__keyon_interval = get_user_cfg_keyon_interval();;
     gps_pkt.body.set_info.set_info__keyoff_interval = get_user_cfg_keyoff_interval();
     gps_pkt.body.set_info.set_info__gps_on = 0;
@@ -168,7 +176,6 @@ int create_sky_autonet_report_pkt(SKY_AUTONET__PKT_ARG_T* pkt_arg, unsigned char
     gps_pkt.body.set_info.set_info__idle = 0;
     gps_pkt.body.set_info.set_info__over_rpm = 0;
     gps_pkt.body.set_info.set_info__gps_act = 0;
-
 
    // *packet_len = pkt_total_len;
 	
@@ -194,6 +201,8 @@ int send_sky_autonet_evt_pkt(int evt)
     pkt_arg.fence_id = 0;
     pkt_arg.evt_code = evt;
     
+    LOGT(eSVC_MODEL, "[SKYAN PKT] send normal pkt!! evt [%d]\r\n", evt);
+
     sender_add_data_to_buffer(e_skyan_pkt__evt, &pkt_arg, ePIPE_2);
     return 0;
 }
@@ -206,6 +215,8 @@ int send_sky_autonet_req_geofence_info()
     pkt_arg.fence_id = 0;
     pkt_arg.evt_code = SKY_AUTONET_EVT__GEOFENCE__GET_FROM_SVR;
     
+    LOGT(eSVC_MODEL, "[SKYAN PKT] send req geofence info !! \r\n");
+
     sender_add_data_to_buffer(e_skyan_pkt__req_geofence_info, &pkt_arg, ePIPE_2);
     return 0;
 }
@@ -223,6 +234,8 @@ int send_sky_autonet_geofence_evt(int fence_id, fence_v2_notification_t geofence
     else
         return -1;
     
+    LOGT(eSVC_MODEL, "[SKYAN PKT] send geofence pkt!! geo id [%d] evt [%d]\r\n", pkt_arg.fence_id, pkt_arg.evt_code);
+
     sender_add_data_to_buffer(e_skyan_pkt__geofence_evt, &pkt_arg, ePIPE_2);
     return 0;
 }

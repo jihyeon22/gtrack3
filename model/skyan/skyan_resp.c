@@ -173,10 +173,10 @@ int _json_to_resp_pkt(char* recv_buff, SKY_AUTONET_PKT__RESP_PKT_T* resp_pkt)
 	if(!root){
 	    //LOGE(LOG_TARGET, "%s:%d> json_loads \n", __func__, __LINE__);
         printf( "%s:%d> json_loads \n", __func__, __LINE__);
-		//LOGE(LOG_TARGET, "error : on line %d: %s\n", error.line, error.text);
+		LOGE(eSVC_MODEL, "error : on line %d: %s\n", error.line, error.text);
         printf( "error : on line %d: %s\n", error.line, error.text);
 		result = -20;
-        //devel_webdm_send_log("DOWNLOAD USER : invaild json [%s] [%d]", error.text, _g_parse_fail_cnt);
+        devel_webdm_send_log("PARSE FAIL : invaild json [%s]", error.text);
         printf("parse fail : invaild json [%s] [%d]", error.text, 0);
 		return SKYAN_JSON_PARSE_FAIL;
 	}
@@ -460,12 +460,20 @@ int skyan_resp__parse(char* recv_buff)
     // fail check..
     if ( _json_to_resp_pkt(recv_buff, &resp_pkt) == SKYAN_JSON_PARSE_FAIL)
     {
+        LOGE(eSVC_MODEL, "[SKYAN PKT] JSON PARSE FAIL [%s]\r\n", recv_buff);
         return SKYAN_JSON_PARSE_FAIL;
     }
+
     
     if ( resp_pkt.status != 0 )
+    {
+        LOGE(eSVC_MODEL, "[SKYAN PKT] server ret [%d]\r\n", resp_pkt.status);
         return SKYAN_JSON_PKT_RET_FAIL;
+    }
     
+
+    LOGI(eSVC_MODEL, "[SKYAN PKT] JSON PARSE SUCCESS : geofence cnt [%d]\r\n", resp_pkt.fence_cnt);
+
     // fence setting
     for ( i = 0 ; i < resp_pkt.fence_cnt ; i ++ )
     {

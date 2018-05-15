@@ -11,6 +11,7 @@
 #include "skyan_tools.h"
 #include "skyan_senario.h"
 #include "packet.h"
+#include <mdsapi/mds_api.h>
 
 #include "sms.h"
 
@@ -23,13 +24,15 @@ static int _sms_cmd_proc_get__stat(char* arg, int size, const char* phonenum)
 
     if ( chk_size > size )
     {
-        printf("%s() err => [%d] / [%d]\r\n", __func__, chk_size, size);
+        LOGE(eSVC_MODEL,"%s() err => [%d] / [%d]\r\n", __func__, chk_size, size);
         return -1;
     }
 
     memcpy(&get_val__stat, arg + data_offset, sizeof(get_val__stat));
     data_offset += sizeof(get_val__stat);
-    printf("%s() => get_val__stat is [%c]\r\n", __func__, get_val__stat);
+    // printf("%s() => get_val__stat is [%c]\r\n", __func__, get_val__stat);
+
+    LOGT(eSVC_MODEL, "[SKYAN SMS] GET STAT [%c]\r\n", get_val__stat);
 
     send_sky_autonet_evt_pkt(SKY_AUTONET_EVT__SMS_RESP__STAT);
 
@@ -46,7 +49,7 @@ static int _sms_cmd_proc_set__nostart_mode(char* arg, int size, const char* phon
 
     if ( chk_size > size )
     {
-        printf("%s() err => [%d] / [%d]\r\n", __func__, chk_size, size);
+        LOGE(eSVC_MODEL,"%s() err => [%d] / [%d]\r\n", __func__, chk_size, size);
         return -1;
     }
 
@@ -62,6 +65,10 @@ static int _sms_cmd_proc_set__nostart_mode(char* arg, int size, const char* phon
     {
         skyan_tools__set_nostart_flag(SKYAN_TOOLS__NORMAL_MODE);
     }
+
+    LOGT(eSVC_MODEL, "[SKYAN SMS] SET NOSTART FLAG [%c]\r\n", get_val__stat);
+
+    devel_webdm_send_log("SMS SET NOSTART FLAG [%c]\r\n", get_val__stat);
 
     send_sky_autonet_evt_pkt(SKY_AUTONET_EVT__SMS_RESP__NOSTART);
 
@@ -87,7 +94,7 @@ static int _sms_cmd_proc_set__dev_setting(char* arg, int size, const char* phone
 
     if ( chk_size > size )
     {
-        printf("%s() err => [%d] / [%d]\r\n", __func__, chk_size, size);
+        LOGE(eSVC_MODEL,"%s() err => [%d] / [%d]\r\n", __func__, chk_size, size);
         return -1;
     }
 
@@ -112,6 +119,8 @@ static int _sms_cmd_proc_set__dev_setting(char* arg, int size, const char* phone
     set_user_cfg_keyon_interval(get_val__keyon_interval);
     set_user_cfg_keyoff_interval(get_val__keyoff_interval);
 
+    LOGT(eSVC_MODEL, "[SKYAN SMS] SET DEV SETTING keyon [%d] / key off [%d] / lowbatt [%d] \r\n", get_val__keyon_interval, get_val__keyoff_interval, get_val__low_batt);
+
     send_sky_autonet_evt_pkt(SKY_AUTONET_EVT__SMS_RESP__SETTING);
 
     return 0;
@@ -127,16 +136,17 @@ static int _sms_cmd_proc_set__dev_reset(char* arg, int size, const char* phonenu
 
     if ( chk_size > size )
     {
-        printf("%s() err => [%d] / [%d]\r\n", __func__, chk_size, size);
+        LOGE(eSVC_MODEL,"%s() err => [%d] / [%d]\r\n", __func__, chk_size, size);
         return -1;
     }
 
     memcpy(&get_val__stat, arg + data_offset, sizeof(get_val__stat));
     data_offset += sizeof(get_val__stat);
-    printf("%s() => get_val__stat is [%c]\r\n", __func__, get_val__stat);
+    // printf("%s() => get_val__stat is [%c]\r\n", __func__, get_val__stat);
 
-    
 
+    LOGT(eSVC_MODEL, "[SKYAN SMS] SET RESET [%c]\r\n", get_val__stat);
+    devel_webdm_send_log("SMS SET RESET [%c]\r\n", get_val__stat);
 
     send_sky_autonet_evt_pkt(SKY_AUTONET_EVT__SMS_RESP__RESET);
 
@@ -197,13 +207,19 @@ static int _sms_cmd_proc_set__server_setting(char* arg, int size, const char* ph
 
     printf("%s() => ipaddr [%s] / port [%d]\r\n", __func__, ip_addr, get_val__port);
 
+    // 변경전 패킷 보냄
+    send_sky_autonet_evt_pkt(SKY_AUTONET_EVT__SMS_RESP__SERVER_INFO);
+
+    sleep(5);
+
     set_user_cfg_report_ip(ip_addr);
     set_user_cfg_report_port(get_val__port);
 
+    LOGT(eSVC_MODEL, "[SKYAN SMS] SET DEV ADDR : ip [%s] / port [%d] \r\n", ip_addr, get_val__port);
+    devel_webdm_send_log("SMS CHG SVR [%s][%d]\r\n", ip_addr, get_val__port);
+    // 변경된 서버쪽에도 보냄
     send_sky_autonet_evt_pkt(SKY_AUTONET_EVT__SMS_RESP__SERVER_INFO);
 
-
-    
 
     return 0;
 }
@@ -231,6 +247,7 @@ int parse_model_sms(const char *time, const char *phonenum, const char *sms)
     if ( ( decode_size = mds_api_b64_decode(sms, strlen(sms), decode_b64_str, sizeof(decode_b64_str))) <= 0 )
     {
         printf("decode fail...\r\n");
+        LOGE(eSVC_MODEL, "[SKYAN SMS] decode b64 fail\r\n");
         return -1;
     }
     
@@ -239,6 +256,7 @@ int parse_model_sms(const char *time, const char *phonenum, const char *sms)
     */
     printf("--- decode success [%d] ------------------------------\r\n", decode_size);
     mds_api_debug_hexdump_buff(decode_b64_str,decode_size);
+    LOGT(eSVC_MODEL, "[SKYAN SMS] decode b64 success\r\n");
     printf("------------------------------------------------------\r\n");
     
     for(j = 0; j < MAX_SMS_CMD; j++)
@@ -247,11 +265,8 @@ int parse_model_sms(const char *time, const char *phonenum, const char *sms)
         {
             if ( sms_cmd_func[j].proc_func != NULL )
             {
-                // argc는 항상 2개다.
                 printf("-----------------------------\r\n");
                 int proc_ret = sms_cmd_func[j].proc_func(decode_b64_str + strlen(sms_cmd_func[j].cmd), decode_size -  strlen(sms_cmd_func[j].cmd), phonenum);
-
-                // 그리고 argc2가 두개씩이니...
             }
         }
     }
