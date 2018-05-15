@@ -48,8 +48,8 @@ void _print_geo_fence_status()
 	if(g_debug_mode != eGEN_FENCE_V2_DEBUG_MODE)
 		return;
 
-	remove("/var/log/geofence.log");
-	fp = fopen("/var/log/geofence.log", "w");
+	remove("/tmp/geofence.log");
+	fp = fopen("/tmp/geofence.log", "w");
 	
 	if(fp == NULL)
 		log_fd = stderr;
