@@ -22,7 +22,7 @@ geo_fence_v2_status_t g_status_data[GEO_FENCE_V2_MAX_COUNT];
 
 int g_geo_fence_event_hold_count[GEO_FENCE_V2_MAX_COUNT] = {0, };
 
-void _init_geo_fence_data()
+static void _init_geo_fence_data()
 {
 	int i;
 	for(i = 0; i < GEO_FENCE_V2_MAX_COUNT; i++)
@@ -39,7 +39,7 @@ void _init_geo_fence_data()
 	}
 }
 
-void _print_geo_fence_status()
+static void _print_geo_fence_status()
 {
 
 	FILE *fp = NULL;
@@ -136,7 +136,7 @@ int  save_geo_fence_status_info_v2()
 	return ret;
 }
 
-fence_v2_notification_t _check_fence_data(int dist, int entry_range, int exit_range)
+static fence_v2_notification_t _check_fence_data(int dist, int entry_range, int exit_range)
 {
 	if(dist <= entry_range)
 		return eFENCE_V2_IN_NOTIFICATION;
@@ -148,7 +148,7 @@ fence_v2_notification_t _check_fence_data(int dist, int entry_range, int exit_ra
 	return eFENCE_V2_NONE_NOTIFICATION; //ignore arae
 }
 
-char * _print_geo_fence_notification(fence_v2_notification_t check_status)
+static char * _print_geo_fence_notification(fence_v2_notification_t check_status)
 {
 	if(check_status == eFENCE_V2_IN_NOTIFICATION)
 		return "eFENCE_V2_IN_NOTIFICATION";
@@ -157,7 +157,8 @@ char * _print_geo_fence_notification(fence_v2_notification_t check_status)
 	
 	return "eFENCE_V2_NONE_NOTIFICATION";
 }
-fence_v2_notification_t _get_notification(int idx, gpsData_t *cur_gps)
+
+static fence_v2_notification_t _get_notification(int idx, gpsData_t *cur_gps)
 {
 
 	fence_v2_notification_t result = eFENCE_V2_NONE_NOTIFICATION;
