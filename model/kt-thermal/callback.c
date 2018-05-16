@@ -326,6 +326,14 @@ void gps_parse_one_context_callback(void)
 	return;
 }
 
+void gps_ant_ok_callback(void)
+{
+}
+
+void gps_ant_nok_callback(void)
+{
+}
+
 #define GPS_ANT_CHK_INTERVAL_SEC	2
 #define MAX_GPS_CHK_CNT_MSG_DM		60
 
@@ -506,6 +514,9 @@ static int _process_poweroff(int now_poweroff_flag, char *log)
 	return 0;
 }
 
+void network_fail_emergency_reset_callback(void)
+{
+}
 /*
 #define CYCLE_CHECK_BATT_DATA 60
 #define CYCLE_SEND_BATT_DATA 3600

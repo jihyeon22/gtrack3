@@ -32,7 +32,7 @@ geo_fence_hdr_t g_geo_fence =
 	.fence3.enable = eGEN_FENCE_DISABLE,
 #endif
 };
-void _default_geo_fence(geo_fence_hdr_t *pdata)
+static void _default_geo_fence(geo_fence_hdr_t *pdata)
 {
 	pdata->fence0.enable             = eGEN_FENCE_DISABLE;
 	pdata->fence0.latitude           = 0.0;
@@ -65,7 +65,7 @@ void _default_geo_fence(geo_fence_hdr_t *pdata)
 #endif
 }
 
-void _print_geo_fence_status()
+static void _print_geo_fence_status()
 {
 
 	FILE *fp = NULL;
@@ -190,7 +190,7 @@ void _print_geo_fence_status()
 		fclose(fp);
 }
 
-void _print_geo_fence(fence_notification_t check_status, fence_notification_t cur_status)
+static void _print_geo_fence(fence_notification_t check_status, fence_notification_t cur_status)
 {
 	static int print_count = 0;
 
@@ -256,7 +256,7 @@ int  set_geo_fence3(geo_fence_data_t data)
 #endif
 
 
-fence_notification_t _check_fence_data(int dist, int entry_range, int exit_range)
+static fence_notification_t _check_fence_data(int dist, int entry_range, int exit_range)
 {
 	if(dist <= entry_range)
 		return eFENCE_IN_NOTIFICATION;
@@ -268,7 +268,7 @@ fence_notification_t _check_fence_data(int dist, int entry_range, int exit_range
 	return eFENCE_NONE_NOTIFICATION; //ignore arae
 }
 
-fence_notification_t _get_notification(geo_fence_data_t *pfence, gpsData_t cur_gps)
+static fence_notification_t _get_notification(geo_fence_data_t *pfence, gpsData_t cur_gps)
 {
 
 	fence_notification_t result = eFENCE_NONE_NOTIFICATION;
