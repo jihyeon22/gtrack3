@@ -33,10 +33,12 @@ enum msg_ev_code{
 	eBUTTON_NUM0_EVT                = 10,	
 	/*NUM1 Button Pressed Event Code*/
 	eBUTTON_NUM1_EVT                = 11,	
+	eBUTTON_START_MILEAGE_EVT       = 11,	
 	/*NUM2 Button Pressed Event Code*/
 	eBUTTON_NUM2_EVT                = 12,	
 	/*NUM3 Button Pressed Event Code*/
 	eBUTTON_NUM3_EVT                = 13,	
+	eBUTTON_END_MILEAGE_EVT         = 13,	
 	/*NUM4 Button Pressed Event Code*/
 	eBUTTON_NUM4_EVT                = 14,	
 	/*NUM5 Button Pressed Event Code*/

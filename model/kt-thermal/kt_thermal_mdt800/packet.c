@@ -61,7 +61,6 @@ int create_report2_data(int ev_code, lotte_packet2_t *packet, gpsData_t gpsdata,
 	char *ver = PRG_VER;
 	char phonenum[MAX_DEV_ID_LED];
 
-	static int last_odo = 0;
 	static int cur_odo = 0;
 
 	memset(packet, 0x00, sizeof(lotte_packet2_t));
@@ -95,14 +94,18 @@ int create_report2_data(int ev_code, lotte_packet2_t *packet, gpsData_t gpsdata,
 
 	cur_odo = get_server_mileage() + get_gps_mileage();
 
-	if ( last_odo == 0 )
-		last_odo = cur_odo;
-	
-	if ( cur_odo >= last_odo)
-		packet->vehicle_odo = cur_odo - last_odo;
+    if ( ev_code == eBUTTON_START_MILEAGE_EVT )
+    {
+        packet->vehicle_odo = 0;
+    }
+    else if ( ev_code == eBUTTON_END_MILEAGE_EVT )
+    {
+        packet->vehicle_odo = ktth_sernaio__keybtn_pkt_odo_calc();
+    }
 	else
-		packet->vehicle_odo = cur_odo;
-		last_odo = cur_odo;
+    {   
+        packet->vehicle_odo = ktth_sernaio__normal_pkt_odo_calc(cur_odo);
+    }
 
 	packet->report_cycle_time = get_report_interval(); // unit : sec
 	packet->gpio_status = 0;

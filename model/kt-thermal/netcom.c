@@ -308,9 +308,11 @@ int setting_network_param(void)
 
 int free_packet(void *packet)
 {
+    gps_valid_data_write();
+    save_mileage_file(get_server_mileage() + get_gps_mileage());
+
 	printf("===========================================\n");
-	
-	
+
 	if(packet != NULL)
 	{
 		printf("free_packet ++\n");

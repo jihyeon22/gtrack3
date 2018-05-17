@@ -34,7 +34,7 @@
 
 #define MILEAGE_NOT_INIT				(-1)
 #define GPS_INIT_MAX_WAITING_TIME		(120)  //unit : sec
-#define MILEAGE_INTERVAL	10
+#define MILEAGE_INTERVAL	2
 
 typedef enum gps_active_status gps_active_status_t;
 enum gps_active_status{

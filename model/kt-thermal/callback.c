@@ -31,6 +31,8 @@
 #include "debug.h"
 #include "netcom.h"
 
+#include "ktth_senario.h"
+
 #include <board/board_system.h>
 
 #include <kt_thermal_mdt800/packet.h>
@@ -79,6 +81,9 @@ void init_model_callback(void)
 	printf("%s ++\n", __func__);
 	stackdump_abort_callback = abort_callback; 
 	LOGI(LOG_TARGET, "init_model_callback\n");	
+
+    ktth_sernaio__load_resume_data();
+    
 	load_mileage_file(&mileage);
 	set_server_mileage(mileage);
 
@@ -116,7 +121,7 @@ void button1_callback(void)
 
 	conf_model = get_config_model();
 
-	sender_add_data_to_buffer(conf_model->model.button1, NULL, ePIPE_2);
+    ktth_sernaio__push_btn(BTN_TYPE__START, BTN_STATUS__PUSH);
 
 #ifdef FEATURE_GEO_FENCE_SIMULATION
 	geo_test_flag = 0; //geo out
@@ -133,7 +138,7 @@ void button2_callback(void)
 
 	conf_model = get_config_model();
 
-	sender_add_data_to_buffer(conf_model->model.button2, NULL, ePIPE_2);
+	ktth_sernaio__push_btn(BTN_TYPE__END, BTN_STATUS__PUSH);
 	
 #ifdef FEATURE_GEO_FENCE_SIMULATION
 	geo_test_flag = 1; //geo in

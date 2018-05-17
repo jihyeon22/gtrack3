@@ -11,6 +11,8 @@ OBJS_MODEL	+= $(MODEL_PATH)/validation.o
 
 OBJS_MODEL	+= $(MODEL_PATH)/at_noti.o
 
+OBJS_MODEL	+= $(MODEL_PATH)/ktth_senario.o
+
 MDT800_SRC = $(MODEL_PATH)/kt_thermal_mdt800/file_mileage.o \
              $(MODEL_PATH)/kt_thermal_mdt800/geofence.o \
              $(MODEL_PATH)/kt_thermal_mdt800/gps_filter.o \
