@@ -16,6 +16,9 @@ int ktth_sernaio__push_btn(int btn_type, int status);
 int ktth_sernaio__normal_pkt_odo_calc(int odo);
 int ktth_sernaio__keybtn_pkt_odo_calc();
 
+void ktth_sernaio__load_resume_data();
+void ktth_sernaio__save_resume_data();
+
 typedef struct {
 	int btn_start__stat;
     int btn_start__mileage;

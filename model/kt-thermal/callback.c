@@ -83,7 +83,7 @@ void init_model_callback(void)
 	LOGI(LOG_TARGET, "init_model_callback\n");	
 
     ktth_sernaio__load_resume_data();
-    
+
 	load_mileage_file(&mileage);
 	set_server_mileage(mileage);
 
@@ -494,6 +494,10 @@ static int _process_poweroff(int now_poweroff_flag, char *log)
 //	static int poweroff_count = 0;
 	char smsmsg[100] = {0,};
 
+    // 정상종료시 버튼은 초기화한다.
+    ktth_sernaio__init_btn();
+    ktth_sernaio__save_resume_data();
+
 //	if(poweroff_count++ > 5 || now_poweroff_flag == 1)
 	{
 		gps_valid_data_write();
@@ -521,6 +525,7 @@ static int _process_poweroff(int now_poweroff_flag, char *log)
 
 void network_fail_emergency_reset_callback(void)
 {
+    _process_poweroff(1, "netfail");
 }
 /*
 #define CYCLE_CHECK_BATT_DATA 60
