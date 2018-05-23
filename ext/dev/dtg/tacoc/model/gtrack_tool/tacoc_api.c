@@ -495,7 +495,7 @@ int taco_gtrack_tool__conv_dtg_to_gps(tacom_std_data_t *p_std_data, gpsData_t * 
     p_gps_data->lon = tmp_float_val / 1000000;
     p_gps_data->speed = char_mbtol(p_std_data->speed, 3);;			// speed(km/s)
 
-    if ( ( p_gps_data->lat > 0 ) && ( p_gps_data->lon ))
+    if ( ( p_gps_data->lat > 0 ) && ( p_gps_data->lon > 0 ))
         p_gps_data->active = 1;
     else
         p_gps_data->active = 0;

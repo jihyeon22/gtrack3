@@ -127,7 +127,7 @@ void button2_callback(void)
 	printf("%s ++\n", __func__);
 	LOGI(LOG_TARGET, "button2_callback ++\n");
 	
-	sender_add_data_to_buffer(eKIT_DEFINE_2_EVT, NULL, ePIPE_2);
+	// sender_add_data_to_buffer(eKIT_DEFINE_2_EVT, NULL, ePIPE_2);
 	
 #ifdef FEATURE_GEO_FENCE_SIMULATION
 	geo_test_flag = 1; //geo in
@@ -139,7 +139,7 @@ void button1_callback(void)
 	printf("%s ++\n", __func__);
 	LOGI(LOG_TARGET, "button1_callback ++\n");
 	
-	sender_add_data_to_buffer(eKIT_DEFINE_1_EVT, NULL, ePIPE_2);
+	// sender_add_data_to_buffer(eKIT_DEFINE_1_EVT, NULL, ePIPE_2);
 
 #ifdef FEATURE_GEO_FENCE_SIMULATION
 	geo_test_flag = 0; //geo out

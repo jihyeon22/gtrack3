@@ -316,6 +316,13 @@ void recovery_gps_data(gpsData_t *pData)
 	//pData->hdop      = 0; //keep HDOP status
 #endif
 
+#ifdef SERVER_ABBR_BICD // BICD IS speed force set
+    {
+        gpsData_t last_gpsdata;
+        gps_valid_data_get(&last_gpsdata);
+        pData->speed = last_gpsdata.speed;
+    }
+#endif
 }
 
 
