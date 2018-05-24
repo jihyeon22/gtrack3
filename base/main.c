@@ -15,6 +15,10 @@
 #include <base/gpstool.h>
 #include <base/mileage.h>
 #endif
+#ifdef USE_GPS_FAKE
+#include <base/gpstool.h>
+#include <util/gps_fake.h>
+#endif
 #include <base/thread.h>
 #include <board/power.h>
 #include <board/led.h>
@@ -52,6 +56,12 @@ void _deinit_essential_functions(void)
 	mileage_write();
 	gps_valid_data_write();
 #endif
+
+#ifdef USE_GPS_FAKE
+	//mileage_write();
+	gps_valid_data_write();
+#endif
+
 }
 
 static void _deinit_resource(void)
@@ -439,6 +449,11 @@ int main(int argc, char** argv)
 
 	// agps setting for tl500
 	at_set_gps_on(e_GPS_ON_TYPE_SET_ENV_AGPS, e_GPS_BOOT_TYPE_NULL);
+#endif
+
+#ifdef USE_GPS_FAKE
+   // mileage_read();
+    gps_valid_data_read();
 #endif
 
 	if(battery_init_adc() < 0)
