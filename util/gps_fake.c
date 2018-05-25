@@ -78,8 +78,8 @@ void gps_get_curr_data(gpsData_t* out)
         gps_fake_mutex_unlock();
         
         get_modem_time_tm(&loc_time);
-    //        gpsdata.utc_sec = get_system_time_utc_sec(conf->gps.gps_time_zone);
-    //       _gps_utc_sec_localtime(gpsdata.utc_sec, &loc_time, conf->gps.gps_time_zone);
+        // gpsdata.utc_sec = get_system_time_utc_sec(conf->gps.gps_time_zone);
+        // _gps_utc_sec_localtime(gpsdata.utc_sec, &loc_time, conf->gps.gps_time_zone);
         tmp_gpsdata.year = loc_time.tm_year + 1900;
         tmp_gpsdata.mon = loc_time.tm_mon + 1;
         tmp_gpsdata.day = loc_time.tm_mday;
