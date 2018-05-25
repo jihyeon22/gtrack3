@@ -4,6 +4,7 @@
 int bizincar_dtg_init();
 int bizincar_dtg_pkt_sernaio();
 
+int bizincar_dtg__clr_dtg_taco_buff();
 int bizincar_dtg__make_period_pkt(unsigned char **pbuf, unsigned short *packet_len);
 int bizincar_dtg__make_evt_pkt(unsigned char **pbuf, unsigned short *packet_len, int evt);
 
@@ -21,6 +22,8 @@ int bizincar_dtg__vehicle_odo();
 int bizincar_dtg__vehicle_odo_diff_mdt();
 int bizincar_dtg__vehicle_odo_diff_dvr();
 int bizincar_dtg__key_stat();
+int bizincar_dtg__vehicle_speed();
+
 
 #endif
 

@@ -53,6 +53,8 @@
 
 extern int is_run_ignition_off;
 
+static int g_fake_key_stat = 1;
+
 // ------------------------------------------------------------------------
 // gps call back ::: fake...
 // ------------------------------------------------------------------------
@@ -76,6 +78,16 @@ void gps_parse_one_context_callback_fake(void)
     if ( is_run_ignition_off == 1 )
         gps_fail_cnt = 0;
     
+
+    // key off senario... last valid gps fix
+    if ( get_fake_ignition_key_stat() == 0 )
+    {
+        LOGE(LOG_TARGET, "[MDT] KEY OFF IS SEND TO VALID DATA\n");
+        cur_gpsdata.active = 0;
+        cur_gpsdata.lat = 0;
+        cur_gpsdata.lon = 0;
+    }
+
 	switch(cur_gpsdata.active)
 	{
 		case eINACTIVE:
@@ -100,7 +112,6 @@ void gps_parse_one_context_callback_fake(void)
             gps_fail_cnt = 0;
 			modem_time = get_modem_time_utc_sec();
 
-
 			ret = active_gps_process(cur_gpsdata, &gpsdata);
 			break;
 	}
@@ -120,7 +131,6 @@ void gps_parse_one_context_callback_fake(void)
 		LOGI(LOG_TARGET, "\n-----------------------------------------\nserver_mileage[%d], gps_mileage = [%d]\n-----------------------------------------", get_server_mileage(), get_gps_mileage());
 	}
 	
-
 	////////////////////////////////////////////////////////////////////////
 	// 2. create packet and add packet to buffer
 	////////////////////////////////////////////////////////////////////////
@@ -143,6 +153,7 @@ void gps_parse_one_context_callback_fake(void)
 
     // init odo and fill dtg data..
     p_packet->vehicle_odo = bizincar_dtg__vehicle_odo_diff_mdt();
+    p_packet->speed = bizincar_dtg__vehicle_speed();
 
 	if(list_add(&gps_buffer_list, p_packet) < 0)
 	{
@@ -154,13 +165,30 @@ void gps_parse_one_context_callback_fake(void)
 	return;
 }
 
+int get_fake_ignition_key_stat()
+{
+    return g_fake_key_stat;
+}
+
+
+int set_fake_ignition_key_stat(int key_stat)
+{
+    g_fake_key_stat = key_stat;
+    return g_fake_key_stat;
+}
+
 void fake_ignition_on_callback_mdt(void)
 {
     // ------------------------------------------------------
     // mdt pkt
     // ------------------------------------------------------
+    
+	sender_add_data_to_buffer(eIGN_ON_EVT, NULL, ePIPE_2); // MDT PKT
+    sender_add_data_to_buffer(eDTG_CUSTOM_EVT__DTG_KEY_ON, NULL, ePIPE_2); // DTG PKT
+
     dmmgr_send(eEVENT_KEY_ON, NULL, 0); 
-	sender_add_data_to_buffer(eIGN_ON_EVT, NULL, ePIPE_2);
+
+    set_fake_ignition_key_stat(1);
 }
 
 
@@ -175,8 +203,12 @@ void fake_ignition_off_callback_mdt(void) // do not use
 	save_mileage_file(get_server_mileage() + get_gps_mileage());
     */
 
-    sender_add_data_to_buffer(eIGN_OFF_EVT, NULL, ePIPE_2);
+    sender_add_data_to_buffer(eIGN_OFF_EVT, NULL, ePIPE_2); // MDT PKT
+    sender_add_data_to_buffer(eDTG_CUSTOM_EVT__DTG_KEY_OFF, NULL, ePIPE_2); // DTG PKT
+
     dmmgr_send(eEVENT_KEY_OFF, NULL, 0); 
+    
+    set_fake_ignition_key_stat(0);
 }
 
 // ----------------------------------------------------------------
@@ -193,6 +225,11 @@ int bizincar_mdt_pkt_sernaio()
     static int last_key_stat = -1;
     int cur_key_stat = 0;
 
+    static int key_on_cnt = KEY_STAT_HOLD_CNT*2; // init status is key on
+    static int key_off_cnt = 0;
+
+    // static int test_cnt = 0;
+
     gps_parse_one_context_callback_fake();
 
     // -----------------------------------------
@@ -200,21 +237,59 @@ int bizincar_mdt_pkt_sernaio()
     // -----------------------------------------
     cur_key_stat = bizincar_dtg__key_stat();
 
-    if (( last_key_stat != cur_key_stat ) && ( cur_key_stat == 1 )) // key on sernaio.
+    // key count.
+    if ( cur_key_stat == 1 )
+    {
+        key_on_cnt ++;
+        key_off_cnt = 0;
+    }
+    else
+    {
+        key_on_cnt = 0;
+        key_off_cnt++;
+    }
+
+    /*
+    test_cnt ++;
+    printf("test cnt :: [%d] / 340 / 900 \r\n", test_cnt);
+    if ( test_cnt > 340)
+    {
+        key_on_cnt = 0;
+        key_off_cnt = 60;
+        cur_key_stat = 0 ;
+
+    }
+
+    if ( test_cnt > 900)
+    {
+        key_on_cnt = 60;
+        key_off_cnt = 0;
+        cur_key_stat = 1 ;
+
+    }
+	*/
+
+    // test code ..
+    
+    LOGI(LOG_TARGET, "KEY cnt : ON [%d] OFF [%d] / hold [%d]\r\n", key_on_cnt, key_off_cnt, KEY_STAT_HOLD_CNT);
+
+    if (( last_key_stat != cur_key_stat ) && ( key_on_cnt > KEY_STAT_HOLD_CNT )) // key on sernaio.
     {
         devel_webdm_send_log("FAKE KEY ON");
         LOGI(LOG_TARGET, "FAKE KEY ON SENARIO\r\n");
         fake_ignition_on_callback_mdt();
+        last_key_stat = cur_key_stat;
     }
-    else if ( ( last_key_stat != cur_key_stat ) && ( cur_key_stat == 0 )) // key off sernaio.
+    else if ( ( last_key_stat != cur_key_stat ) && ( key_off_cnt > KEY_STAT_HOLD_CNT )) // key off sernaio.
     {
         devel_webdm_send_log("FAKE KEY OFF");
         LOGI(LOG_TARGET, "FAKE KEY OFF SENARIO\r\n");
         fake_ignition_off_callback_mdt();
         // do nothing..
+        last_key_stat = cur_key_stat;
     }
 
-    last_key_stat = cur_key_stat;
+    
 
     // ---------------------------------------------
     // mdt report data sernaio
@@ -338,6 +413,7 @@ int bizincar_mdt__make_event_pkt(unsigned char **pbuf, unsigned short *packet_le
     {
 //        configurationBase_t *conf = get_config_base();
         struct tm loc_time;
+        get_modem_time_tm(&loc_time);
 //        gpsdata.utc_sec = get_system_time_utc_sec(conf->gps.gps_time_zone);
 //       _gps_utc_sec_localtime(gpsdata.utc_sec, &loc_time, conf->gps.gps_time_zone);
         gpsdata.year = loc_time.tm_year + 1900;
@@ -358,6 +434,7 @@ int bizincar_mdt__make_event_pkt(unsigned char **pbuf, unsigned short *packet_le
 
      // init odo and fill dtg data..
     packet.vehicle_odo = bizincar_dtg__vehicle_odo_diff_mdt();
+    packet.speed = bizincar_dtg__vehicle_speed();
 
     //print_report_data(packet);
 

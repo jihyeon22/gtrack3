@@ -57,6 +57,7 @@ int is_run_ignition_off = 0;
 
 void wait_time_sync()
 {
+    /*
 	gpsData_t cur_gpsdata;
 
 	while(1) {
@@ -69,6 +70,7 @@ void wait_time_sync()
 		printf("wait_time_sync : year[%d]\n", cur_gpsdata.year);
 		LOGI(LOG_TARGET, "wait_time_sync : year[%d]\n", cur_gpsdata.year);
 	}
+    */
 }
 
 void abort_callback(void)
@@ -168,7 +170,9 @@ void ignition_on_callback(void)
     // ------------------------------------------------------
     // dvr pkt
     // ------------------------------------------------------
-    sender_add_data_to_buffer(eDTG_CUSTOM_EVT__DTG_KEY_ON, NULL, ePIPE_2);
+    /// mdt key on sernaio is moved
+    //  --> fake_ignition_on_callback_mdt();
+    // sender_add_data_to_buffer(eDTG_CUSTOM_EVT__DTG_KEY_ON, NULL, ePIPE_2);
 }
 
 
@@ -188,9 +192,6 @@ void ignition_off_callback(void)
     // ------------------------------------------------------
     // mdt key off sernaio is moved
        //  --> fake_ignition_off_callback_mdt();
-	sender_add_data_to_buffer(eIGN_OFF_EVT, NULL, ePIPE_2);
-	sender_add_data_to_buffer(eCYCLE_REPORT_EVC, NULL, ePIPE_1);
-	save_mileage_file(get_server_mileage() + get_gps_mileage());
 
     // ------------------------------------------------------
     // dtg pkt

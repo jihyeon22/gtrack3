@@ -121,6 +121,7 @@ int mdt__send_packet(char op, unsigned char *packet_buf, int packet_len)
             LOGI(LOG_TARGET, "mdt send success?@!?!?!?!?!?!?! [%d] [%d]\r\n", resp.packet_ret_code, res);
             LOGI(LOG_TARGET, "mdt send success?@!?!?!?!?!?!?! [%d] [%d]\r\n", resp.packet_ret_code, res);
             LOGI(LOG_TARGET, "mdt send success?@!?!?!?!?!?!?! [%d] [%d]\r\n", resp.packet_ret_code, res);
+            gps_valid_data_write();
 			break;
         }
 

@@ -124,6 +124,9 @@ int bizincar_dtg_pkt_sernaio()
 
     int condition_send = 0;
 
+    static int key_on_pkt = 0;
+    static int key_off_pkt = 0;
+
     report_interval = get_dtg_report_period();
     collect_interval = get_dtg_create_period();
     
@@ -134,12 +137,63 @@ int bizincar_dtg_pkt_sernaio()
 
     // printf("condition_send is [%d]\r\n", condition_send);
     
+    LOGI(LOG_TARGET, "[DTG PKT KEY] on [%d] / off [%d]\r\n", key_on_pkt, key_off_pkt);
+
+    if (( key_off_pkt > 1 ) && (get_fake_ignition_key_stat() == 0) && (taco_gtrack_tool__get_remain_cnt() > 0))
+    {
+        // KEY OFF : 
+		//  - clear dtg memory buffer 
+		//  - no send pkt
+        bizincar_dtg__clr_dtg_taco_buff();
+        return 0;
+    }
+
     if ( taco_gtrack_tool__get_remain_cnt() >= (condition_send) )
+    {
+        if ( get_fake_ignition_key_stat() == 1  )
+        {
+            key_on_pkt ++;
+            key_off_pkt = 0;
+        }
+        else
+        {
+            key_on_pkt = 0;
+            key_off_pkt++;
+        }
+
+        
         sender_add_data_to_buffer(eDTG_CUSTOM_EVT__DTG_REPORT, NULL, ePIPE_1);
+        
+    }
 
     return 0;
 }
 
+int bizincar_dtg__clr_dtg_taco_buff()
+{
+    char * tmp_bluk_stream_buff = NULL;
+    char * tmp_cur_stream_buff = NULL;
+    char * tmp_mk_pkt_buff = NULL;
+
+    int taco_data_size = 0;
+    int ret_bufflen = 0;
+    
+    LOGI(LOG_TARGET, "[DTG PKT KEY] CLEAR DTG TACO BUFF\r\n");
+
+    if ( (taco_data_size = taco_gtrack_tool__get_bulk_data(10, &tmp_bluk_stream_buff)) > 0 )
+    {
+        // first current data set
+        if (( ret_bufflen = taco_gtrack_tool__get_current_data(&tmp_cur_stream_buff) ) > 0 )
+        {
+            set_current_dtg_data((unsigned char*)tmp_cur_stream_buff, ret_bufflen);
+            free(tmp_cur_stream_buff);
+        }
+
+        free(tmp_bluk_stream_buff);
+    }
+    
+    return 0;
+}
 
 // -------------------------------------------------------------------------------
 // pkt make util : call from netcom.
@@ -224,6 +278,19 @@ int bizincar_dtg__parse_pkt(bizincar_dtg_respose_t* resp)
 
     return ret_val;
 }
+
+
+int bizincar_dtg__vehicle_speed()
+{
+    tacom_std_data_t std_taco_data = {0,};
+    int vehicle_speed = 0;
+    taco_gtrack_tool__get_cur_std_data(&std_taco_data);
+    vehicle_speed = _char_mbtoi(std_taco_data.speed, 3);
+    printf(" bizincar_dtg__vehicle_speed() => [%d]\r\n", vehicle_speed);
+    LOGI(LOG_TARGET, "%s > dtg speed [%d]\n", __func__, vehicle_speed);
+    return vehicle_speed;
+}
+
 
 
 int bizincar_dtg__vehicle_odo()
