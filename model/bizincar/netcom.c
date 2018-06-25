@@ -242,7 +242,8 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 		return -1;
 	}
 
-#ifdef SERVER_ABBR_BIC1
+// every mode write gps
+//#ifdef SERVER_ABBR_BIC1
     // every time save gps data.. 
     LOGI(LOG_TARGET, "send success save gps info!\n");
     LOGI(LOG_TARGET, "send success save gps info!\n");
@@ -250,7 +251,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
     
     gps_valid_data_write();
     mileage_write();
-#endif
+// #endif
 
 	keypad_server_result__set_result(op, KEY_RESULT_TRUE);
 	LOGI(LOG_TARGET, "send_packet op[%d] send success\n", op);
