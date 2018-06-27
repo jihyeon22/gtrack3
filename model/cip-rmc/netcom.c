@@ -213,6 +213,17 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 		}
 		trynum++;
 	}
+
+    if ( res == 0 )
+    {
+        LOGI(LOG_TARGET, "send success save gps info!\n");
+        LOGI(LOG_TARGET, "send success save gps info!\n");
+        LOGI(LOG_TARGET, "send success save gps info!\n");
+        
+        gps_valid_data_write();
+        mileage_write();
+    }
+
 	return res;
 }
 

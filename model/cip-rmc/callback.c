@@ -470,3 +470,19 @@ static void _check_mem(void)
 	}
 }
 
+void network_fail_emergency_reset_callback()
+{
+    gps_valid_data_write();
+    mileage_write();
+    poweroff("netfail", strlen("netfail"));
+}
+
+void gps_ant_ok_callback(void)
+{
+
+}
+
+void gps_ant_nok_callback(void)
+{
+    
+}
