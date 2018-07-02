@@ -367,7 +367,7 @@ void main_loop_callback(void)
 	init_gps_manager(); //jwrho
 	init_geo_fence();
 	
-    #ifdef USE_MOVON_ADAS
+    #ifdef USE_MOBILEYE_ADAS
     ktth_adas_mgr__init();
     #endif
     

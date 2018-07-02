@@ -285,6 +285,7 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
 		{
 			LOGI(LOG_TARGET, "%s> send success : get data >> \"%s\"\n", __func__, svr_resp);
 			ret_val = server_resp_proc(svr_resp);
+            gps_valid_data_write();
 			break;
 		}
 
