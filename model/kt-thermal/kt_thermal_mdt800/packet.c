@@ -94,6 +94,7 @@ int create_report2_data(int ev_code, lotte_packet2_t *packet, gpsData_t gpsdata,
 
 	cur_odo = get_server_mileage() + get_gps_mileage();
 
+#if 0 // btn odo senario remove.
     if ( ev_code == eBUTTON_START_MILEAGE_EVT )
     {
         packet->vehicle_odo = 0;
@@ -103,6 +104,7 @@ int create_report2_data(int ev_code, lotte_packet2_t *packet, gpsData_t gpsdata,
         packet->vehicle_odo = ktth_sernaio__keybtn_pkt_odo_calc();
     }
 	else
+#endif
     {   
         packet->vehicle_odo = ktth_sernaio__normal_pkt_odo_calc(cur_odo);
     }
@@ -113,7 +115,13 @@ int create_report2_data(int ev_code, lotte_packet2_t *packet, gpsData_t gpsdata,
 	packet->dev_power = power_get_power_source();
 	packet->create_cycle_time = get_collection_interval(); // unit : sec
 
-	snprintf(packet->version, sizeof(packet->version) - 1 , "%c%c%c", ver[1], ver[2], ver[3]);
+	sprintf(packet->version, "%s", KT_THERMAL_VER_STRING);
+
+    {
+        char test_tmp[32] ={0,};
+        strncpy(test_tmp, packet->version, 3);
+        printf("version string is [%s]\r\n", test_tmp);
+    }
 
 	packet->record_leng = rec_len % 101;
 	strncpy(packet->record, record, packet->record_leng);

@@ -11,6 +11,8 @@
 
 #define LIMIT_TRANSFER_PACKET_COUNT		360 //60 min buffer, if 10 sec collection cycle
 
+#define KT_THERMAL_VER_STRING		"270"
+
 typedef enum msg_ev_code msg_ev_code_t;
 enum msg_ev_code{
 	/* TCP/IP Response Event code about IP RE-SETUP command by SMS */
@@ -74,7 +76,6 @@ enum msg_ev_code{
 
 	/*TCP/IP Request ODO initial value */
 	eREQUEST_INIT_ODO               = 38,
-
 
 #if defined(CORP_ABBR_NISSO)
 	/* GEO FENCE NUM #2 entry Event Code */
