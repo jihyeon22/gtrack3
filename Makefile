@@ -280,6 +280,11 @@ SERVER_ABBR   :=      MRM1
 else ifeq ($(SUB),bizincar1)
 #ALWAYS SAVE GPS DATA
 SERVER_ABBR   :=      BIC1
+else ifeq ($(SUB),ktth2)
+#ALWAYS SAVE GPS DATA
+SERVER_ABBR   :=      KTH2
+USE_MOBILEYE_ADAS=y
+USE_MOBILEYE_ADAS_BYPASS=y
 else
 $(error SUB is not registerd in Makefile, please input registred sub-model)
 endif
@@ -426,6 +431,9 @@ ifeq ($(USE_MOBILEYE_ADAS),y)
 CFLAGS  += -DUSE_MOBILEYE_ADAS
 OBJS	+= $(OBJ_MOBILEYE_ADAS)
 CFLAGS  += $(MOBILEYE_ADAS_CFLAGS)
+ifeq  ($(USE_MOBILEYE_ADAS_BYPASS),y)
+CFLAGS  += -DUSE_MOBILEYE_ADAS_BYPASS
+endif
 endif
 
 ifeq ($(USE_KJTEC_RFID),y)
