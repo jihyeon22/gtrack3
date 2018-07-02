@@ -17,6 +17,7 @@ typedef enum
     eADAS_EVT__ERR, // ERR COMMAND : ERR
     eADAS_EVT__FPW,  // FCW COMMAND : 전방추돌경보
     eADAS_EVT__END,
+    eADAS_EVT__BYPASS,
 }eADAS_EVT_CODE;
 
 typedef struct

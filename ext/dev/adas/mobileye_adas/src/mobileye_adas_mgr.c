@@ -51,11 +51,14 @@ void mobileye_adas__mgr_read_thread(void)
     static int  to_line_read = 0;
     char* p_tmp_buff = NULL;
 
+    int parse_success_flag = 0;
+
     static int read_fail_cnt = 0;
     mobileye_adas__cmd_broadcast_msg_start();
 
     while(_g_run_mobileye_adas_thread_run)
     {
+        parse_success_flag = 0;
         usleep(300); // sleep 없이 mutex lock 을 바로 걸면, 다른 쪽에서 치고들어오지 못한다. 그래서 강제고 쉬게함
 
         if ( read_fail_cnt > MAX_READ_ADAS_UART_INVAILD_CHK )
@@ -104,7 +107,8 @@ void mobileye_adas__mgr_read_thread(void)
 
  
         printf("---------------------------------------------------------------------\r\n");
-        printf("[mobileye_adas read thread] read success [%s] \r\n", mobileye_adas_recv_data);
+        printf("[mobileye_adas read thread] read success [%s] [%d]\r\n", mobileye_adas_recv_data, uart_ret);
+        // debug_hexdump_buff(mobileye_adas_recv_data, uart_ret);
         printf("---------------------------------------------------------------------\r\n");
 
         read_fail_cnt = 0;
@@ -134,18 +138,34 @@ void mobileye_adas__mgr_read_thread(void)
 
             if ( strstr(read_line_buff, MOBILEYE_ADAS_UART_BROAD_CAST_CHK_MSG) != NULL)
             {
+                parse_success_flag = 1;
+            #ifdef USE_MOBILEYE_ADAS_BYPASS
+                evt_data.evt_code = eADAS_EVT__BYPASS;
+                strncpy(evt_data.evt_ext, read_line_buff, read_line_len);
+            #else
                 char tmp_argv[20][128];
                 int tmp_argc = 0;
                 memset(&tmp_argv, 0x00, sizeof(tmp_argv));
-
+                
                 tmp_argc = mobileye_adas__tool_device_argument(read_line_buff, strlen(read_line_buff), tmp_argv);
 
                 if ( tmp_argc > 0 )
                 {
                     mobileye_get_evt_data(tmp_argc, tmp_argv, &evt_data);
                 }
+            #endif
             }
-
+            
+            // invalid data (trash data) need to reopen uart.
+            if ( parse_success_flag == 0 )
+            {
+                printf("invalid uart data .... reopen uart !!\r\n");
+                printf("invalid uart data .... reopen uart !!\r\n");
+                printf("invalid uart data .... reopen uart !!\r\n");
+                printf("invalid uart data .... reopen uart !!\r\n");
+                mobileye_adas__uart_deinit();
+            }
+        
             if ( g_mobileye_adas_bmsg_proc != NULL )
                 g_mobileye_adas_bmsg_proc(&evt_data);
             
