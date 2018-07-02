@@ -6,6 +6,7 @@
 typedef enum msg_ev_code_custom msg_ev_code_custom_t;
 enum msg_ev_code_custom{
 	eREPORT_BATT	= 77,
+	eMDS_CUSTOM_KT_ADAS_EVC         = 78,	
 	eMAX_EVENT_CODE                 = 78, //LAST_EVENT_CODE + 1
 };
 

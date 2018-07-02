@@ -318,7 +318,7 @@ void gps_parse_one_context_callback(void)
 
 	char record[100] = {0};
 	int rec_len = 0;
-	rec_len = make_record(record);
+	rec_len = make_record_thermal(record);
 	create_report2_data(eCYCLE_REPORT_EVC, p_packet2, gpsdata, record, rec_len);
 	if(list_add(&gps_buffer_list, p_packet2) < 0)
 	{
@@ -367,6 +367,10 @@ void main_loop_callback(void)
 	init_gps_manager(); //jwrho
 	init_geo_fence();
 	
+    #ifdef USE_MOVON_ADAS
+    ktth_adas_mgr__init();
+    #endif
+    
 	setting_network_param();
 
 	while(flag_run_thread_main && nettool_get_state() != DEFINES_MDS_OK) {

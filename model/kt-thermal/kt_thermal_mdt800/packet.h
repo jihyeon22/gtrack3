@@ -75,6 +75,7 @@ enum msg_ev_code{
 	/*TCP/IP Request ODO initial value */
 	eREQUEST_INIT_ODO               = 38,
 
+
 #if defined(CORP_ABBR_NISSO)
 	/* GEO FENCE NUM #2 entry Event Code */
 	eGEO_FENCE_NUM2_ENTRY_EVT       = 40,

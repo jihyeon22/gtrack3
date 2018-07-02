@@ -32,6 +32,8 @@
 #include <kt_thermal_mdt800/hdlc_async.h>
 #include <kt_thermal_mdt800/file_mileage.h>
 
+#include "ktth_adas_mgr.h"
+
 #define SEND_MIRRORED_PACKET 0
 
 transferSetting_t gSetting_report;
@@ -150,8 +152,50 @@ int make_event2_packet(unsigned char **pbuf, unsigned short *packet_len, int eve
 	int cur_car_volt = battery_get_battlevel_car() / 1000;
 	rec_len = sprintf(record, ">BATVOLT:%d<", cur_car_volt % 100);
 #else
-	rec_len = make_record(record);
+	rec_len = make_record_thermal(record);
 #endif
+
+	org_size = create_report2_data(eventCode, &packet, gpsdata, record, rec_len);
+	LOGI(LOG_TARGET, "%s> report size %d\n", __func__, org_size);
+
+	crc = crc8(crc, (unsigned char *)&packet, org_size);
+	enclen = hdlc_async_encode(p_encbuf, (unsigned char *)&packet, org_size);
+	enclen += hdlc_async_encode(&p_encbuf[enclen], (unsigned char *)&crc, sizeof(crc));
+	p_encbuf[enclen++] = MDT800_PACKET_END_FLAG;
+
+	*packet_len = enclen;
+	*pbuf = p_encbuf;
+	
+	return 0;
+}
+
+
+int make_event2_packet_adas(unsigned char **pbuf, unsigned short *packet_len, ktthAdasData_t* adas_data)
+{
+	unsigned short crc = 0;
+	int enclen = 0;
+	unsigned char *p_encbuf;
+	gpsData_t gpsdata;
+	lotte_packet2_t packet;
+	int org_size = 0;
+	char record[100] = {0};
+	int rec_len = 0;
+
+
+    // event code is normal report code
+    int eventCode = adas_data->event_code;
+
+	gps_get_curr_data(&gpsdata);
+
+	if(create_report2_divert_buffer(&p_encbuf, 1) < 0)
+	{
+		LOGE(LOG_TARGET, "%s> create report2 divert buffer fail\n", __func__);
+		return -1;
+	}
+
+
+    rec_len = sprintf(record, ">%s<", adas_data->adas_data_str);
+	//rec_len = make_record_thermal(record);
 
 	org_size = create_report2_data(eventCode, &packet, gpsdata, record, rec_len);
 	LOGI(LOG_TARGET, "%s> report size %d\n", __func__, org_size);
@@ -179,6 +223,9 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 		case eCYCLE_REPORT_EVC:
 			res = make_period_packet(packet_buf, packet_len);
 			break;
+        case eMDS_CUSTOM_KT_ADAS_EVC:
+            res = make_event2_packet_adas(packet_buf, packet_len, (ktthAdasData_t *)param);
+            break;
 		default:
 			if(op > 0 && op < eMAX_EVENT_CODE)
 			{
@@ -322,7 +369,7 @@ int free_packet(void *packet)
 	return 0;
 }
 
-int make_record(char *record)
+int make_record_thermal(char *record)
 {
 	int rec_len = 0;
 	THERMORMETER_DATA tmp_therm;

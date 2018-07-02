@@ -13,7 +13,7 @@ int make_partial_period_packet(unsigned char **pbuf, unsigned short *packet_len,
 int send_packet(char op, unsigned char *packet_buf, int packet_len);
 int setting_network_param(void);
 int free_packet(void *packet);
-int make_record(char *record);
+int make_record_thermal(char *record);
 
 //only for lotte ++
 #define MAX_WAIT_RETRY_TIME		180	//unit : sec
