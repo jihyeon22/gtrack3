@@ -45,7 +45,8 @@ void abort_callback(void);
 static int _process_poweroff(int now_poweroff_flag, char *log);
 static int flag_run_thread_main = 1;
 
-int is_run_ignition_off = 0;
+int is_ignition_off = 1; // initial status is key off
+
 static time_t prev_gps_active_time = 0;
 
 void wait_time_sync()
@@ -105,130 +106,154 @@ int geofence_test = 0;
 
 void button1_callback(void)
 {
-	configurationModel_t *conf_model = NULL;
+    configurationModel_t *conf_model = NULL;
 
-	printf("%s ++\n", __func__);
-	LOGI(LOG_TARGET, "button1_callback ++\n");
+    printf("%s ++\n", __func__);
+    LOGI(LOG_TARGET, "button1_callback ++\n");
 
-	conf_model = get_config_model();
+    conf_model = get_config_model();
     // only key on send 
-    if ( is_run_ignition_off == 0 )
-	    sender_add_data_to_buffer(eBUTTON_NUM0_EVT, NULL, ePIPE_1);
+    if ( is_ignition_off == 0 )
+        sender_add_data_to_buffer(eBUTTON_NUM0_EVT, NULL, ePIPE_1);
 
 #ifdef FEATURE_GEO_FENCE_SIMULATION
     //parse_model_sms("0000", "000111122222", "&12,1, 0,2,37.4756163,126.8818914,60 ,1,2,00.0000000,000.0000000,0 ,2,2,00.0000000,000.0000000,0,3,2,37.399693, 127.100937,10,1");
     //parse_model_sms("0000", "000111122222", "&12,2,3,2,37.4836196,126.8798599,150,4,2,37.4836196,126.8798599,70,1");
-	geo_test_flag = 0; //geo out
+    geo_test_flag = 0; //geo out
 #endif
-	//test_gps_func();
+    //test_gps_func();
 }
 
 void button2_callback(void)
 {
-	configurationModel_t *conf_model = NULL;
+    configurationModel_t *conf_model = NULL;
 
-	printf("%s ++\n", __func__);
-	LOGI(LOG_TARGET, "button2_callback ++\n");
+    printf("%s ++\n", __func__);
+    LOGI(LOG_TARGET, "button2_callback ++\n");
 
-	conf_model = get_config_model();
+    conf_model = get_config_model();
 
-    if ( is_run_ignition_off == 0 )
-	    sender_add_data_to_buffer(eBUTTON_NUM1_EVT, NULL, ePIPE_1);
+    if ( is_ignition_off == 0 )
+        sender_add_data_to_buffer(eBUTTON_NUM1_EVT, NULL, ePIPE_1);
 
 #ifdef FEATURE_GEO_FENCE_SIMULATION
-	geo_test_flag = 1; //geo in
+    geo_test_flag = 1; //geo in
 #endif
-	//test_gps_func();
+    //test_gps_func();
 }
 
 void ignition_on_callback(void)
 {
-	configurationModel_t *conf = get_config_model();
+    configurationModel_t *conf = get_config_model();
 
-	is_run_ignition_off = 0;
+    // check key pair..
+    if ( is_ignition_off == 0 )
+    {
+        devel_webdm_send_log("already key on skip evt proc");
+        return;
+    }
 
-	printf("%s ++\n", __func__);
-	LOGI(LOG_TARGET, "ignition_on_callback ++\n");
-	
-	init_gps_manager(); //jwrho
+    // devel_webdm_send_log("normal key on sernaio");
 
-	if(conf->model.tempature_enable == 1)
-	{
-		therm_clear_fault();
-		therm_set_sense_cycle(conf->model.tempature_cycle);
-	}
-	
-	nisso_btn_mgr__init();
-	
-	wait_time_sync();
+    is_ignition_off = 0;
 
-	sender_add_data_to_buffer(eIGN_ON_EVT, NULL, ePIPE_1);
-
-
+    printf("%s ++\n", __func__);
+    LOGI(LOG_TARGET, "ignition_on_callback ++\n");
     
+    init_gps_manager(); //jwrho
 
-	//parse_model_sms("0000", "000111122222", "&12,1, 0,2,37.4756163,126.8818914,60 ,1,2,00.0000000,000.0000000,0 ,2,2,00.0000000,000.0000000,0,3,2,37.399693, 127.100937,11,1");
+    if(conf->model.tempature_enable == 1)
+    {
+        therm_clear_fault();
+        therm_set_sense_cycle(conf->model.tempature_cycle);
+    }
+    
+    nisso_btn_mgr__init();
+    
+    wait_time_sync();
+
+    sender_add_data_to_buffer(eIGN_ON_EVT, NULL, ePIPE_1);
+
+    //parse_model_sms("0000", "000111122222", "&12,1, 0,2,37.4756163,126.8818914,60 ,1,2,00.0000000,000.0000000,0 ,2,2,00.0000000,000.0000000,0,3,2,37.399693, 127.100937,11,1");
 
 }
 
 void ignition_off_callback(void)
 {
-	configurationModel_t *conf = get_config_model();
+    configurationModel_t *conf = get_config_model();
 
-	printf("%s ++\n", __func__);
-	LOGI(LOG_TARGET, "ignition_off_callback ++\n");
+    printf("%s ++\n", __func__);
+    LOGI(LOG_TARGET, "ignition_off_callback ++\n");
 
-	if(conf->model.tempature_enable == 1)
-	{
-		therm_set_sense_cycle(conf->model.tempature_cycle*3);
-	}
-	
-	nisso_btn_mgr__init();
-	
-	wait_time_sync();
-
-	//TODO : last gps pos file save for correcting more gen-fence
-    sender_add_data_to_buffer(eCYCLE_REPORT_EVC, NULL, ePIPE_1);
-    is_run_ignition_off = 1;
-
-	sender_add_data_to_buffer(eIGN_OFF_EVT, NULL, ePIPE_1);
-	sender_add_data_to_buffer(eCYCLE_REPORT_EVC, NULL, ePIPE_1);
-	save_mileage_file(get_server_mileage() + get_gps_mileage());
-
+    if(conf->model.tempature_enable == 1)
+    {
+        therm_set_sense_cycle(conf->model.tempature_cycle*3);
+    }
     
+    wait_time_sync();
+
+    // check key pair..
+    if ( is_ignition_off == 1 )
+    {
+        save_mileage_file(get_server_mileage() + get_gps_mileage());
+        devel_webdm_send_log("already key off skip evt proc");
+        return;
+    }
+    else
+    {
+        // devel_webdm_send_log("normal key off sernaio");
+
+        nisso_btn_mgr__init();
+
+        //TODO : last gps pos file save for correcting more gen-fence
+        sender_add_data_to_buffer(eCYCLE_REPORT_EVC, NULL, ePIPE_1);
+        is_ignition_off = 1;
+        sender_add_data_to_buffer(eIGN_OFF_EVT, NULL, ePIPE_1);
+
+        sender_add_data_to_buffer(eCYCLE_REPORT_EVC, NULL, ePIPE_1);
+        save_mileage_file(get_server_mileage() + get_gps_mileage());
+    }
+
 }
 
 void power_on_callback(void)
 {
 	printf("%s ++\n", __func__);
-	set_nisso_pkt__external_pwr(EXTERNAL_PWR_ON);
+
+    set_nisso_pkt__external_pwr(EXTERNAL_PWR_ON);
+
 	LOGI(LOG_TARGET, "power_on_callback ++\n");
 }
 
 void power_off_callback(void)
 {
-	int batt = 0;
+    int batt = 0;
 
-	printf("%s ++\n", __func__);
-	set_nisso_pkt__external_pwr(EXTERNAL_PWR_OFF);
+    printf("%s ++\n", __func__);
 
-	if(is_run_ignition_off == 0 && power_get_ignition_status() == POWER_IGNITION_OFF)
-	{
-		ignition_off_callback();
-	}
+    set_nisso_pkt__external_pwr(EXTERNAL_PWR_OFF);
 
-	LOGI(LOG_TARGET, "power_off_callback ++\n");
-	sender_add_data_to_buffer(ePOWER_SOURCE_CHANGE_EVT, NULL, ePIPE_1);
+    if(is_ignition_off == 0 && power_get_ignition_status() == POWER_IGNITION_OFF)
+    {
+        devel_webdm_send_log("key off sync fail : force key off");
+        ignition_off_callback();
+    }
+
+    LOGI(LOG_TARGET, "power_off_callback ++\n");
+
+    // devel_webdm_send_log("normal power off sernaio");
+
+    sender_add_data_to_buffer(ePOWER_SOURCE_CHANGE_EVT, NULL, ePIPE_1);
     // sender_add_data_to_buffer(eMDM_DEV_RESET, NULL, ePIPE_1); // remove..
-	
-	batt = battery_get_battlevel_internal();
-	if(batt > 0 && batt < 3600)
-	{
-		devel_webdm_send_log("Warn : Internal battery is low - %d(mV)\n", batt);
-	}
-	
-//	if(g_dtg_mode_enable != 1)
-		_process_poweroff(1, "power_off_callback");
+
+    batt = battery_get_battlevel_internal();
+    if(batt > 0 && batt < 3600)
+    {
+        devel_webdm_send_log("Warn : Internal battery is low - %d(mV)\n", batt);
+    }
+
+    //	if(g_dtg_mode_enable != 1)
+        _process_poweroff(1, "power_off_callback");
 }
 
 //#define GPS_WEBDM_VERBOS	
@@ -247,6 +272,7 @@ void gps_parse_one_context_callback(void)
 	static int gps_cnt_deactive = 0;
 	static int gps_debug_msg = 1;
 
+    static int gps_fail_cnt = 0;
 	////////////////////////////////////////////////////////////////////////
 	// 1. gps packet gathering and filtering
 	////////////////////////////////////////////////////////////////////////
@@ -257,7 +283,7 @@ void gps_parse_one_context_callback(void)
 
     // key off �϶��� �ƹ��� ������ ���� �ʰ��Ѵ�. 
     // nisso ��û����
-    if ( is_run_ignition_off == 1 )
+    if ( is_ignition_off == 1 )
     {
         int data_cnt = get_gps_data_count();
         int i = 0;
@@ -273,6 +299,8 @@ void gps_parse_one_context_callback(void)
             free(p_packet2);
         }
 
+        gps_fail_cnt = 0;
+
         return;
     }
 
@@ -283,46 +311,17 @@ void gps_parse_one_context_callback(void)
 		LOGI(LOG_TARGET, "\n-----------------------------------------\nserver_mileage[%d], gps_mileage = [%d]\n-----------------------------------------", get_server_mileage(), get_gps_mileage());
 	}
 
-	if ( cur_gpsdata.active == eACTIVE ) 
-	{
-		gps_cnt_active ++;
-
-		if ( gps_cnt_deactive > MAX_CHK_GPS_DEACTIVE_CNT ) 
-		{
-#ifdef GPS_WEBDM_VERBOS
-			devel_webdm_send_log("[GPS DEBUG] GPS DEACT -> ACT (%d)/(%d)",gps_cnt_active, gps_cnt_deactive);
-#endif
-			gps_cnt_deactive = 0;
-		}
-
-		gps_debug_msg = 1;
-
-		if ( first_gps_active == 0 )
-		{
-			int cur_gps_ant_stat = mds_api_gps_util_get_gps_ant();
-			devel_webdm_send_log("GPS FIRST ACTIVATE SUCCESS! [%d]", cur_gps_ant_stat);
-			first_gps_active = 1;
-		}
-	}
-	else
-	{
-		gps_cnt_deactive++;
-
-		if ( ( gps_cnt_deactive % (MAX_CHK_GPS_DEACTIVE_CNT*gps_debug_msg)) == 0 )
-		{
-#ifdef GPS_WEBDM_VERBOS
-			devel_webdm_send_log("[GPS DEBUG] GPS DEACTIVATE (%d)/(%d)",gps_cnt_active, gps_cnt_deactive);
-#endif
-
-			gps_debug_msg *= 2;
-		}
-		gps_cnt_active = 0;
-	}
-
 	switch(cur_gpsdata.active)
 	{
 		case eINACTIVE:
 			ret = inactive_gps_process(cur_gpsdata, &gpsdata);
+            // gps deactivate 5 min ==> cold reset..
+            if ( gps_fail_cnt++ > 300 )
+            {
+                devel_webdm_send_log("gps active fail.. cold boot");
+                gps_reset_immediately(GPS_BOOT_COLD);
+                gps_fail_cnt = 0;
+            }
 			break;
 		case eACTIVE:
 			if(cur_gpsdata.speed > 0)
@@ -612,4 +611,15 @@ static void _check_battery(int ignition)
 void network_fail_emergency_reset_callback(void)
 {
     _process_poweroff(1, "network chk fail");
+}
+
+
+void gps_ant_ok_callback(void)
+{
+
+}
+
+void gps_ant_nok_callback(void)
+{
+
 }

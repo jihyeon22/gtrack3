@@ -260,7 +260,8 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
 
            // every time save gps data..
            	gps_valid_data_write();
-	        mileage_write();
+            mileage_write();
+            save_mileage_file(get_server_mileage() + get_gps_mileage()); // save 
 
             if (fail_count > 0)
                 devel_webdm_send_log("[%s:%d] op[%d] -> RECV SUCCESS CASE 1 [%d], [%d]  ", gSetting_report.ip, gSetting_report.port, op, fail_count, conn_api_ret_val);
@@ -268,11 +269,11 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
             break;
         }
 
-		LOGE(LOG_TARGET, "%s> Fail to send packet [%d]\n", __func__, op);
+        LOGE(LOG_TARGET, "%s> Fail to send packet [%d]\n", __func__, op);
 
-		//wait_count = MAX_WAIT_RETRY_TIME/WAIT_INTERVAL_TIME;
-		//while(wait_count-- > 0) {
-		//	LOGI(LOG_TARGET, "%s> wait time count [%d]\n", __func__, wait_count);
+        //wait_count = MAX_WAIT_RETRY_TIME/WAIT_INTERVAL_TIME;
+        //while(wait_count-- > 0) {
+        //	LOGI(LOG_TARGET, "%s> wait time count [%d]\n", __func__, wait_count);
 #if 0
         if ( fail_count > 5 )
         {
@@ -284,7 +285,7 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
 
                 configurationModel_t * conf = get_config_model();
                 strncpy(conf->model.report_ip, last_success_server_ip, sizeof(conf->model.report_ip));
-	            conf->model.report_port = last_success_server_port;
+                conf->model.report_port = last_success_server_port;
                 save_config_user("user:report_ip", last_success_server_ip);
                 save_config_user("user:report_port", last_success_server_port);
                 */
@@ -293,12 +294,12 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
 #endif
 
         fail_count ++;
-		sleep(WAIT_INTERVAL_TIME);
+        sleep(WAIT_INTERVAL_TIME);
         if ( fail_count > PACKET_RETRY_COUNT )
             break;
-		//}
+        //}
 
-	}
+    }
 
 #if SEND_MIRRORED_PACKET
 	int retry_mirrored = 2;

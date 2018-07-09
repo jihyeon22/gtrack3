@@ -20,6 +20,8 @@
 #include "logd/logd_rpc.h"
 #include "debug.h"
 
+static int last_active_stat = 0;
+
 lotte_gps_manager_t lgm = {
 	.gps_initial_count = GPS_INIT_MAX_WAITING_TIME,
 	.first_gps_active = eINACTIVE,
@@ -83,6 +85,10 @@ void _record_last_fixed_gps_data(gpsData_t *pData, int ign_on)
 	static float lon = 0;
 	static unsigned int count = 0;
 
+    int cur_active_stat = 0;
+
+    cur_active_stat = pData->active;
+
 	if(ign_on != POWER_IGNITION_OFF)
 	{
 		count++;
@@ -98,14 +104,24 @@ void _record_last_fixed_gps_data(gpsData_t *pData, int ign_on)
 	
 		if(ign_on != POWER_IGNITION_OFF)
 		{
+            // always calc..
+            
 			if(pData->speed != 0)
 			{
 				move_detect = 1;
 			}
+            
+            // total distance clac fix
+            // inactive -> active : gps distance force calc
+            if ( ( last_active_stat == 0 ) && ( cur_active_stat == 1))
+            {
+                move_detect = 1;
+            }
 		
 			if(pData->utc_sec - last_mileage_time >= MILEAGE_INTERVAL || count >= MILEAGE_INTERVAL )
 			{
 				count = 0;
+
 				if(pData->utc_sec - last_mileage_time < 0)
 				{
 					devel_webdm_send_log("ERROR: abnormal gps utc sec! %d %d", pData->utc_sec, last_mileage_time);
@@ -117,6 +133,8 @@ void _record_last_fixed_gps_data(gpsData_t *pData, int ign_on)
 				{
 					double tmp_mileage = 0, tmp_dist = 0;
 				
+                    last_active_stat = cur_active_stat;
+
 					tmp_dist = get_distance_meter(lat, pData->lat, lon, pData->lon);
 					if(tmp_dist < 0)
 					{
@@ -146,7 +164,7 @@ void _record_last_fixed_gps_data(gpsData_t *pData, int ign_on)
 					lat = pData->lat;
 					lon = pData->lon;
 
-					LOGI(LOG_TARGET, "move detect! %f %f %f", lgm.gps_mileage, lat, lon);
+					LOGI(LOG_TARGET, "move detect! %f %f %f\r\n", lgm.gps_mileage, lat, lon);
 				}
 			}
 		}
@@ -370,6 +388,8 @@ gps_condition_t inactive_gps_process(gpsData_t cur_gps, gpsData_t *pData)
 {
 	gps_condition_t ret = eUNKNOWN_GPS_DATA;
 
+    // total distance clac fix
+    last_active_stat = 0;
 #ifdef FEATURE_INVALD_GPS_COPY_LAST_FIX_GPS	
     if ( ( cur_gps.active != eACTIVE ) || ( cur_gps.lat == 0 ) || ( cur_gps.lon  == 0 ) )
     {
@@ -472,11 +492,11 @@ void fix_gps_pos_in_key_off(gpsData_t *cur_gps, int ign_on)
 
 gps_condition_t active_gps_process(gpsData_t cur_gps, gpsData_t *pData)
 {
-	int ign_on;
+	int  ign_on = POWER_IGNITION_ON; // force on
 	gps_condition_t ret;
 	memset(pData, 0x00, sizeof(gpsData_t));
 
-	ign_on = power_get_ignition_status();
+	// ign_on = power_get_ignition_status();
 	fix_gps_pos_in_key_off(&cur_gps, ign_on);
 
 	ret = gps_filter(cur_gps);

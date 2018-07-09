@@ -19,7 +19,7 @@
 
 #define LOG_TARGET eSVC_MODEL
 
-extern int is_run_ignition_off;
+extern int is_ignition_off;
 
 GPIP_EVT_INFO_T gpio_evt[] = {
     {NISSO_EXT_GPIO_BTN_GPIO_NUM_1, GPIO_EVT_LEVEL_LOW, eGpioEdgeFalling}, 

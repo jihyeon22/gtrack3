@@ -58,6 +58,7 @@ int get_collection_interval()
 {
 	int interval_time;
 	int ign_on = power_get_ignition_status();
+
 	configurationModel_t *conf = get_config_model();
 
 	if(ign_on == POWER_IGNITION_OFF)
@@ -73,6 +74,7 @@ int get_report_interval()
 {
 	int interval_time;
 	int ign_on = power_get_ignition_status();
+
 	configurationModel_t *conf = get_config_model();
 
 	if(ign_on == POWER_IGNITION_OFF)
