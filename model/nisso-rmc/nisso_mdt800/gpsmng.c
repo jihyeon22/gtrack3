@@ -543,7 +543,7 @@ void active_gps_process_force_routine(gpsData_t cur_gps)
 	lgm.first_gps_active = eACTIVE;
 	_record_last_fixed_gps_data(&cur_gps, POWER_IGNITION_ON);
 
-	_record_reported_gps_data(&cur_gps);
+	//_record_reported_gps_data(&cur_gps);
 }
 
 	
