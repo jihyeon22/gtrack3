@@ -91,7 +91,7 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 
 	fprintf(log_fd, "[%s]\r\n", sms);
 
-	devel_webdm_send_log("CTR SMS [%s]", sms);
+	//devel_webdm_send_log("CTR SMS [%s]", sms);
 
 	//remove space ++
 	len = strlen(sms);
@@ -757,7 +757,9 @@ static int _fence_set (int argc, char **argv)
 
 		//clear_geo_fence(parse_fence[j].idx, 0);
 		if ( parse_fence[j].fence_data.enable == 1)
-			devel_webdm_send_log("gf[%d]=[%f][%f]", parse_fence[j].idx, parse_fence[j].fence_data.latitude, parse_fence[j].fence_data.longitude);
+        {
+			//devel_webdm_send_log("gf[%d]=[%f][%f]", parse_fence[j].idx, parse_fence[j].fence_data.latitude, parse_fence[j].fence_data.longitude);
+        }
 
 		switch(parse_fence[j].idx)
 		{

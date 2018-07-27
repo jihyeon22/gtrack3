@@ -239,7 +239,9 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
         if ( strlen(svr_resp_2) )
         {
             if ( strlen(svr_resp_2) > 3 )
-                devel_webdm_send_log("pkt send recv \"%s\"", svr_resp_2);
+            {
+                //devel_webdm_send_log("pkt send recv \"%s\"", svr_resp_2);
+            }
 
             LOGI(LOG_TARGET, "%s> send success : get data 2 >> \"%s\"\n", __func__, svr_resp_2);
             ret_val = server_resp_proc(svr_resp_2);
