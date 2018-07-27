@@ -77,3 +77,5 @@ int get_server_mileage();
 int get_gps_mileage();
 void set_server_mileage(int mileage);
 void set_gps_mileage(int mileage);
+
+void active_gps_process_force_routine(gpsData_t cur_gps);

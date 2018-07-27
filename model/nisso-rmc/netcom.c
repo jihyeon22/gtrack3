@@ -147,7 +147,8 @@ int make_event2_packet(unsigned char **pbuf, unsigned short *packet_len, int eve
 	int org_size = 0;
 
 	gps_get_curr_data(&gpsdata);
-
+    active_gps_process_force_routine(gpsdata);
+    
 	if ( gpsdata.active != eACTIVE ) 
 	{
 		gps_valid_data_get(&last_gpsdata);
@@ -177,7 +178,6 @@ int make_event2_packet(unsigned char **pbuf, unsigned short *packet_len, int eve
 
 int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len, const void *param)
 {
-
 	int res = -1;
 	LOGI(LOG_TARGET, "%s> op[%d]\n", __func__, op);
 	configurationModel_t * conf = get_config_model();
@@ -192,6 +192,9 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 			printf("%s() -> %d\r\n", __func__, __LINE__);
 			break;
 	}
+
+    write_vaild_data();
+
 	return res;
 }
 
@@ -257,11 +260,6 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
             strncpy(last_success_server_ip, gSetting_report.ip, 40);
             LOGE(LOG_TARGET, "%s> recovery ip [%s][%d]\n", __func__, last_success_server_ip, last_success_server_port);
             */
-
-           // every time save gps data..
-           	gps_valid_data_write();
-            mileage_write();
-            save_mileage_file(get_server_mileage() + get_gps_mileage()); // save 
 
             if (fail_count > 0)
                 devel_webdm_send_log("[%s:%d] op[%d] -> RECV SUCCESS CASE 1 [%d], [%d]  ", gSetting_report.ip, gSetting_report.port, op, fail_count, conn_api_ret_val);

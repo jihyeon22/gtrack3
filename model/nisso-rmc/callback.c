@@ -67,7 +67,7 @@ void wait_time_sync()
 
 void abort_callback(void)
 {
-	save_mileage_file(get_server_mileage() + get_gps_mileage());
+	write_vaild_data();
 }
 
 void init_model_callback(void)
@@ -195,7 +195,7 @@ void ignition_off_callback(void)
     // check key pair..
     if ( is_ignition_off == 1 )
     {
-        save_mileage_file(get_server_mileage() + get_gps_mileage());
+        write_vaild_data();
         devel_webdm_send_log("already key off skip evt proc");
         return;
     }
@@ -211,7 +211,7 @@ void ignition_off_callback(void)
         sender_add_data_to_buffer(eIGN_OFF_EVT, NULL, ePIPE_1);
 
         sender_add_data_to_buffer(eCYCLE_REPORT_EVC, NULL, ePIPE_1);
-        save_mileage_file(get_server_mileage() + get_gps_mileage());
+        write_vaild_data();
     }
 
 }
@@ -277,9 +277,13 @@ void gps_parse_one_context_callback(void)
 	// 1. gps packet gathering and filtering
 	////////////////////////////////////////////////////////////////////////
 	gps_get_curr_data(&cur_gpsdata);
+    active_gps_process_force_routine(cur_gpsdata);
 
 	if ( gps_chk_valid_time(&cur_gpsdata) <= 0 )
+    {
+        LOGI(LOG_TARGET, "gpsthread : invalid gps time?\r\n");
 		return;
+    }
 
     // key off �϶��� �ƹ��� ������ ���� �ʰ��Ѵ�. 
     // nisso ��û����
@@ -508,7 +512,7 @@ void exit_main_loop(void)
 
 void terminate_app_callback(void)
 {
-	save_mileage_file(get_server_mileage() + get_gps_mileage());
+	write_vaild_data();
 }
 
 static int _process_poweroff(int now_poweroff_flag, char *log)
@@ -518,7 +522,8 @@ static int _process_poweroff(int now_poweroff_flag, char *log)
 
 //	if(poweroff_count++ > 5 || now_poweroff_flag == 1)
 	{
-		gps_valid_data_write();
+		write_vaild_data();
+
 		sprintf(smsmsg, "Accumulate distance : %um at the end\n", get_gps_mileage());
 		devel_send_sms_noti(smsmsg, strlen(smsmsg), 3);
 		devel_webdm_send_log(smsmsg);
@@ -540,6 +545,7 @@ static int _process_poweroff(int now_poweroff_flag, char *log)
 
 	return 0;
 }
+
 
 /*
 #define CYCLE_CHECK_BATT_DATA 60
@@ -622,4 +628,12 @@ void gps_ant_ok_callback(void)
 void gps_ant_nok_callback(void)
 {
 
+}
+
+void write_vaild_data()
+{
+    // every time save gps data..
+    gps_valid_data_write();
+    mileage_write();
+    save_mileage_file(get_server_mileage() + get_gps_mileage()); // save 
 }

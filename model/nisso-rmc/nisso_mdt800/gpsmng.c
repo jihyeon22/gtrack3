@@ -57,7 +57,10 @@ int iscollection_gps_time(gpsData_t *pData)
 {
 	int diff_time;
 	if(lgm.first_gps_active == eINACTIVE)
+    {
+        LOGI(LOG_TARGET, "lgm.first_gps_active == eINACTIVE\r\n");
 		return 0;
+    }
 
 	diff_time = difftime(pData->utc_sec, lgm.reported_gpsdata.utc_sec);
 	if( diff_time >= get_collection_interval())
@@ -117,8 +120,9 @@ void _record_last_fixed_gps_data(gpsData_t *pData, int ign_on)
             {
                 move_detect = 1;
             }
-		
-			if(pData->utc_sec - last_mileage_time >= MILEAGE_INTERVAL || count >= MILEAGE_INTERVAL )
+
+            // always calc
+			// if(pData->utc_sec - last_mileage_time >= MILEAGE_INTERVAL || count >= MILEAGE_INTERVAL )
 			{
 				count = 0;
 
@@ -522,6 +526,24 @@ gps_condition_t active_gps_process(gpsData_t cur_gps, gpsData_t *pData)
 	memcpy(pData, &cur_gps, sizeof(gpsData_t));
 
 	return ret;
+}
+
+void active_gps_process_force_routine(gpsData_t cur_gps)
+{
+    if ( cur_gps.active != eACTIVE )
+    {
+        printf("active_gps_process_force_routine() - fail.. skip \r\n");
+        return;
+    }
+
+    printf("active_gps_process_force_routine() - calc data\r\n");
+	_record_last_gps_data(&cur_gps);
+
+	//valid gps record.
+	lgm.first_gps_active = eACTIVE;
+	_record_last_fixed_gps_data(&cur_gps, POWER_IGNITION_ON);
+
+	_record_reported_gps_data(&cur_gps);
 }
 
 	
