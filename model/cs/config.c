@@ -91,6 +91,10 @@ configurationModel_t* load_config_model(void)
 		break; //if success, break loop.
 	}
 
+#ifdef SERVER_ABBR_CS1
+    config.model.tempature_enable = 0;
+#endif
+
 	if(inf != NULL)
 	{
 		iniparser_freedict(inf);

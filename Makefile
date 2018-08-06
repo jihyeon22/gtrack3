@@ -285,6 +285,9 @@ else ifeq ($(SUB),ktth2)
 SERVER_ABBR   :=      KTH2
 USE_MOBILEYE_ADAS=y
 USE_MOBILEYE_ADAS_BYPASS=y
+else ifeq ($(SUB),cs1)
+# motion sensor
+SERVER_ABBR   :=      CS1
 else
 $(error SUB is not registerd in Makefile, please input registred sub-model)
 endif

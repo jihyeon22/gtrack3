@@ -9,3 +9,6 @@ OBJS_MODEL	+= $(MODEL_PATH)/validation.o
 
 OBJS_MODEL	+= $(MODEL_PATH)/at_noti.o
 OBJS_MODEL	+= $(MODEL_PATH)/thread-keypad.o
+
+OBJS_MODEL	+= $(MODEL_PATH)/cs_motion_cmd.o
+OBJS_MODEL	+= $(MODEL_PATH)/cs_motion_tools.o

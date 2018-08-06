@@ -32,6 +32,8 @@
 #include "netcom.h"
 #include "thread-keypad.h"
 
+#include "cs_motion_cmd.h"
+
 #include <board/board_system.h>
 
 #include <mdt800/packet.h>
@@ -328,6 +330,10 @@ void main_loop_callback(void)
 	
 	setting_network_param();
 
+#ifdef SERVER_ABBR_CS1
+    cs_motion__mgr_init(CS_MOTION_DEV_DEFAULT_PATH, CS_MOTION_DEV_DEFAULT_BAUDRATE);
+#endif
+
 	while(flag_run_thread_main && nettool_get_state() != DEFINES_MDS_OK) {
 		LOGI(LOG_TARGET, "%s : first time wating untill network enable..\n", __func__);
 		sleep(3);
@@ -336,6 +342,7 @@ void main_loop_callback(void)
 	//at_channel_recovery();
 
 	wait_time_sync();
+
 
 	prev_gps_active_time = tools_get_kerneltime();
 
@@ -461,4 +468,15 @@ static int _process_poweroff(int now_poweroff_flag, char *log)
 void network_fail_emergency_reset_callback(void)
 {
     _process_poweroff(1, "network_fail_reset");
+}
+
+
+void gps_ant_ok_callback(void)
+{
+
+}
+
+void gps_ant_nok_callback(void)
+{
+
 }
