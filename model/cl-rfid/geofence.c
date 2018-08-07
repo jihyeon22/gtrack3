@@ -16,7 +16,7 @@ geo_fence_debug_mode_t g_debug_mode = eGEN_FENCE_NORMAL_MODE;
 geo_fence_setup_t g_setup_data[GEO_FENCE_MAX_COUNT];
 geo_fence_status_t g_status_data[GEO_FENCE_MAX_COUNT];
 
-int g_geo_fence_event_hold_count[GEO_FENCE_MAX_COUNT] = {0, };
+static int g_geo_fence_event_hold_count[GEO_FENCE_MAX_COUNT] = {0, };
 
 void _init_geo_fence_data()
 {

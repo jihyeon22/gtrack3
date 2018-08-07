@@ -653,3 +653,14 @@ void network_fail_emergency_reset_callback(void)
     save_geo_fence_status_info();
     poweroff(NULL,0);
 }
+
+
+void gps_ant_ok_callback(void)
+{
+
+}
+
+void gps_ant_nok_callback(void)
+{
+
+}

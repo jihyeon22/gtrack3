@@ -15,12 +15,12 @@
 #include "logd/logd_rpc.h"
 
 
-geo_fence_v2_debug_mode_t g_debug_mode = eGEN_FENCE_V2_NORMAL_MODE;
+geo_fence_v2_debug_mode_t g_geo_v2_debug_mode = eGEN_FENCE_V2_NORMAL_MODE;
 
 geo_fence_v2_setup_t g_setup_data[GEO_FENCE_V2_MAX_COUNT];
 geo_fence_v2_status_t g_status_data[GEO_FENCE_V2_MAX_COUNT];
 
-int g_geo_fence_event_hold_count[GEO_FENCE_V2_MAX_COUNT] = {0, };
+static int g_geo_fence_v2_event_hold_count[GEO_FENCE_V2_MAX_COUNT] = {0, };
 
 static void _init_geo_fence_data()
 {
@@ -35,7 +35,7 @@ static void _init_geo_fence_data()
 		
 		g_status_data[i].cur_fence_status = eFENCE_V2_OUT_NOTIFICATION;
 
-		g_geo_fence_event_hold_count[i] = 0;
+		g_geo_fence_v2_event_hold_count[i] = 0;
 	}
 }
 
@@ -45,7 +45,7 @@ static void _print_geo_fence_status()
 	FILE *fp = NULL;
 	FILE *log_fd = NULL;
 
-	if(g_debug_mode != eGEN_FENCE_V2_DEBUG_MODE)
+	if(g_geo_v2_debug_mode != eGEN_FENCE_V2_DEBUG_MODE)
 		return;
 
 	remove("/tmp/geofence.log");
@@ -172,7 +172,7 @@ static fence_v2_notification_t _get_notification(int idx, gpsData_t *cur_gps)
 	result = _check_fence_data(dist_diff, g_setup_data[idx].range, g_setup_data[idx].range);
 
 /*
-	if(g_debug_mode == eGEN_FENCE_V2_DEBUG_MODE) {
+	if(g_geo_v2_debug_mode == eGEN_FENCE_V2_DEBUG_MODE) {
 		printf("_check_fence_data : %s\n", _print_geo_fence_notification(result)); ;
 	}
 */
@@ -189,7 +189,7 @@ static fence_v2_notification_t _get_notification(int idx, gpsData_t *cur_gps)
 	}
 
 /*
-	if(g_debug_mode == eGEN_FENCE_V2_DEBUG_MODE) {
+	if(g_geo_v2_debug_mode == eGEN_FENCE_V2_DEBUG_MODE) {
 		printf("setup_fence_status : %s\n", _print_geo_fence_notification(result));
 	}
 */
@@ -229,8 +229,8 @@ fence_v2_notification_t get_geofence_notification_v2(int *pfence_num, gpsData_t 
 		if(g_setup_data[i].enable == eGEN_FENCE_V2_DISABLE)
 			continue;
 		
-		if(g_geo_fence_event_hold_count[i]-- > 0) {
-			if(g_debug_mode == eGEN_FENCE_V2_DEBUG_MODE) {
+		if(g_geo_fence_v2_event_hold_count[i]-- > 0) {
+			if(g_geo_v2_debug_mode == eGEN_FENCE_V2_DEBUG_MODE) {
 				printf("[%02d fence] check skip for holding time!!!\n", i);
 			}
 			continue;
@@ -239,17 +239,17 @@ fence_v2_notification_t get_geofence_notification_v2(int *pfence_num, gpsData_t 
 
 		result = _get_notification(i, &cur_gps);
 /*
-		if(g_debug_mode == eGEN_FENCE_V2_DEBUG_MODE) {
+		if(g_geo_v2_debug_mode == eGEN_FENCE_V2_DEBUG_MODE) {
 			printf("_get_notification : %s\n", _print_geo_fence_notification(result));
 		}
 //*/
 		if(result == eFENCE_V2_NONE_NOTIFICATION)
 			continue;
 
-		g_geo_fence_event_hold_count[i] = WAIT_TIME_UNTIL_NEXT_GEO_EVENT;
+		g_geo_fence_v2_event_hold_count[i] = WAIT_TIME_UNTIL_NEXT_GEO_EVENT;
 		*pfence_num = i;
 
-		if(g_debug_mode == eGEN_FENCE_V2_DEBUG_MODE) {
+		if(g_geo_v2_debug_mode == eGEN_FENCE_V2_DEBUG_MODE) {
 			printf("================================================================\n");
 			printf("%02d fence happen Event %s\n", i, _print_geo_fence_notification(result));
 			printf("================================================================\n");
@@ -271,7 +271,7 @@ int init_geo_fence_v2(geo_fence_v2_debug_mode_t debug_mode, geo_fence_v2_load_mo
 {
 	int ret;
 
-	g_debug_mode = debug_mode;
+	g_geo_v2_debug_mode = debug_mode;
 
 	_init_geo_fence_data();
 
