@@ -349,21 +349,22 @@ int cs_motion_bmsg_proc(CS_MOTION_DATA_T* evt_data)
         return 0;
     }
 
-    LOGI(LOG_TARGET, "[SENSOR MOTION] GET DATA :: [%s]", evt_data->sesnor_data);
+    LOGI(LOG_TARGET, "[SENSOR MOTION] GET DATA :: [%s]\r\n", evt_data->sesnor_data);
 
     if ( power_get_ignition_status() == POWER_IGNITION_ON )
     {
-        LOGE(LOG_TARGET, "[SENSOR MOTION] KEY ON .. DO NOTHING..");
+        LOGE(LOG_TARGET, "[SENSOR MOTION] KEY ON .. DO NOTHING..\r\n");
+        return 0;
     }
 
     if (strcmp(evt_data->sesnor_data, "KEY:01") == 0 )
     {
-        LOGT(LOG_TARGET, "[SENSOR MOTION] SEND KEY EVT [%d]", eBUTTON_NUM1_EVT);
+        LOGT(LOG_TARGET, "[SENSOR MOTION] SEND KEY EVT [%d]\r\n", eBUTTON_NUM1_EVT);
         sender_add_data_to_buffer(eBUTTON_NUM1_EVT, NULL, ePIPE_1);
     }
     else if (strcmp(evt_data->sesnor_data, "KEY:02") == 0 )
     {
-        LOGT(LOG_TARGET, "[SENSOR MOTION] SEND KEY EVT [%d]", eBUTTON_NUM2_EVT);
+        LOGT(LOG_TARGET, "[SENSOR MOTION] SEND KEY EVT [%d]\r\n", eBUTTON_NUM2_EVT);
         sender_add_data_to_buffer(eBUTTON_NUM2_EVT, NULL, ePIPE_1);
     }
     
