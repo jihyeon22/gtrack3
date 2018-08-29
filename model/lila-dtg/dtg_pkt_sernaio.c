@@ -131,7 +131,7 @@ int lila_dtg__key_stat()
     taco_gtrack_tool__get_cur_std_data(&std_taco_data);
     key_stat = std_taco_data.key_stat;;
     // printf(" bizincar_dtg__key_stat() => [%d]\r\n", key_stat);
-    LOGI(LOG_TARGET, "%s > dtg key_stat [%d]\n", __func__, key_stat);
+    // LOGI(LOG_TARGET, "%s > dtg key_stat [%d]\n", __func__, key_stat);
     return key_stat;
 }
 

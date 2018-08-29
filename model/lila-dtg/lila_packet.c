@@ -253,11 +253,8 @@ static int lila_dtg__insert_dtg_data(tacom_std_data_t* p_current_std_data)
     p_lila_pkt_data->modem_rssi = lila_tools__get_rssi(dtg_time_utc);               // RSSI 	1	u8 
     p_lila_pkt_data->reserved_1 = 0;                // reserved 	1	u8
     p_lila_pkt_data->cur_distance = char_mbtof(p_current_std_data->cumulative_run_distance, 7);;             // 주행거리 	4	float 
-    printf("p_lila_pkt_data->cur_distance is [%f]\r\n", p_lila_pkt_data->cur_distance);
     p_lila_pkt_data->day_distance = char_mbtof(p_current_std_data->day_run_distance, 4);             // 일주행거리 	4	float 
-    printf("p_lila_pkt_data->day_distance is [%f]\r\n", p_lila_pkt_data->day_distance);
     p_lila_pkt_data->total_distance = char_mbtof(p_current_std_data->cumulative_run_distance, 7);           // 총주행거리 	4	float 
-    printf("p_lila_pkt_data->total_distance is [%f]\r\n", p_lila_pkt_data->total_distance);
     p_lila_pkt_data->cur_fuel_consumption = 0;     // 연료소모량 	4	float 
     p_lila_pkt_data->day_fuel_consumption = 0;     // 일연료소모량 	4	float 
     p_lila_pkt_data->total_fuel_consumption = 0;   // 총연료소모량 	4	float 

@@ -329,7 +329,7 @@ FINISH:
 
     if ( read_fail_cnt > 0 )
     {
-        printf("read_fail_cnt is [%d]\r\n", read_fail_cnt);
+        // printf("read_fail_cnt is [%d]\r\n", read_fail_cnt);
     }
 
     if ( read_fail_cnt > ADAS_DEV_FAIL_CHK_CNT)
