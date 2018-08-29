@@ -149,6 +149,9 @@ USE_BUTTON_THREAD=y
 SERVER_ABBR := DSME
 else ifeq ($(SERVER),dsme-mdt)
 SERVER_ABBR	:=	DSMT
+else ifeq ($(SERVER),lila-dtg)
+SERVER_ABBR	:=	LLD
+USE_MOBILEYE_ADAS=y
 else ifeq ($(SERVER),katech-obd)
 SERVER_ABBR := KATO
 USE_SECO_OBD_1=y
@@ -205,6 +208,8 @@ else ifeq ($(CORP), katech)
 CORP_ABBR     :=      KAT
 else ifeq ($(CORP),skyan)
 CORP_ABBR := SKAN
+else ifeq ($(CORP),lila)
+CORP_ABBR := LILA
 else
 $(error CORP is not registerd in Makefile, please input registred corporation)
 endif
