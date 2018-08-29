@@ -86,11 +86,6 @@ void wait_taco_unill_power_on()
 			}
 
 			DTG_LOGE("taco thread wait for ign off\n");
-			DTG_LOGE("taco thread wait for ign off\n");
-			DTG_LOGE("taco thread wait for ign off\n");
-			DTG_LOGE("taco thread wait for ign off\n");
-			DTG_LOGE("taco thread wait for ign off\n");
-			
 			for(i = 0; i < 10; i++)
 			{
 				if(dtg_uart_fd > 0)
@@ -176,8 +171,7 @@ static void *cy_send_cmd_thread (void *pargs)
 	cmdstr[idx++] = 0x0a;
 	
 	//
-//#if defined(BOARD_TL500S) || defined(BOARD_TL500K)
-#if 0	// always dtg get header
+#if defined(BOARD_TL500S) || defined(BOARD_TL500K)
 	while (1) {
 		wait_taco_unill_power_on();
 

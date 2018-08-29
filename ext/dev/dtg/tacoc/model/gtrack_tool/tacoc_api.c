@@ -21,14 +21,17 @@
 #include <wrapper/dtg_mdmc_wrapper_rpc_clnt.h>
 
 #include <wrapper/dtg_taco_wrapper_rpc_clnt.h>
+#include <wrapper/dtg_convtools.h>
 
 #include <tacom/tacom_inc.h>
 #include <standard_protocol.h>
 
+#include "callback.h"
 
 #include "logd/logd_rpc.h"
 
 static pthread_mutex_t dtg_gtrack_tool_mutex = PTHREAD_MUTEX_INITIALIZER;
+int taco_gtrack_tool__pre_init();
 
 
 void taco_gtrack_tool__mutex_lock()
@@ -392,7 +395,7 @@ FINISH:
 }
 
 tacom_std_data_t g_std_data;
-
+static gpsData_t g_cur_gps_data;
 int taco_gtrack_tool__set_cur_std_data(tacom_std_data_t *p_std_data_in)
 {
     
@@ -405,17 +408,27 @@ int taco_gtrack_tool__set_cur_std_data(tacom_std_data_t *p_std_data_in)
         taco_gtrack_tool__mutex_unlock();
     }
 
-    printf("taco_gtrack_tool__set_cur_std_data => key stat[%d]\r\n", p_std_data_in->key_stat);
-#ifdef USE_GPS_FAKE
+    // printf("taco_gtrack_tool__set_cur_std_data => key stat[%d]\r\n", p_std_data_in->key_stat);
+
     if ( dtg_year > 2016 )
     {
         gpsData_t gps_data = {0,};
         taco_gtrack_tool__conv_dtg_to_gps(p_std_data_in, &gps_data);
+#ifdef USE_GPS_FAKE
         gps_set_curr_data(&gps_data);
-    }
-    
 #endif
+        memcpy(&g_cur_gps_data, &gps_data, sizeof(gpsData_t));
+    }
+
     return 0;
+}
+
+unsigned int taco_gtrack_tool__get_cur_gps_data(gpsData_t* p_gps_data)
+{
+    if ( p_gps_data != NULL)
+        memcpy(p_gps_data, &g_cur_gps_data, sizeof(gpsData_t));
+
+    return p_gps_data->utc_sec;
 }
 
 
@@ -524,11 +537,53 @@ int taco_gtrack_tool__conv_dtg_to_gps(tacom_std_data_t *p_std_data, gpsData_t * 
     //printf("p_std_data->gps_x [%s]\r\n",p_std_data->gps_x);
     //printf("p_std_data->gps_y [%s]\r\n",p_std_data->gps_y);
 
+    return 0;
+
 }
+
+int taco_gtrack_tool__conv_dtg_current_data(unsigned char *std_buff, int std_buff_len, tacom_std_hdr_t* p_std_hdr, tacom_std_data_t* p_std_data )
+{
+    char tmp_vehicle_model[32] = {0,};
+    char tmp_vehicle_id_num[32] = {0,};
+
+    tacom_std_hdr_t tmp_current_std_hdr;
+    tacom_std_data_t tmp_current_std_data;
+
+	memcpy(&tmp_current_std_hdr, std_buff, sizeof(tacom_std_hdr_t));
+	memcpy(&tmp_current_std_data, &std_buff[sizeof(tacom_std_hdr_t)], sizeof(tacom_std_data_t));
+
+    memcpy(&tmp_vehicle_model, tmp_current_std_hdr.vehicle_model, sizeof(tmp_current_std_hdr.vehicle_model));
+    memcpy(&tmp_vehicle_id_num, tmp_current_std_hdr.vehicle_id_num, sizeof(tmp_current_std_hdr.vehicle_id_num));
+
+    if ( ( strlen(tmp_vehicle_model) > 0 ) && ( strlen(tmp_vehicle_id_num) > 0) )
+    {
+        memcpy(&tmp_current_std_hdr, std_buff, sizeof(tacom_std_hdr_t));
+	    memcpy(&tmp_current_std_data, &std_buff[sizeof(tacom_std_hdr_t)], sizeof(tacom_std_data_t));
+
+        DTG_LOGI("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ : taco_gtrack_tool__conv_dtg_current_data success [%s] ++++\r\n", tmp_vehicle_model);
+        DTG_LOGI("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ : taco_gtrack_tool__conv_dtg_current_data success [%s] ++++\r\n", tmp_vehicle_id_num);
+        memcpy(p_std_hdr, &tmp_current_std_hdr, sizeof(tacom_std_hdr_t));
+        memcpy(p_std_data, &tmp_current_std_data, sizeof(tacom_std_data_t));
+        return 1;
+    }
+    else
+    {
+        DTG_LOGE("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ : taco_gtrack_tool__conv_dtg_current_data fail\r\n");
+        return -1;
+    }
+
+#if defined(DEVICE_MODEL_INNOCAR)
+    printf("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ : set_current_dtg_data-----\n");
+    printf("%d, %d, %d, %d\n", g_current_std_data.k_factor, g_current_std_data.rpm_factor, g_current_std_data.weight1, g_current_std_data.weight2);
+	set_factor_value(g_current_std_data.k_factor, g_current_std_data.rpm_factor, g_current_std_data.weight1, g_current_std_data.weight2, g_current_std_hdr.dtg_fw_ver);
+#endif
+    return -1;
+}
+
 
 int taco_gtrack_tool__pre_init()
 {
     // call dtg model...
     init_dtg_callback();
-
+    return 0;
 }
