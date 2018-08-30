@@ -235,6 +235,10 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 			}
 			break;
 	}
+	
+    gps_valid_data_write();
+    save_mileage_file(get_server_mileage() + get_gps_mileage());
+
 	return res;
 }
 
@@ -285,7 +289,6 @@ int __send_packet(char op, unsigned char *packet_buf, int packet_len)
 		{
 			LOGI(LOG_TARGET, "%s> send success : get data >> \"%s\"\n", __func__, svr_resp);
 			ret_val = server_resp_proc(svr_resp);
-            gps_valid_data_write();
 			break;
 		}
 
@@ -356,9 +359,6 @@ int setting_network_param(void)
 
 int free_packet(void *packet)
 {
-    gps_valid_data_write();
-    save_mileage_file(get_server_mileage() + get_gps_mileage());
-
 	printf("===========================================\n");
 
 	if(packet != NULL)

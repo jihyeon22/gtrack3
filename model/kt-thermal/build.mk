@@ -12,7 +12,10 @@ OBJS_MODEL	+= $(MODEL_PATH)/validation.o
 OBJS_MODEL	+= $(MODEL_PATH)/at_noti.o
 
 OBJS_MODEL	+= $(MODEL_PATH)/ktth_senario.o
+ifeq ($(USE_MOBILEYE_ADAS),y)
 OBJS_MODEL	+= $(MODEL_PATH)/ktth_adas_mgr.o
+endif
+
 
 MDT800_SRC = $(MODEL_PATH)/kt_thermal_mdt800/file_mileage.o \
              $(MODEL_PATH)/kt_thermal_mdt800/geofence.o \

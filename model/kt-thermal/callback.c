@@ -82,6 +82,7 @@ void init_model_callback(void)
 	stackdump_abort_callback = abort_callback; 
 	LOGI(LOG_TARGET, "init_model_callback\n");	
 
+	gps_set_deact_cnt(300);
     ktth_sernaio__load_resume_data();
 
 	load_mileage_file(&mileage);
