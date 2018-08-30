@@ -14,6 +14,14 @@
 
 #define LOG_TARGET eSVC_COMMON
 
+#if defined (SERVER_ABBR_CLR0) 
+#define HTTP_URL__REQ_PASSENGER         "/cd/getpassengerlist_tiny3.aspx"
+#define HTTP_URL__SET_BOARDING_LIST     "/cd/setboardinglist_tiny3.aspx"
+#else
+#define HTTP_URL__REQ_PASSENGER         "/cd/getpassengerlist_tiny3.aspx"
+#define HTTP_URL__SET_BOARDING_LIST     "/cd/setboardinglist.aspx"
+#endif
+
 #ifdef USE_KJTEC_RFID
 static int __make_http_header__req_passenger(char* buff, char* version)
 {
@@ -64,7 +72,7 @@ static int __make_http_header__req_passenger(char* buff, char* version)
     host_port = conf->model.request_rfid_port;
 
     // change tiny2 -> tiny3 : 20180821 : cl requre 
-    str_len += sprintf(buff + str_len, "GET /cd/getpassengerlist_tiny3.aspx?dn=%s&v=%s HTTP/1.1\r\n", phonenum, target_ver);
+    str_len += sprintf(buff + str_len, "GET %s?dn=%s&v=%s HTTP/1.1\r\n", HTTP_URL__REQ_PASSENGER, phonenum, target_ver);
     //str_len += sprintf(buff + str_len, "GET /cd/getpassengerlist_tiny2.aspx?dn=%s&v=%s HTTP/1.1\r\n", phonenum, target_ver);
     str_len += sprintf(buff + str_len, "Host: %s:%d\r\n",host_ip, host_port);
     str_len += sprintf(buff + str_len, "\r\n");
@@ -347,7 +355,7 @@ static int __make_http_header__set_boarding(char* buff, RFID_BOARDING_MGR_T* boa
     strcpy(host_ip, conf->model.request_rfid);
     host_port = conf->model.request_rfid_port;
 
-    str_len += sprintf(buff + str_len, "GET /cd/setboardinglist.aspx?dn=%s&br=%s HTTP/1.1\r\n", phonenum, blist_str);
+    str_len += sprintf(buff + str_len, "GET %s?dn=%s&br=%s HTTP/1.1\r\n", HTTP_URL__SET_BOARDING_LIST, phonenum, blist_str);
     str_len += sprintf(buff + str_len, "Host: %s:%d\r\n",host_ip, host_port);
     str_len += sprintf(buff + str_len, "\r\n");
 
