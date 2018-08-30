@@ -1088,7 +1088,7 @@ void gps_parse(char* buff, int size)
 #ifdef MDS_FEATURE_USE_GPS_DEACTIVE_RESET
     if ( ( power_get_ignition_status() == POWER_IGNITION_ON) && (cur_gps_data.active == 0) )
     {
-        LOGE(LOG_TARGET, "[GPS TOOL] DEACT GPS : [%d]/[%d]\r\n",gps_deactive_time, MAX_GPS_DEACTIVE_CHK_TIME_SEC);
+        LOGE(LOG_TARGET, "[GPS TOOL] DEACT GPS : [%d]/[%d]\r\n",gps_deactive_time, gps_get_deact_cnt());
         gps_deactive_time++;
     }
     else
@@ -1096,7 +1096,7 @@ void gps_parse(char* buff, int size)
         gps_deactive_time = 0;
     }
 
-    if (gps_deactive_time > MAX_GPS_DEACTIVE_CHK_TIME_SEC )
+    if (gps_deactive_time > gps_get_deact_cnt() )
     {
         devel_webdm_send_log("[GPS TOOL] GPS ACT FAIL.: COLD BOOT");
         gps_reset_immediately(GPS_BOOT_COLD);
@@ -1104,6 +1104,20 @@ void gps_parse(char* buff, int size)
     }
 #endif
 }
+
+#ifdef MDS_FEATURE_USE_GPS_DEACTIVE_RESET
+static int _g_deact_chk_cnt = MAX_GPS_DEACTIVE_CHK_TIME_SEC;
+int gps_get_deact_cnt()
+{
+	return _g_deact_chk_cnt;
+}
+
+int gps_set_deact_cnt(int sec)
+{
+	_g_deact_chk_cnt = sec;
+	return _g_deact_chk_cnt;
+}
+#endif
 
 void gps_get_curr_data(gpsData_t* out)
 {
@@ -1549,7 +1563,7 @@ void gps_ant_chk(void)
     static int gps_ant_stat_last = -99;
 
     if ( gps_ant_chk_cnt++ <= GPS_ANT_CHK_INTERVAL_CNT ) 
-        return 0;
+        return;
 
     gps_ant_chk_cnt = 0;
 

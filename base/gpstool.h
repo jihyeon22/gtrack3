@@ -18,6 +18,8 @@
 
 #ifdef MDS_FEATURE_USE_GPS_DEACTIVE_RESET
 #define MAX_GPS_DEACTIVE_CHK_TIME_SEC	600
+int gps_get_deact_cnt();
+int gps_set_deact_cnt(int sec);
 #endif
 
 #define GPS_PIPE_PATH "/var/tmp/gps"
