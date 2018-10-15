@@ -77,5 +77,12 @@ extern float emul_gps_lat;
 extern float emul_gps_lon;
 extern int emul_gps_speed;
 
+
+#define CUR_GPS_STAT__ON     1
+#define CUR_GPS_STAT__OFF    0
+
+int get_cur_gps_stat();
+int set_cur_gps_stat(int stat);
+
 #endif
 

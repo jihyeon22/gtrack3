@@ -76,7 +76,7 @@ int gps_addr_agps()
 
 void gps_on(int type) 
 {
-	
+	set_cur_gps_stat(CUR_GPS_STAT__ON);
 	if ( type == GPS_BOOT_WARM )
 	{
 		devel_webdm_send_log("GPSD UDP SEND CMD : WARM START");
@@ -97,6 +97,7 @@ void gps_on(int type)
 void gps_reset(int type)
 {
 	static int gps_reset_cnt = 0;
+    set_cur_gps_stat(CUR_GPS_STAT__ON);
 
 	gps_reset_cnt ++ ;
 
@@ -129,6 +130,7 @@ void gps_reset(int type)
 void gps_reset_immediately(int type)
 {
 	static int gps_reset_cnt = 0;
+    set_cur_gps_stat(CUR_GPS_STAT__ON);
 
 	gps_reset_cnt ++ ;
 
@@ -154,6 +156,7 @@ void gps_reset_immediately(int type)
 void gps_off() {
 	devel_webdm_send_log("GPSD UDP SEND CMD : DOWN");
 	mds_api_gpsd_stop();
+    set_cur_gps_stat(CUR_GPS_STAT__OFF);
 }
 
 #ifdef MDS_FEATURE_USE_NMEA_PORT
@@ -1605,4 +1608,16 @@ void gps_ant_chk(void)
         
         
     }
+}
+
+static int _g_cur_gps_stat = CUR_GPS_STAT__ON;
+int get_cur_gps_stat()
+{
+    return _g_cur_gps_stat;
+}
+
+int set_cur_gps_stat(int stat)
+{
+    _g_cur_gps_stat = stat;
+    return _g_cur_gps_stat;
 }

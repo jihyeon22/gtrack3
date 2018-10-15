@@ -295,6 +295,15 @@ void *thread_gps(void *args)
 
 		static int udp_gpsd_err_chk_cnt1 = MAX_UDP_GPSD_MAX_ERR_1_CNT;
 
+        // gps off stat do nothing...
+        if (get_cur_gps_stat() == CUR_GPS_STAT__OFF)
+        {
+            sleep(5);
+            watchdog_set_cur_ktime(eWdGps);
+            LOGI(LOG_TARGET, "[GPS THREAD] %s() : cur gps off.. do nothing.. \n", __FUNCTION__ );
+            continue;
+        }
+
 		wd_dbg[eWdGps] = 1;
 
 		if(count_wd == 0  || count_wd >= 30)
