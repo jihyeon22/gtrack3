@@ -22,6 +22,8 @@
 #include <util/poweroff.h>
 #include <logd_rpc.h>
 
+#include <base/gpstool.h>
+
 #include "netcom.h"
 #include <logd_rpc.h>
 
@@ -361,6 +363,81 @@ int chk_car_batt_level(int low_batt, int chk_flag)
     return 0;
 }
 
+int chk_powersave_mode(int start_voltage, int end_voltage)
+{
+    int cur_voltage = get_car_batt_level();
+    static int initial_delay = 90;
+    static int cur_mode = POWER_SAVE_MODE__NORMAL;
+    static int last_mode = POWER_SAVE_MODE__INIT;
+
+    static int run_cnt = 0;
+    cur_mode = get_powersave_mode();
+
+    // LOGT(eSVC_MODEL, "[PWR SAVE MODE] cur [%d] / last [%d]\r\n", cur_mode, last_mode);
+    
+    if ( initial_delay-- > 0)
+    {
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] initial delay [%d]  \r\n", initial_delay);
+        return 0;
+    }
+
+    if ((run_cnt ++ % 15 ) == 0)
+        LOGT(eSVC_MODEL, "[PWR SAVE MODE] start_voltage [%d] / end_voltage [%d] / cur_voltage [%d]\r\n", start_voltage, end_voltage, cur_voltage);
+    
+    if ( (start_voltage <= 0 ) || (end_voltage <= 0) )
+    {
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] invalid setting val return.. \r\n");
+        return 0;
+    }
+
+    if ( ( cur_voltage >= end_voltage ) && (cur_mode == POWER_SAVE_MODE__POWER_SAVE) && (cur_mode != last_mode))
+    {
+        // normal mode 로 변경시에는 먼저 mode 변경후에 패킷을 보낸다.
+        set_powersave_mode(POWER_SAVE_MODE__NORMAL);
+
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] change normal mode \r\n");
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] change normal mode \r\n");
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] change normal mode \r\n");
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] change normal mode \r\n");
+
+        // SEND PKT 
+        // - 주기보고 발송 => 정상 동작
+        sender_add_data_to_buffer(e_mdm_gps_info_fifo, NULL, get_pkt_pipe_type(e_mdm_gps_info,0));
+
+#ifdef MDS_FEATURE_USE_GPS_DEACTIVE_RESET
+        gps_set_deact_cnt(300);
+#endif
+        gps_reset_immediately(GPS_BOOT_COLD);
+
+        last_mode = cur_mode;
+    }
+
+    if (( cur_voltage <= start_voltage ) && (cur_mode == POWER_SAVE_MODE__NORMAL) && (cur_mode != last_mode))
+    {
+        int evt_code = e_evt_code_powersave_mode_start;
+        
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] change save mode \r\n");
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] change save mode \r\n");
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] change save mode \r\n");
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] change save mode \r\n");
+
+        // SEND PKT
+        // - Power Save Mode 이벤트 1회 발송 
+        sender_add_data_to_buffer(e_mdm_stat_evt_fifo, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt_fifo,evt_code));
+
+        // power save mode 로 변경시에는 먼저 패킷을 변경한 후에 mode를 변경한다.
+        set_powersave_mode(POWER_SAVE_MODE__POWER_SAVE);
+
+#ifdef MDS_FEATURE_USE_GPS_DEACTIVE_RESET
+        gps_set_deact_cnt(2147483647);
+#endif
+        gps_off();
+
+        last_mode = cur_mode;
+    }
+    
+
+}
 
 // ---------------------------------------------------------------------
 static int knocksensor_setting_result=KNOCKSENSOR_SETTING__INIT;
@@ -679,4 +756,31 @@ int get_low_batt_send_timing(int batt_level)
     ALLOC_PKT_RECV__MDM_SETTING_VAL* cur_mdm_setting = get_mdm_setting_val();
 
     return 1;
+}
+
+static int _g_cur_power_save_mode = POWER_SAVE_MODE__NORMAL;
+int set_powersave_mode(int flag)
+{
+    if (flag == POWER_SAVE_MODE__POWER_SAVE)
+    {
+        _g_cur_power_save_mode = POWER_SAVE_MODE__POWER_SAVE;
+        // NETWORK THREAD 에서 power save mode 일경우 패킷전송후에 rf 를 끈다.
+        /*
+        nettool_set_state(NET_TOOL_SET__DISABLE);
+        sleep(10);
+        nettool_set_rf_pwr(NET_TOOL_SET__RF_DISABLE);
+        sleep(10);
+        */
+
+    }
+    else
+    {
+        _g_cur_power_save_mode = POWER_SAVE_MODE__NORMAL;
+    }
+    return _g_cur_power_save_mode;
+}
+
+int get_powersave_mode()
+{
+    return _g_cur_power_save_mode;
 }

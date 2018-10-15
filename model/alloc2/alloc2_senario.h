@@ -4,9 +4,13 @@
 #include "alloc2_pkt.h"
 #include "board/board_system.h"
 
+#ifdef PKT_VER_POWERSAVE_MODE
+#define ALLOC2_MDM_SETTING_INFO CONCAT_STR(USER_DATA_DIR, "/alloc_mdm_setting_v16_p.dat")
+#define ALLOC2_OBD_SETTING_INFO CONCAT_STR(USER_DATA_DIR, "/alloc_obd_setting_v16_p.dat")
+#else
 #define ALLOC2_MDM_SETTING_INFO CONCAT_STR(USER_DATA_DIR, "/alloc_mdm_setting_v16.dat")
 #define ALLOC2_OBD_SETTING_INFO CONCAT_STR(USER_DATA_DIR, "/alloc_obd_setting_v16.dat")
-
+#endif
 
 typedef enum {
     e_STAT_NONE,
@@ -94,6 +98,15 @@ int get_bcm_knocksensor_val(unsigned short* id, unsigned short* master_number);
 
 int get_gpio_send_timing(int gpio);
 int get_low_batt_send_timing(int batt_level);
+
+#define POWER_SAVE_MODE__INIT           0
+#define POWER_SAVE_MODE__POWER_SAVE     1
+#define POWER_SAVE_MODE__NORMAL         2
+
+int set_powersave_mode(int flag);
+int get_powersave_mode();
+int chk_powersave_mode(int start_voltage, int end_voltage);
+int clr_no_send_pwr_evt_reboot();
 
 #endif // __ALLOC2_SENARIO_H__
 

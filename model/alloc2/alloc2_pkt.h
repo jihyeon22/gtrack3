@@ -3,6 +3,19 @@
 
 #define PKT_VER_V_1_6
 
+// PKT_VER_ALWAYS_RF_OFF
+//  - 항상 rf off 하고있다가, 통신시에만 rf on 한다.
+// #define PKT_VER_ALWAYS_RF_OFF
+
+// PKT_VER_POWERSAVE_MODE
+//  - 설정 전압에 따라서 event 를 보내고 말고를 설정한다.
+#define PKT_VER_POWERSAVE_MODE
+
+// 두개의 mode 를 한번에 세팅할수없다.
+#if defined (PKT_VER_ALWAYS_RF_OFF) && defined (PKT_VER_POWERSAVE_MODE)
+#error " only on power save featre ..."
+#endif
+
 // --------------------------------------------------------------------------
 // pkt header idx
 typedef enum {
@@ -73,6 +86,10 @@ typedef struct {
     unsigned short  door_lock_time; // (b-2) Door 자동잠금시간 : 0 : 사용안함 / 1이상 초단위
 #endif
     unsigned char   reserved;   // (b-1) reserved
+#ifdef PKT_VER_POWERSAVE_MODE
+    unsigned char   powersave_mode_start;   //  (b-1) Power Save Mode진입 기준값 // 0.1 volt단위로 설정 (예: 108 = 10.8 volt)
+    unsigned char   powersave_mode_end;     //  (b-1) Power Save Mode WakeUp 기준값 // 0.1 volt단위로 설정 (예: 120 = 12.0 volt)
+#endif
 }__attribute__((packed))ALLOC_PKT_RECV__MDM_SETTING_VAL;
 
 
@@ -97,6 +114,9 @@ typedef enum {
     e_evt_code_door_unlock = 14, // 14 : Door unlock
     e_evt_code_dev_bcm_err = 20,// 20 : BCM 이상
     e_evt_code_dev_obd_err = 21, // 21 : OBD 이상
+#ifdef PKT_VER_POWERSAVE_MODE
+    e_evt_code_powersave_mode_start = 91, // 91 : powersave mode start
+#endif
     e_evt_code_sensor_1_on = 98, // 98 : 근접센서 장착
     e_evt_code_sensor_1_off = 99 // 99 : 근접센서 미장착
 } e_ALLOC2_MDM_EVT_CODE;

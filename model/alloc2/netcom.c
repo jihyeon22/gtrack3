@@ -31,6 +31,12 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 {
     int res = 0;
 
+    if ( get_powersave_mode() == POWER_SAVE_MODE__POWER_SAVE )
+    {
+        LOGE(eSVC_MODEL, "[ALLOC2 NETCOMM] mk pkt [0x%x] - current is power save mode\r\n", op);
+        return -1;
+    }
+
     // filter pkt type
     #ifdef SERVER_ABBR_ALM2
     switch (op)
@@ -75,6 +81,7 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
                 case e_evt_code_mdm_reset:
                 case e_evt_code_sensor_1_on:
                 case e_evt_code_sensor_1_off:
+                case e_evt_code_powersave_mode_start:
                 {
                     res = make_pkt__mdm_stat_evt(packet_buf, packet_len, evt_code);
                     break;
@@ -201,8 +208,6 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
     static int get_server_conf = 0;
     
 
-    
-
     ALLOC_PKT_RECV__MDM_SETTING_VAL *p_mdm_setting_val = NULL;
 
     network_setting_info.retry_count_connect = 3;
@@ -227,17 +232,42 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
         LOGI(eSVC_MODEL, "GET server info - case 2 [%s]:[%d]\r\n", network_setting_info.ip, network_setting_info.port);
     }
 
+// ##################################################
+// force : TODO: fix test code
+//        get_user_cfg_report_ip(network_setting_info.ip);
+//        get_user_cfg_report_port(&network_setting_info.port);
+// ##################################################
+
 RETRY_SEND:
 
     LOGI(eSVC_MODEL, "op [0x%x] ==> pipe [%d] / fifo fail cnt [%d]\r\n", op, get_pkt_pipe_type(op, 0), fifo_pkt_fail_cnt);
-#ifdef NO_USE_NETWORK
+#if defined (NO_USE_NETWORK) && defined (PKT_VER_ALWAYS_RF_OFF)
     nettool_set_rf_pwr(NET_TOOL_SET__RF_ENABLE);
     sleep(10);
     nettool_set_state(NET_TOOL_SET__ENABLE);
     sleep(10);
 #endif
+
+#if defined (NO_USE_NETWORK) && defined (PKT_VER_POWERSAVE_MODE)
+    if(nettool_get_state() == DEFINES_MDS_NOK)
+    {
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] POWER SAVE MODE!! RF ON [%d]\r\n", op);
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] POWER SAVE MODE!! RF ON [%d]\r\n", op);
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] POWER SAVE MODE!! RF ON [%d]\r\n", op);
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] POWER SAVE MODE!! RF ON [%d]\r\n", op);
+
+        nettool_set_rf_pwr(NET_TOOL_SET__RF_ENABLE);
+        sleep(10);
+        nettool_set_state(NET_TOOL_SET__ENABLE);
+        sleep(10);
+    }
+#endif
+
     if (fifo_pkt_fail_cnt > MAX_FIFO_FAIL_CNT)
-        devel_webdm_send_log("SEND FIFO FAIL CNT :: [%d]\n", fifo_pkt_fail_cnt);
+    {
+        // devel_webdm_send_log("SEND FIFO FAIL CNT :: [%d]\n", fifo_pkt_fail_cnt);
+        ;
+    }
 
     switch (op)
     {
@@ -603,9 +633,24 @@ RETRY_SEND:
 
     printf("------------- send packet :: pkt id [0x%x] end -------------------\r\n", op);
 
-#ifdef NO_USE_NETWORK
+
+#if defined (NO_USE_NETWORK) && defined (PKT_VER_ALWAYS_RF_OFF)
     if ( send_pkt_ret >= 0 )
     {
+        nettool_set_state(NET_TOOL_SET__DISABLE);
+        sleep(10);
+        nettool_set_rf_pwr(NET_TOOL_SET__RF_DISABLE);
+        sleep(10);
+    }
+#endif
+
+#if defined (NO_USE_NETWORK) && defined (PKT_VER_POWERSAVE_MODE)
+    if (( send_pkt_ret >= 0 ) && (get_powersave_mode() == POWER_SAVE_MODE__POWER_SAVE))
+    {
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] POWER SAVE MODE!! RF OFF [%d]\r\n", op);
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] POWER SAVE MODE!! RF OFF [%d]\r\n", op);
+        LOGE(eSVC_MODEL, "[PWR SAVE MODE] POWER SAVE MODE!! RF OFF [%d]\r\n", op);
+
         nettool_set_state(NET_TOOL_SET__DISABLE);
         sleep(10);
         nettool_set_rf_pwr(NET_TOOL_SET__RF_DISABLE);

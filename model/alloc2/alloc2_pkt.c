@@ -20,7 +20,7 @@
 #include <logd_rpc.h>
 
 #ifdef SERVER_ABBR_ALM2
-#define ALLOC_WEBDM_DBG__SVR_RET_CODE
+//#define ALLOC_WEBDM_DBG__SVR_RET_CODE
 #endif
 
 int _get_phonenum_int_type()
@@ -169,6 +169,11 @@ int parse_pkt__mdm_setting_val(ALLOC_PKT_RECV__MDM_SETTING_VAL* recv_buff, char*
     printf("recv_buff->door_lock_time => [%d]\r\n", recv_buff->door_lock_time);
 #endif
     printf("recv_buff->reserved => [0x%d]\r\n", recv_buff->reserved);
+
+#ifdef PKT_VER_POWERSAVE_MODE
+    printf("recv_buff->powersave_mode_start => [%d]\r\n", recv_buff->powersave_mode_start);
+    printf("recv_buff->powersave_mode_end => [%d]\r\n", recv_buff->powersave_mode_end);
+#endif
 
     printf("parse_pkt__mdm_setting_val ----------------------------------------------------------\r\n"); 
     // valid check..

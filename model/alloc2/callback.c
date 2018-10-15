@@ -24,6 +24,8 @@
 #include <at/at_util.h>
 #include <mdsapi/mds_api.h>
 
+#include <board/gpio.h>
+
 #include "alloc2_nettool.h"
 
 #include "alloc2_pkt.h"
@@ -31,6 +33,7 @@
 #include "alloc2_obd_mgr.h"
 #include "alloc2_bcm_mgr.h"
 #include "alloc2_daily_info.h"
+#include "alloc2_senario.h"
 
 static int flag_run_thread_main = 1;
 static int model_ignition_stat = 0;
@@ -250,6 +253,14 @@ void gps_parse_one_context_callback(void)
 
 	current_senario = get_cur_status();
 	p_mdm_setting_val = get_mdm_setting_val();
+
+#ifdef PKT_VER_POWERSAVE_MODE
+    if ( get_powersave_mode() == POWER_SAVE_MODE__POWER_SAVE )
+    {
+        LOGT(eSVC_MODEL, "[PWR SAVE MODE] skip gps ... cur power save mode \r\n");
+        return;
+    }
+#endif
 /*
 	{
 		cur_daily_date_num = (gpsdata.year % 100)*10000 + gpsdata.mon*100 + gpsdata.day;
@@ -335,12 +346,11 @@ void gps_parse_one_context_callback(void)
 
 	if ( (report_interval > 0 ) && ( gps_run_cnt > report_interval ) )
 	{
-		int evt_code = e_evt_code_normal;
 		//if ( current_senario == e_SEND_TO_ONLY_GPS_DATA )
 		LOGT(eSVC_MODEL, "[GPS THREAD] send gps info!!!! [%d]/[%d]\r\n", gps_run_cnt, report_interval);
-		
 
 #ifdef SERVER_ABBR_ALM1 
+        int evt_code = e_evt_code_normal;
         sender_add_data_to_buffer(e_mdm_gps_info, NULL, get_pkt_pipe_type(e_mdm_gps_info,0));
 		sender_add_data_to_buffer(e_mdm_stat_evt, &evt_code, get_pkt_pipe_type(e_mdm_stat_evt,evt_code));
 #endif
@@ -399,14 +409,23 @@ void main_loop_callback(void)
 
 	while(1)
 	{
+#ifdef SERVER_ABBR_ALM1
 		ALLOC_PKT_RECV__OBD_DEV_INFO* p_obd_dev_info = NULL;
+#endif
 		ALLOC_PKT_RECV__MDM_SETTING_VAL* p_mdm_setting_val;
 
 		int chk_car_low_batt = 0;
+        int chk_powersave_mode_start = 0;
+        int chk_powersave_mode_end = 0;
+
 		p_mdm_setting_val = get_mdm_setting_val();
 
 		if ( p_mdm_setting_val != NULL ) // always send to server..
+        {
 			chk_car_low_batt = p_mdm_setting_val->low_batt_voltage;
+            chk_powersave_mode_start = p_mdm_setting_val->powersave_mode_start;
+            chk_powersave_mode_end = p_mdm_setting_val->powersave_mode_end;
+        }
 
 		main_loop_cnt ++;
 		no_send_pwr_evt_flag_clr ++;
@@ -422,6 +441,13 @@ void main_loop_callback(void)
 		// batt chk 
 		// ---------------------------------------------------------------------
 		chk_car_batt_level(chk_car_low_batt, 0);
+
+		// ---------------------------------------------------------------------
+		// powersave mode chk
+		// ---------------------------------------------------------------------
+#ifdef PKT_VER_POWERSAVE_MODE
+        chk_powersave_mode(chk_powersave_mode_start, chk_powersave_mode_end);
+#endif
 
 		// ----------------------------------------------------------
 		// senario setting
@@ -562,4 +588,15 @@ void exit_main_loop(void)
 void network_fail_emergency_reset_callback(void)
 {
 	alloc2_poweroff_proc_2("net fail reset");
+}
+
+
+void gps_ant_ok_callback(void)
+{
+
+}
+
+void gps_ant_nok_callback(void)
+{
+
 }
