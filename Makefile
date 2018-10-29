@@ -92,6 +92,7 @@ else ifeq ($(SERVER),asn)
 SERVER_ABBR := ASN
 else ifeq ($(SERVER),hnrt)
 SERVER_ABBR	:=	HNR
+USE_GPS_DEACTIVE_RESET=y
 else ifeq ($(SERVER),mds)
 SERVER_ABBR := MDS
 else ifeq ($(SERVER),cl-thermal)
@@ -105,8 +106,10 @@ else ifeq ($(SERVER),gtnb-mdt)
 SERVER_ABBR := GTM
 else ifeq ($(SERVER),etrace)
 SERVER_ABBR	:=	ETR
+USE_GPS_DEACTIVE_RESET=y
 else ifeq ($(SERVER),gtrace)
 SERVER_ABBR	:=	GTRS
+USE_GPS_DEACTIVE_RESET=y
 else ifeq ($(SERVER),bizincar)
 SERVER_ABBR := BIC
 USE_GPS_DEACTIVE_RESET=y
