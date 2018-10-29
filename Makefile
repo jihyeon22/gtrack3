@@ -125,6 +125,7 @@ SERVER_ABBR := FMS
 USE_GPS_DEACTIVE_RESET=y
 else ifeq ($(SERVER),cs)
 SERVER_ABBR := CS
+USE_GPS_DEACTIVE_RESET=y
 else ifeq ($(SERVER),cip-rmc)
 SERVER_ABBR	:=	CIP
 else ifeq ($(SERVER),nisso-rmc)
