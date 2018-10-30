@@ -371,7 +371,8 @@ static int _mdt_reset (int argc, char **argv)
 	LOGI(LOG_TARGET, "MDT SMS Reset Command!!!!\n");
 	LOGD(LOG_TARGET, "MDT must reset now!!!\n");
 	
-	save_mileage_file(get_server_mileage() + get_gps_mileage());
+	//save_mileage_file(get_server_mileage() + get_gps_mileage());
+    save_vaild_data();
 	poweroff(__FUNCTION__, sizeof(__FUNCTION__));
 	
 	return 0;

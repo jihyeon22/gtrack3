@@ -74,7 +74,8 @@ void hang_power_off()
 
 void abort_callback(void)
 {
-	save_mileage_file(get_server_mileage() + get_gps_mileage());
+    save_vaild_data();
+	//save_mileage_file(get_server_mileage() + get_gps_mileage());
 }
 
 void init_model_callback(void)
@@ -192,7 +193,8 @@ void ignition_off_callback(void)
 	//TODO : last gps pos file save for correcting more gen-fence
 	sender_add_data_to_buffer(eIGN_OFF_EVT, NULL, ePIPE_1);
 	sender_add_data_to_buffer(eCYCLE_REPORT_EVC, NULL, ePIPE_1);
-	save_mileage_file(get_server_mileage() + get_gps_mileage());
+    save_vaild_data();
+	//save_mileage_file(get_server_mileage() + get_gps_mileage());
 
 	devel_webdm_send_log("MILEAGE : %d(m) at ignition-off.\n", get_server_mileage() + get_gps_mileage());
 }
@@ -451,7 +453,8 @@ void exit_main_loop(void)
 
 void terminate_app_callback(void)
 {
-	save_mileage_file(get_server_mileage() + get_gps_mileage());
+    save_vaild_data();
+	//save_mileage_file(get_server_mileage() + get_gps_mileage());
 }
 
 #define POWEROFF_STANDBY_SECS 3600
@@ -502,7 +505,8 @@ static int _process_poweroff(int now_poweroff_flag, char *log)
 		devel_send_sms_noti(smsmsg, strlen(smsmsg), 3);
 		devel_webdm_send_log(smsmsg);
 
-		gps_valid_data_write();
+		//gps_valid_data_write();
+        save_vaild_data();
 		
 //		if(poweroff_count > 5)
 		if(now_poweroff_flag == 0)
@@ -528,3 +532,19 @@ void network_fail_emergency_reset_callback(void)
     _process_poweroff(1, "network_fail_reset");
 }
 
+void gps_ant_ok_callback(void)
+{
+
+}
+
+void gps_ant_nok_callback(void)
+{
+
+}
+
+void save_vaild_data()
+{
+    gps_valid_data_write();
+    mileage_write();
+    save_mileage_file(get_server_mileage() + get_gps_mileage());
+}

@@ -21,5 +21,7 @@ extern transferSetting_t gSetting_request;
 
 void network_fail_emergency_reset_callback(void);
 
+void save_vaild_data();
+
 #endif
 

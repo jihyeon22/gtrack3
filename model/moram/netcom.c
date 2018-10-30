@@ -155,6 +155,9 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 			}
 			break;
 	}
+
+    save_vaild_data();
+    
 	return res;
 }
 
