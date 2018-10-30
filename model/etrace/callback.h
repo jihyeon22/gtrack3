@@ -19,5 +19,7 @@ void exit_main_loop();
 extern transferSetting_t gSetting_report;
 extern transferSetting_t gSetting_request;
 
+void save_user_data(void);
+
 #endif
 

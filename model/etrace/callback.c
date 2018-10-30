@@ -66,7 +66,7 @@ void wait_time_sync()
 
 void abort_callback(void)
 {
-	save_mileage_file(get_server_mileage() + get_gps_mileage());
+	save_user_data();
 }
 
 void init_model_callback(void)
@@ -182,7 +182,8 @@ void ignition_off_callback(void)
 	//TODO : last gps pos file save for correcting more gen-fence
 	sender_add_data_to_buffer(eIGN_OFF_EVT, NULL, ePIPE_2);
 	sender_add_data_to_buffer(eCYCLE_REPORT_EVC, NULL, ePIPE_1);
-	save_mileage_file(get_server_mileage() + get_gps_mileage());
+
+    save_user_data();
 }
 
 void power_on_callback(void)
@@ -498,7 +499,7 @@ void exit_main_loop(void)
 
 void terminate_app_callback(void)
 {
-	save_mileage_file(get_server_mileage() + get_gps_mileage());
+	save_user_data();
 }
 
 static int _process_poweroff(int now_poweroff_flag, char *log)
@@ -508,7 +509,8 @@ static int _process_poweroff(int now_poweroff_flag, char *log)
 
 //	if(poweroff_count++ > 5 || now_poweroff_flag == 1)
 	{
-		gps_valid_data_write();
+		save_user_data();
+        
 		sprintf(smsmsg, "Accumulate distance : %um at the end\n", get_gps_mileage());
 		devel_send_sms_noti(smsmsg, strlen(smsmsg), 3);
 		devel_webdm_send_log(smsmsg);
@@ -607,3 +609,20 @@ static void _check_battery(int ignition)
 }
 */
 
+
+
+void gps_ant_ok_callback(void)
+{
+
+}
+
+void gps_ant_nok_callback(void)
+{
+
+}
+
+void save_user_data(void)
+{
+    save_mileage_file(get_server_mileage() + get_gps_mileage());
+    gps_valid_data_write();
+}

@@ -439,6 +439,11 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 			}
 			break;
 	}
+
+    // save gps data...
+    //  -> rollback fix
+    save_user_data();
+
 	return res;
 }
 
