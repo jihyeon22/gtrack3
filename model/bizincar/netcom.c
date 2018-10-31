@@ -182,6 +182,9 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 			}
 			break;
 	}
+
+	save_vaild_data();
+	
 	return res;
 }
 
@@ -249,8 +252,6 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
     LOGI(LOG_TARGET, "send success save gps info!\n");
     LOGI(LOG_TARGET, "send success save gps info!\n");
     
-    gps_valid_data_write();
-    mileage_write();
 // #endif
 
 	keypad_server_result__set_result(op, KEY_RESULT_TRUE);

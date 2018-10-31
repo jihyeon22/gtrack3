@@ -501,3 +501,9 @@ void gps_ant_nok_callback(void)
 {
 
 }
+
+void save_vaild_data()
+{
+	gps_valid_data_write();
+	save_mileage_file(get_server_mileage() + get_gps_mileage());
+}
