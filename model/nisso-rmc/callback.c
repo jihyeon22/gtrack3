@@ -279,6 +279,8 @@ void gps_parse_one_context_callback(void)
 	gps_get_curr_data(&cur_gpsdata);
     active_gps_process_force_routine(cur_gpsdata);
 
+	mileage_set_m(get_server_mileage() + get_gps_mileage());
+	
 	if ( gps_chk_valid_time(&cur_gpsdata) <= 0 )
     {
         LOGI(LOG_TARGET, "gpsthread : invalid gps time?\r\n");
@@ -634,6 +636,9 @@ void write_vaild_data()
 {
     // every time save gps data..
     gps_valid_data_write();
-    mileage_write();
+    //mileage_write(); // overwrite bug fix
+	mileage_set_m(get_server_mileage() + get_gps_mileage());
+	mileage_write(); // overwrite bug fix
+
     save_mileage_file(get_server_mileage() + get_gps_mileage()); // save 
 }
