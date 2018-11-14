@@ -11,7 +11,7 @@
 
 #define LIMIT_TRANSFER_PACKET_COUNT		360 //60 min buffer, if 10 sec collection cycle
 
-#define KT_THERMAL_VER_STRING		"270"
+#define KT_THERMAL_VER_STRING		"271"
 
 typedef enum msg_ev_code msg_ev_code_t;
 enum msg_ev_code{
