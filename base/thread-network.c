@@ -402,7 +402,7 @@ int chk_network_regi(int chk_interval)
         ret_val = CHK_REGI_RET_NOK;
     }
 
-    if ( netstat == AT_RET_NET_REGI_SUCCESS)
+    if ( (netstat == AT_RET_NET_REGI_SUCCESS) || (netstat == AT_RET_NET_REGI_FAIL_ROAMING) )
     {
         LOGT(eSVC_COMMON,"wait_regi_init() : netstat is OK\r\n");
         ret_val = CHK_REGI_RET_OK;
