@@ -100,6 +100,9 @@ SERVER_ABBR := CLT
 else ifeq ($(SERVER),cl-rfid)
 SERVER_ABBR := CLR
 USE_GPS_DEACTIVE_RESET=y
+else ifeq ($(SERVER),cl-rfid2)
+SERVER_ABBR := CLR
+USE_GPS_DEACTIVE_RESET=y
 else ifeq ($(SERVER),cl-mdt)
 SERVER_ABBR := CLM
 else ifeq ($(SERVER),gtnb-mdt)
@@ -273,6 +276,12 @@ USE_KJTEC_RFID=y
 else ifeq ($(SUB),clrc0)
 SERVER_ABBR   :=      CLRC0
 USE_SUP_RFID=y
+else ifeq ($(SUB),clrd0)
+SERVER_ABBR   :=      CLRD0
+USE_CUST1_RFID=y
+else ifeq ($(SUB),clre0)
+SERVER_ABBR   :=      CLRE0
+USE_CUST2_RFID=y
 else ifeq ($(SUB),alm1)
 SERVER_ABBR   :=      ALM1
 else ifeq ($(SUB),alm2)
