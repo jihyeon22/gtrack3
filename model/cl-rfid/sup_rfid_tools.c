@@ -361,7 +361,7 @@ int sup_rfid_bmsg_proc(SUP_RFID_DATA_T* evt_data)
                     lt->tm_sec);
     
     strcpy(boarding_list.boarding_info[0].rfid_uid, evt_data->rfid_str);
-    boarding_list.boarding_info[0].boarding = 0;
+    boarding_list.boarding_info[0].boarding = 1;
     strcpy(boarding_list.boarding_info[0].date,time_str);
     boarding_list.boarding_info[0].chk_result = 1;
     
