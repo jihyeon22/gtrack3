@@ -466,6 +466,14 @@ ifeq ($(USE_SUP_RFID),y)
 CFLAGS  += -DUSE_SUP_RFID
 endif
 
+ifeq ($(USE_CUST1_RFID),y)
+CFLAGS  += -DUSE_CUST1_RFID
+endif
+
+ifeq ($(USE_CUST2_RFID),y)
+CFLAGS  += -DUSE_CUST2_RFID
+endif
+
 ifeq ($(USE_RDATE_TIME_SYNC),y)
 CFLAGS  += -DRDATE_TIME_SYNC_ENABLE
 endif
