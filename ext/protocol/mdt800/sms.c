@@ -29,10 +29,16 @@
 #include "geofence.h"
 #include "gps_utill.h"
 #include "file_mileage.h"
+#include <mdsapi/mds_api.h>
 
 #ifdef SERVER_ABBR_BICD
 #error "BICD MODEL IS NOT USE THIS CODE"
 #endif
+
+// // ----------------------------------------
+// //  LOGD Target
+// // ----------------------------------------
+// #define LOG_TARGET eSVC_COMMON
 
 static int _server_ip_set(int argc, char **argv);
 static int _rpt_cycle_keyon(int argc, char **argv);
@@ -49,6 +55,13 @@ static int _server_ip_set_gtrace(int argc, char **argv);
 static int _rpt_cycle2_gtrace (int argc, char **argv);
 #endif
 
+#ifdef MDS_FEATURE_USE_GPS_DEACTIVE_CORRECT
+static int _gps_error1_correct(int argc, char **argv);
+static int _gps_error2_correct(int argc, char **argv);
+static int _gps_error3_correct(int argc, char **argv);
+static int _gps_error4_correct(int argc, char **argv);
+static int _gps_error5_correct(int argc, char **argv);
+#endif
 
 #ifdef BOARD_TL500K
 #ifdef KT_FOTA_ENABLE
@@ -167,6 +180,30 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 			ret = _get_modem_status(phonenum);
 			break;
 #endif
+
+#ifdef MDS_FEATURE_USE_GPS_DEACTIVE_CORRECT
+		case eSMS_GPS_ERROR1:
+			LOGI(LOG_TARGET, "eSMS_GPS_ERROR1: %d\n", eSMS_GPS_ERROR1);
+			_gps_error1_correct(model_argc, model_argv);	
+			break;
+		case eSMS_GPS_ERROR2:
+			LOGI(LOG_TARGET, "eSMS_GPS_ERROR2: %d\n",eSMS_GPS_ERROR2);
+			_gps_error2_correct(model_argc, model_argv);	
+			break;
+		case eSMS_GPS_ERROR3:
+			LOGI(LOG_TARGET, "eSMS_GPS_ERROR3: %d\n",eSMS_GPS_ERROR3);
+			_gps_error3_correct(model_argc, model_argv);		
+			break;	
+		case eSMS_GPS_ERROR4:
+			LOGI(LOG_TARGET, "eSMS_GPS_ERROR4: %d\n",eSMS_GPS_ERROR4);
+			_gps_error4_correct(model_argc, model_argv);		
+			break;
+		case eSMS_GPS_ERROR5:
+			LOGI(LOG_TARGET, "eSMS_GPS_ERROR5: %d\n",eSMS_GPS_ERROR5);
+			_gps_error5_correct(model_argc, model_argv);		
+			break;						
+#endif
+
 		default:
 			LOGE(LOG_TARGET, "rmc_sms_parsing ERROR = %d\n", sms_cmd);
 			ret = -1;
@@ -176,6 +213,42 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 	return ret;
 }
 
+#if defined(MDS_FEATURE_USE_GPS_DEACTIVE_CORRECT)
+static int _gps_error1_correct(int argc, char **argv)
+{
+	devel_webdm_send_log("[gps_error1_correct] GPS ACT START: GPS_BOOT_WARM");
+    mds_api_gpsd_start(GPS_BOOT_WARM);
+
+	return 0;	
+}
+static int _gps_error2_correct(int argc, char **argv)
+{	
+	devel_webdm_send_log("[gps_error2_correct] GPS ACT START: GPS_BOOT_COLD");
+    mds_api_gpsd_start(GPS_BOOT_COLD);
+	return 0;		
+}
+static int _gps_error3_correct(int argc, char **argv)
+{
+	devel_webdm_send_log("[gps_error3_correct] GPS ACT Reset: GPS_BOOT_WARM");
+	mds_api_gpsd_reset(GPS_BOOT_WARM);
+	return 0;		
+}
+static int _gps_error4_correct(int argc, char **argv)
+{
+	devel_webdm_send_log("[gps_error4_correct] GPS ACT Reset: GPS_BOOT_COLD");
+	mds_api_gpsd_reset(GPS_BOOT_COLD);
+	return 0;			
+}
+static int _gps_error5_correct(int argc, char **argv)
+{
+	LOGE(eSVC_COMMON, "[gps_erro5_correct] killall mds_gpsd3\n");
+	devel_webdm_send_log("[_gps_error5_correct] killall mds_gpsd3");
+	system ("/bin/killall mds_gpsd3");
+	system ("/bin/killall mds_gpsd3");
+	system ("/system/mds/system/bin/mds_gpsd3 agps warm");
+	return 0;		
+}
+#endif
 
 #if defined(SERVER_ABBR_GTRS)
 static int _server_ip_set_gtrace(int argc, char **argv)

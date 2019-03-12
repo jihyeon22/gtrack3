@@ -34,6 +34,13 @@ enum SmsType
 	eSMS_REPORT2_CYCLE_SETUP = 11,  /* Second Report Cycle Set Message */
 	eSMS_GEO_FENCE_SET = 12,        /* Geo Fence Set Message */
 
+#ifdef MDS_FEATURE_USE_GPS_DEACTIVE_CORRECT
+	eSMS_GPS_ERROR1 = 91,        	/* GPS ERROR*/
+	eSMS_GPS_ERROR2 = 92,        	/* GPS ERROR*/
+	eSMS_GPS_ERROR3 = 93,        	/* GPS ERROR*/
+	eSMS_GPS_ERROR4 = 94,        	/* GPS ERROR*/
+	eSMS_GPS_ERROR5 = 95,        	/* GPS ERROR*/
+#endif
 	eSMS_GET_VERSION = 100,			/* for KT certification */
 	eSMS_GET_MODEM_STATUS = 300,	/* for KT certification */
 	
