@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "tagging.h": "c",
+        "config.h": "c",
+        "ftp_clientcmd.h": "c",
+        "color_printf.h": "c"
+    }
+}
