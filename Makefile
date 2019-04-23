@@ -148,6 +148,9 @@ else ifeq ($(SERVER),uppp)
 #gps disable
 USE_GPS_MODEL=n 
 SERVER_ABBR	:=	UPPP
+else ifeq ($(SERVER),alloc3)
+SERVER_ABBR := ALC3
+CFLAGS  += -DUSE_EXTGPIO_EVT
 else ifeq ($(SERVER),alloc2)
 SERVER_ABBR := ALC2
 USE_ALLKEY_BCM_1=y
@@ -287,6 +290,8 @@ else ifeq ($(SUB),alm1)
 SERVER_ABBR   :=      ALM1
 else ifeq ($(SUB),alm2)
 SERVER_ABBR   :=      ALM2
+else ifeq ($(SUB),alc3)
+SERVER_ABBR   :=      ALC3
 else ifeq ($(SUB),nis0)
 SERVER_ABBR   :=      NIS0
 else ifeq ($(SUB),nis1)
