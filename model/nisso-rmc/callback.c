@@ -113,8 +113,8 @@ void button1_callback(void)
 
     conf_model = get_config_model();
     // only key on send 
-    if ( is_ignition_off == 0 )
-        sender_add_data_to_buffer(eBUTTON_NUM0_EVT, NULL, ePIPE_1);
+	if ( is_ignition_off == 0 )
+    	sender_add_data_to_buffer(eBUTTON_NUM0_EVT, NULL, ePIPE_1);
 
 #ifdef FEATURE_GEO_FENCE_SIMULATION
     //parse_model_sms("0000", "000111122222", "&12,1, 0,2,37.4756163,126.8818914,60 ,1,2,00.0000000,000.0000000,0 ,2,2,00.0000000,000.0000000,0,3,2,37.399693, 127.100937,10,1");
@@ -632,13 +632,36 @@ void gps_ant_nok_callback(void)
 
 }
 
+static pthread_mutex_t g_mutex_write_vaild_dat_timeout = PTHREAD_MUTEX_INITIALIZER;
+int pthread_mutex_timedlock( pthread_mutex_t * mutex, const struct timespec * abs_timeout );
+
 void write_vaild_data()
 {
+	unsigned int prev_mileage = 0;
+	int current_mileage = 0;
+
+	//jwrho++
+	struct timespec abs_time;
+	int ret;
+
+	clock_gettime(CLOCK_REALTIME , &abs_time);
+    abs_time.tv_sec += 60;
+
+	ret = pthread_mutex_timedlock(&g_mutex_write_vaild_dat_timeout,&abs_time);
+	if(ret != 0){
+		LOGD(LOG_TARGET, "%s Wait timed out [%d]\n", __FUNCTION__, ret);
+		return -1;
+	}
+	//jwrho++	
+
     // every time save gps data..
     gps_valid_data_write();
     //mileage_write(); // overwrite bug fix
+
 	mileage_set_m(get_server_mileage() + get_gps_mileage());
 	mileage_write(); // overwrite bug fix
 
     save_mileage_file(get_server_mileage() + get_gps_mileage()); // save 
+
+	pthread_mutex_unlock(&g_mutex_write_vaild_dat_timeout); //jwrho
 }
