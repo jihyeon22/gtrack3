@@ -74,7 +74,7 @@ int save_geofence_info(packet_frame_t result);
 int get_passenger_info_stat();
 int get_passenger_cmd_id(char* cmd_id);
 int save_passenger_info(packet_frame_t result);
-int find_rfid(char* rfid_pat, int size);
+int find_rfid(char* rfid_pat, int size, char *rfid_date);
 void alloc_geo_fence_info_init();
 int load_file_geofence_info();
 int get_geo_fence_id(int idx, char* geo_fence_id);

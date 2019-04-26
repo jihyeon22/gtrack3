@@ -186,7 +186,7 @@ int set_alloc_rfid_download_DBfile(char *filename)
 	fseek(fp, 0, SEEK_END);
     file_size = ftell(fp);
 
-	print_yellow("file_size = [%d]\n", file_size);
+	print_yellow("alloc file_size = [%d]\n", file_size);
 
 	total_count = file_size / FILE_DIV_VAL;
 	if(file_size % FILE_DIV_VAL != 0)
@@ -268,8 +268,8 @@ int get_alloc_rfid_tagging(char *buff, int datalen)
 	strncpy(tagginginfo, buff+time_len, tagginglen);
 	print_red(" -- time: %s  tagging data: %s  tagginglen : %d \r\n", time, tagginginfo, tagginglen);
 
-	//find_rfid(tagginginfo, tagginglen);
-	tagging_add_rfid(tagginginfo, get_recent_geo_fence(), time);
+	find_rfid(tagginginfo, tagginglen, time);
+	//tagging_add_rfid(tagginginfo, get_recent_geo_fence(), time);
 
 	set_alloc_rfid_taggingAck();
 	return tagginglen;

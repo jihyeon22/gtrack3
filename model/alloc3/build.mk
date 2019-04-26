@@ -23,4 +23,7 @@ OBJS_MODEL	+= $(MODEL_PATH)/validation.o
 OBJS_MODEL	+= $(MODEL_PATH)/Ftp_ClientCmd.o
 OBJS_MODEL	+= $(MODEL_PATH)/Ftp_ClientSocket.o
 
+OBJS_MODEL	+= $(MODEL_PATH)/alloc3_mdt800/gps_utill.o
+OBJS_MODEL	+= $(MODEL_PATH)/alloc3_mdt800/gpsmng.o
+OBJS_MODEL	+= $(MODEL_PATH)/alloc3_mdt800/gps_filter.o
 

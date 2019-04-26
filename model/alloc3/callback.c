@@ -104,12 +104,12 @@ void network_on_callback(void)
 void button1_callback(void)
 {
 	configurationModel_t *conf = get_config_model();
-	g_geofencedown = true;
+
 	print_yellow("gtrack calback ::: button1_callback !!!\r\n");
-	//print_yellow("gtrack calback ::: button1_callback %s!!!\r\n", conf->model.ftp_ip);
-	//Ftp_startClient((char *)ALLOCTION_FTP_IP, (char *)ALLOCTION_FTP_PORT,);
-	//Ftp_startClient((char *)conf->model.ftp_ip, (char *)conf->model.ftp_port);
+
 	// jhcho test [[ 
+	g_geofencedown = true;
+
 	struct timeval tv;
 	struct tm ttm;
 
@@ -328,14 +328,12 @@ void main_loop_callback(void)
 {
 	int at_recov_cnt = 1024;
 	time_t system_on_time = tools_get_kerneltime();
-	
-	// jhcho_compile
-	//init_gps_manager(); //jwrho
+
+	init_gps_manager(); //jwrho
 	init_geo_fence(eGEN_FENCE_DEBUG_MODE);
 
 	setting_network_param();
 
-	// jhcho_compile
 	//at_channel_recovery();
 	
 	//setting_network_param();
@@ -424,6 +422,7 @@ void main_loop_callback(void)
 			}
 			else if (strcmp(command, "H4") == 0 )
 			{
+				pkt_send_get_rfid();
 				set_alloc_rfid_request_DBAck(2);
 			}
 

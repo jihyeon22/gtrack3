@@ -640,17 +640,14 @@ void pkt_send_get_rfid()
 	{
 		// get_passenger_info_ver(&rfid_version_buff);
 		strncpy(get_rfid_data.version, rfid_version_buff, 8);
-		print_yellow("ret 0 GET RFID : rfid ver [%s]\r\n", get_rfid_data.version);
 	}
 	else
 	{
 		init_passenger_info();
 		strncpy(get_rfid_data.version, "00000000", 8);
-		print_yellow("ret !0 GET RFID : rfid ver [%s]\r\n", get_rfid_data.version);
 	}
 	
-	LOGI(LOG_TARGET, "MAKE PKT : GET RFID : rfid ver [%s]\r\n", get_rfid_data.version);
-	
+	LOGI(LOG_TARGET, "MAKE PKT : GET RFID : rfid ver [%s]\r\n", get_rfid_data.version);	
 	
 	sender_add_data_to_buffer(PACKET_TYPE_GET_RFID, &get_rfid_data, ePIPE_1);
 }

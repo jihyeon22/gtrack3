@@ -123,7 +123,7 @@ void init_passenger_info()
 	passenger_info.cur_pkt = 0;
 	
 	// init version
-	strncpy(passenger_info.version, "00000000", strlen("00000000") );
+	strncpy((char *)passenger_info.version, "00000000", strlen("00000000") );
 	
 	// init rfid list
 	memset(passenger_info.rfid_list, '\0', sizeof(passenger_info.rfid_list));
@@ -263,7 +263,7 @@ int save_passenger_info(packet_frame_t result)
 		}
 		else if( passenger_info.status == eGET_PASSENGER_STAT_DOWNLOADING ) 
 		{
-			if ( strncmp(passenger_info.cmd_id, tr, strlen(tr)) != 0 )
+			if ( strncmp((char *)passenger_info.cmd_id, tr, strlen(tr)) != 0 )
 			{
 				//printf("    -> rfid cmd invalid..\r\n");
 				err = -4;
@@ -404,13 +404,13 @@ int save_passenger_info(packet_frame_t result)
 	{
 		//printf("   - rfid data ver [%s]\r\n",tr);
 		
-		if ( strncmp(passenger_info.version, "00000000", strlen("00000000")) == 0)
+		if ( strncmp((char *)passenger_info.version, "00000000", strlen("00000000")) == 0)
 		{
 			strncpy(passenger_info.version, tr, strlen(tr) );
 		//	printf("    -> rfid data ver [%d] \r\n", passenger_info.version);
 		
 		}
-		else if ( strncmp(passenger_info.version, tr, strlen(tr)) != 0 )
+		else if ( strncmp((char *)passenger_info.version, tr, strlen(tr)) != 0 )
 		{
 			err = -13;
 			printf("    -> rfid data ver invalid \r\n");
@@ -467,28 +467,28 @@ CMD_PARSE_FAIL:
 
 
 
-int find_rfid(char* rfid_pat, int size)
+int find_rfid(char* rfid_pat, int size, char *rfid_date)
 {
 	int ret = 0;
 
-	//ret = bm_search(passenger_info.rfid_list, passenger_info.rfid_list_len ,rfid_pat, size);
+	ret = bm_search((const char *)passenger_info.rfid_list, passenger_info.rfid_list_len ,rfid_pat, size);
 	
-//	tagging_add_rfid(rfid_pat, get_recent_geo_fence());
-// 	if (ret >= 0 )
-// 	{
-// 		printf("rfid found!!!! [%s] / [%d]\r\n", rfid_pat, size);
-// 		tagging_add_rfid(rfid_pat, get_recent_geo_fence());
-// 		buzzer_run(BUZZER1, 1, 500, 0);
-// 	}
-// 	else
-// 	{
-// 		printf("rfid not found!!!! NO!!!!!!!!!!!!!!! [%s] / [%d]\r\n", rfid_pat, size);
-// #if SEND_NOT_EXIST_RFID
-// 		tagging_add_rfid(rfid_pat, get_recent_geo_fence());
-// #endif
-// 		buzzer_run(BUZZER2, 1, 1000, 0);
+	tagging_add_rfid(rfid_pat, get_recent_geo_fence(), rfid_date);
+	if (ret >= 0 )
+	{
+		printf("rfid found!!!! [%s] / [%d]\r\n", rfid_pat, size);
+		tagging_add_rfid(rfid_pat, get_recent_geo_fence(), rfid_date);
+		buzzer_run(BUZZER1, 1, 500, 0);
+	}
+	else
+	{
+		printf("rfid not found!!!! NO!!!!!!!!!!!!!!! [%s] / [%d]\r\n", rfid_pat, size);
+#if SEND_NOT_EXIST_RFID
+		tagging_add_rfid(rfid_pat, get_recent_geo_fence(), rfid_date);
+#endif
+		buzzer_run(BUZZER2, 1, 1000, 0);
 
-// 	}
+	}
 		
 	return ret;
 }
@@ -546,7 +546,7 @@ int save_geofence_info(packet_frame_t result)
 	
 	int err = 0;
 	
-	char* buff_p = result.packet_content;
+	char* buff_p = (char *)result.packet_content;
 	int data_size = 0;
 	
 #ifdef DBG_MSG_SAVE_GEOFENCE_INFO
@@ -606,7 +606,7 @@ int save_geofence_info(packet_frame_t result)
 		if ( geo_fence_info.status == eGET_GEOFENCE_STAT_NULL )
 		{
 			memset(&geo_fence_info.cmd_id, '\0', 10);
-			strncpy(geo_fence_info.cmd_id, tr, strlen(tr));
+			strncpy((char *) geo_fence_info.cmd_id, tr, strlen(tr));
 			//printf("    -> Genfence cmd cpy [%s]\r\n",geo_fence_info.cmd_id);
 			
 		}
@@ -1187,6 +1187,8 @@ int save_ftpserver_info(packet_frame_t result)
 		print_yellow("Ftp_startClient\n" );
 
 		//fclose(fp);
+
+		devel_webdm_send_log("[alloc Packet] DB FileName : %s start ftp client", ftp_server_info.filename);
 		Ftp_startClient((char *)ftp_server_info.ftp_ip, (char *)ftp_server_info.ftp_port, 
 				(char *)ftp_server_info.ftp_id, (char *)ftp_server_info.ftp_pw, 
 				(char *)ftp_server_info.filename, (char *)DestFile);
@@ -1196,6 +1198,7 @@ int save_ftpserver_info(packet_frame_t result)
 	else
 	{		
 		fclose(fp);
+		devel_webdm_send_log("[alloc Packet] DB FileName : %s saved file !!!", ftp_server_info.filename);
 		print_yellow("%s: saved file !!!\n" , DestFile);
 		//return 2;
 	}
