@@ -473,7 +473,7 @@ int find_rfid(char* rfid_pat, int size, char *rfid_date)
 
 	ret = bm_search((const char *)passenger_info.rfid_list, passenger_info.rfid_list_len ,rfid_pat, size);
 	
-	tagging_add_rfid(rfid_pat, get_recent_geo_fence(), rfid_date);
+	//tagging_add_rfid(rfid_pat, get_recent_geo_fence(), rfid_date);
 	if (ret >= 0 )
 	{
 		printf("rfid found!!!! [%s] / [%d]\r\n", rfid_pat, size);

@@ -208,7 +208,7 @@ static int _server_ip_set(int argc, char **argv, char *phonenum)
    		mkpkt_sms_resp_sms_data(&buff);
    		// jhcho_compile
 		//at_send_sms(phonenum, buff, 5);
-		at_send_sms(phonenum, buff);
+		at_send_sms(phonenum, (const char *)buff);
 
    		free(buff);
    	}
@@ -253,12 +253,12 @@ static int _rpt_cycle_keyon(int argc, char **argv, char *phonenum)
 	conf->model.report_interval_keyon = report_interval;
 	conf->model.collect_interval_keyon = collect_interval;
 	
-	if(save_config_user("user:collect_interval_keyon", p_str_report_interval) < 0)
+	if(save_config_user("user:collect_interval_keyon", p_str_collect_interval) < 0)
 	{
 		LOGE(LOG_TARGET, "<%s> save config error #1\n", __FUNCTION__);
 		return -1;
 	}
-	if(save_config_user("user:report_interval_keyon", p_str_collect_interval) < 0)
+	if(save_config_user("user:report_interval_keyon", p_str_report_interval) < 0)
 	{
 		LOGE(LOG_TARGET, "<%s> save config error #2\n", __FUNCTION__);
 		return -1;
@@ -277,7 +277,7 @@ static int _rpt_cycle_keyon(int argc, char **argv, char *phonenum)
    		mkpkt_sms_resp_sms_data(&buff);
    		// jhcho_compile
 		//at_send_sms(phonenum, buff, 5);
-		at_send_sms(phonenum, buff);
+		at_send_sms(phonenum, (const char *)buff);
    		free(buff);
    	}
 
@@ -320,7 +320,7 @@ static int _mdt_status (int argc, char **argv, char *phonenum)
    		mkpkt_sms_resp_sms_data(&buff);
 		// jhcho_compile
    		//at_send_sms(argv[2], buff, 5);
-		at_send_sms(argv[2], buff);
+		at_send_sms(argv[2], (const char *)buff);
    		free(buff);
    	}
 
@@ -418,7 +418,7 @@ static int _rpt_cycle2 (int argc, char **argv, char *phonenum)
    		mkpkt_sms_resp_sms_data(&buff);
 		// jhcho_compile
    		//at_send_sms(phonenum, buff, 5);
-		at_send_sms(phonenum, buff);
+		at_send_sms(phonenum, (const char *)buff);
    		free(buff);
    	}
 

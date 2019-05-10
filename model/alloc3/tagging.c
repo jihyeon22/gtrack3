@@ -11,6 +11,8 @@
 #include "tagging.h"
 #include "debug.h"
 
+#include "alloc_packet_tool.h"
+
 #include "color_printf.h"
 
 static int tagging_geo_fence = -1;
@@ -51,9 +53,12 @@ void *_get_tagging_data_malloc(void)
 	gps_get_curr_data(&gps);
 
 	taggingData_t *temp_td = (taggingData_t *)pdata;
-	snprintf(temp_td->date, sizeof(temp_td->date)-1,"%02d%02d%02d%02d%02d%02d",
-		gps.year%100, gps.mon, gps.day, gps.hour, gps.min, gps.sec);
-		
+	snprintf(temp_td->date, sizeof(temp_td->date),"%04d%02d%02d%02d%02d%02d",
+		gps.year, gps.mon, gps.day, gps.hour, gps.min, gps.sec);
+	//	gps.year%100, gps.mon, gps.day, gps.hour, gps.min, gps.sec);
+
+
+
 	memcpy(temp_td->tagging_data, tagging_array, tagging_array_index);
 	temp_td->count = tagging_count;
 	temp_td->idx_geo_fence = tagging_geo_fence;
@@ -112,7 +117,23 @@ int tagging_add_rfid(char *rfid_pat, int geo_fence, char *rfid_date)
 #endif
 	
 	tagging_geo_fence = geo_fence;
-	tagging_array_index += sprintf(tagging_array+tagging_array_index, "%s%.14s%.15s", comma, rfid_date, rfid_pat);
+
+	char temp_fence_id[12] = {0};
+
+	if(geo_fence == -1)
+	{
+		temp_fence_id[0] = '0';
+	}
+	else
+	{
+		get_geo_fence_id(geo_fence, temp_fence_id);
+	}
+
+
+	tagging_array_index += sprintf(tagging_array+tagging_array_index, "%s%s,%.14s,%.15s", comma, temp_fence_id, rfid_date, rfid_pat);
+
+
+	print_yellow("tagging_add_rfid : %s%s,%.14s,%.15s\n", comma, temp_fence_id, rfid_date, rfid_pat); 
 	tagging_num++;
 
 	pthread_mutex_unlock(&tagging_mutex);

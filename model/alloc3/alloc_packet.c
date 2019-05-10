@@ -303,16 +303,16 @@ int mkpkt_tag_data(	unsigned char ** buff, char *phonenum,
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%.15s", tmp_buff_2);
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", PACKET_SPILT);
 	
-	// ePKT_PERI_IDX_COUNT
-	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%d", count);
-	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", PACKET_SPILT);
+	// // ePKT_PERI_IDX_COUNT
+	// pkt_size += sprintf(tmp_buff_1 + pkt_size, "%d", count);
+	// pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", PACKET_SPILT);
 	
 	// ePKT_PERI_IDX_STOP_ZONE_ID,		// 8
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%.8s", zone_id);
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", PACKET_SPILT);
 
 	// ePKT_PERI_IDX_DATE				// 12
-	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%.12s", date);
+	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%.14s", date);
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", PACKET_SPILT);
 	
 	// ePKT_PERI_IDX_NUM_RFID,		// 2
