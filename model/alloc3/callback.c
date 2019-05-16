@@ -42,6 +42,7 @@ static int _process_poweroff(char *log);
 int g_rfid_request_flag = 0;
 int g_rfid_complelte_flag = 0;
 int g_tl500_state = 0; 
+int g_rfid_requestdb = 0;
 		
 static int flag_run_thread_main = 1;
 
@@ -404,12 +405,14 @@ void main_loop_callback(void)
 			if(strcmp(command, "H1") == 0 )
 			{
 				printf("Version command: %s buff:%s /rfid_len : %d]\n", command, buff, data_len);
-				set_alloc_rfid_alivecheck(buff, 1);
+
+				get_alloc_rfid_alivecheck(buff);
+				set_alloc_rfid_alivecheck(3);
 			}
 			else if (strcmp(command, "H5") == 0 )
 			{
 				printf("DB Download command: %s buff:%s /rfid_len : %d]\n", command, buff, data_len);
-				set_alloc_rfid_download_DBInfo(1234);
+				set_alloc_rfid_download_DBInfo(1234, buff);
 			}
 			else if (strcmp(command, "H2") == 0 )
 			{
@@ -422,8 +425,11 @@ void main_loop_callback(void)
 			}
 			else if (strcmp(command, "H4") == 0 )
 			{
+				g_rfid_requestdb++;
+				print_red("command : %s, g_rfid_requestdb : %d\n", command,  g_rfid_requestdb);
+				set_alloc_rfid_request_DBAck(3);
 				pkt_send_get_rfid();
-				set_alloc_rfid_request_DBAck(2);
+				
 			}
 
 		}

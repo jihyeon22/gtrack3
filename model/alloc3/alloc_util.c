@@ -77,4 +77,14 @@ int get_rssi_gps(void)
 
 	return eGPS_NOSIGNAL;
 }
+void getfilenameformat24(char *name, char *path)
+{
+	char name1[32] = {0,};
+
+	memset(name1, '0', 24);
+	memset(name, '0', 24);	
+	strncpy(name1, strrchr(path,'/')+1, 8);
+	printf("name1 : %s\n", name1);
+	strncpy(name, name1, strlen(name1));
+}
 

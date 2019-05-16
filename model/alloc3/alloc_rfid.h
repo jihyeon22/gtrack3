@@ -11,8 +11,12 @@
 int init_alloc_rfid_reader();
 int get_alloc_rfid_reader(char *command, char* buff);
 
-int set_alloc_rfid_download_DBInfo(int fileSize);
-int set_alloc_rfid_download_DBfile(char *filename);
+
+int get_alloc_rfid_alivecheck(char* buff);
+int set_alloc_rfid_alivecheck(int state);
+
+int set_alloc_rfid_download_DBInfo(int fileSize, char *filename);
+int set_alloc_rfid_download_DBfile(char *downloadfile, char *filename);
 
 int get_alloc_rfid_download_DBAck(char *buff);
 int get_alloc_rfid_tagging(char *buff, int datalen);

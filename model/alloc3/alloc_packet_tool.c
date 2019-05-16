@@ -30,9 +30,14 @@
  
 # define NO_OF_CHARS 256
  
-
+// -------------------------------------------------------------------------------
+// Extern 
+// -------------------------------------------------------------------------------
 extern int g_rfid_fd;
-extern int g_tl500_state;  
+extern int g_tl500_state;
+extern int g_rfid_requestdb;
+extern char g_rfid_filename[32];   
+
 // A utility function to get maximum of two integers
 static int max (int a, int b) { return (a > b)? a: b; }
  
@@ -1040,16 +1045,15 @@ int get_ftpserver_cmd_id(char* cmd_id)
 int save_ftpserver_info(packet_frame_t result)
 {
 	char token[ ] = ",";
-	char token_1[ ] = "\r\n";
+	//char token_1[ ] = "\r\n";
 	char *temp_bp = NULL;
 	char *tr = NULL;
 	
-	char tmp_data_buff[512] = {0,};
+	//char tmp_data_buff[512] = {0,};
 	
 	int err = 0;
 	
-	char* buff_p = result.packet_content;
-	int data_size = 0;
+	char* buff_p = (char*)result.packet_content;
 	char *dirc, *dname;
 	char DestFile[FILENAME_SIZE];
 
@@ -1089,8 +1093,8 @@ int save_ftpserver_info(packet_frame_t result)
 	if (1) // ..........
 	{
 		printf("   - save_ftpserver_info cmd id [%s]\r\n",tr);
-			memset(&ftp_server_info.cmd_id, '\0', 10);
-			strncpy(ftp_server_info.cmd_id, tr, strlen(tr));
+		memset(&ftp_server_info.cmd_id, '\0', 10);
+		strncpy((char*)ftp_server_info.cmd_id, tr, strlen(tr));
 	}
 	
 	// ==============================================
@@ -1106,7 +1110,7 @@ int save_ftpserver_info(packet_frame_t result)
 	//tp_server_info.ftp_ip = tr;
 
 	memset(&ftp_server_info.ftp_ip, '\0', 20);
-	strncpy(ftp_server_info.ftp_ip, tr, strlen(tr));
+	strncpy((char*)ftp_server_info.ftp_ip, tr, strlen(tr));
 	printf("   - ftp_server_info.ip [%s]\r\n", ftp_server_info.ftp_ip);
 
 	// ==============================================
@@ -1120,7 +1124,7 @@ int save_ftpserver_info(packet_frame_t result)
 	}
 
 	memset(&ftp_server_info.ftp_port, '\0', 20);
-	strncpy(ftp_server_info.ftp_port, tr, strlen(tr));
+	strncpy((char*)ftp_server_info.ftp_port, tr, strlen(tr));
 	printf("   - ftp_server_info.ftp_port [%s]\r\n", ftp_server_info.ftp_port);
 
 	// ==============================================
@@ -1134,7 +1138,7 @@ int save_ftpserver_info(packet_frame_t result)
 	}
 
 	memset(&ftp_server_info.ftp_id, '\0', 20);
-	strncpy(ftp_server_info.ftp_id, tr, strlen(tr));
+	strncpy((char*)ftp_server_info.ftp_id, tr, strlen(tr));
 	printf("   - ftp_server_info.ftp_id [%s]\r\n", ftp_server_info.ftp_id);
 
 	// ==============================================
@@ -1148,7 +1152,7 @@ int save_ftpserver_info(packet_frame_t result)
 	}
 
 	memset(&ftp_server_info.ftp_pw, '\0', 20);
-	strncpy(ftp_server_info.ftp_pw, tr, strlen(tr));
+	strncpy((char*)ftp_server_info.ftp_pw, tr, strlen(tr));
 	printf("   - ftp_server_info.ftp_pw [%s]\r\n", ftp_server_info.ftp_pw);
 
 	// ==============================================
@@ -1162,7 +1166,7 @@ int save_ftpserver_info(packet_frame_t result)
 	}
 	
 	memset(&ftp_server_info.filename, '\0', 32);
-	strncpy(ftp_server_info.filename, tr, strlen(tr));
+	strncpy((char*)ftp_server_info.filename, tr, strlen(tr));
 	printf("   - ftp_server_info.filename [%s]\r\n", ftp_server_info.filename);
 	
 	sprintf(DestFile, "%s%s", USER_DATA_DIR, ftp_server_info.filename);
@@ -1178,6 +1182,7 @@ int save_ftpserver_info(packet_frame_t result)
 	if (fp == NULL) {
 		char strmkdir[36]; 
 		char strRm[36];
+		char tempname[36];
 
 		sprintf(strmkdir, "mkdir -p %s",dname);
 		system(strmkdir);
@@ -1188,21 +1193,30 @@ int save_ftpserver_info(packet_frame_t result)
 
 		//fclose(fp);
 
-		devel_webdm_send_log("[alloc Packet] DB FileName : %s start ftp client", ftp_server_info.filename);
+		devel_webdm_send_log("[alloc Packet] DB FileName : %s start ftp client", (char*)ftp_server_info.filename);
 		Ftp_startClient((char *)ftp_server_info.ftp_ip, (char *)ftp_server_info.ftp_port, 
 				(char *)ftp_server_info.ftp_id, (char *)ftp_server_info.ftp_pw, 
 				(char *)ftp_server_info.filename, (char *)DestFile);
 
-		set_alloc_rfid_download_DBfile(DestFile);	
+		set_alloc_rfid_download_DBfile((char*)DestFile, (char*)ftp_server_info.filename);	
 	}
 	else
 	{		
 		fclose(fp);
 		devel_webdm_send_log("[alloc Packet] DB FileName : %s saved file !!!", ftp_server_info.filename);
-		print_yellow("%s: saved file !!!\n" , DestFile);
-		//return 2;
+		print_yellow("%s: saved file !!! g_rfid_requestdb: %d, g_rfid_filename: %s\n" , DestFile, g_rfid_requestdb, g_rfid_filename);
+
+		if(g_rfid_requestdb > 0)
+		{
+			print_yellow("g_rfid_requestdb !!!\n" );
+			set_alloc_rfid_download_DBfile((char*)DestFile, (char*)ftp_server_info.filename);
+			g_rfid_requestdb = 0;
+		}		
+
 	}
 
+	//set_alloc_rfid_download_DBfile(DestFile, ftp_server_info.filename);	
+	
 	g_tl500_state = 3;
 
 CMD_PARSE_FAIL:

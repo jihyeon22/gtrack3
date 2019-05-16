@@ -10,12 +10,15 @@
 #include <board/uart.h>
 #include "Ftp_ClientCmd.h"
 
+#include "alloc_util.h"
+
 #include <sys/ioctl.h>
 // jhcho test
 #include "color_printf.h"
 
 int g_rfid_fd = -1;
-extern int g_tl500_state;  
+extern int g_tl500_state;
+char g_rfid_filename[32];    
 
 static int _wait_read(int fd, unsigned char *buf, int buf_len, int ftime)
 {
@@ -95,19 +98,25 @@ int get_alloc_rfid_reader(char *command, char* buff)
 	if ( !end_idx )
 	{
 		printf("not found rfid end_idx cmd!!\r\n");
-		// return -1;
+		return -1;
 	}	
 	
 	strncpy(tmp, start_idx + 9, 7);
 	
 	data_lenth = atoi(tmp);
 	
-	memset(command, 0x00, 32);
+	memset(command, 0x0, 16);
 	strncpy(command, start_idx + 9 + 7, 2);
 
-	memset(buff, 0x00, 32);
-
+	memset(buff, '0', data_lenth);
 	strncpy(buff, start_idx + 9 + 7 + 2, data_lenth);
+
+	print_yellow("data_lenth : %d buff : %s\n", data_lenth, buff);
+	// data의 길이는 없지만, data_lenth 이 0인 경우에는 command 처리를 못 하므로 임의 넣어줌.
+	if (strcmp(command, "H4") == 0)
+	{
+		data_lenth = 1;
+	}
 
 	return data_lenth;	
 }
@@ -115,7 +124,29 @@ int get_alloc_rfid_reader(char *command, char* buff)
 //  TL500 -> HIR2000B 
 //  Alive Check에 time 및 상태 정보를 준다. 
 // -------------------------------------------
-int set_alloc_rfid_alivecheck(char* buff, int state)
+int get_alloc_rfid_alivecheck(char* buff)
+{
+	char version[8];
+	char filename[32];
+
+	strncpy(version, buff, 8);
+
+	memset(filename, '0', 24);
+	memset(g_rfid_filename, '0', 24);
+	strncpy(filename, buff + 8, 24);
+	strncpy(g_rfid_filename, filename, 24);
+	//sprintf(filename, "%.24s", buff + 8);
+	
+	print_red("get_alloc_rfid_alivecheck filename : %s\n",filename);
+	print_red("g_rfid_filename : %s\n",g_rfid_filename);
+	return 0;
+}
+
+// -------------------------------------------
+//  TL500 -> HIR2000B 
+//  Alive Check에 time 및 상태 정보를 준다. 
+// -------------------------------------------
+int set_alloc_rfid_alivecheck(int state)
 {
 	char cmd[1024] = {0,};
 	int cmd_size = 0;
@@ -146,18 +177,26 @@ int set_alloc_rfid_alivecheck(char* buff, int state)
 //  TL500 -> HIR2000B 
 //  서버로 부터 다운 받은 DB 파일에 정보를 준다.
 // -------------------------------------------
-int set_alloc_rfid_download_DBInfo(int fileSize)
+int set_alloc_rfid_download_DBInfo(int fileSize, char *filename)
 {
 	char cmd[1024] = {0,};
-	int cmd_size = 0;	
-	
-	cmd_size += sprintf(cmd + cmd_size, "at$$rfid=");
-	cmd_size += sprintf(cmd + cmd_size, "0000014"); 	// length
-	cmd_size += sprintf(cmd + cmd_size, "H2"); 		// command
+	int cmd_size = 0;
+	char name[32] = {0,};
+	// char name1[32] = "20190515.db";
 
-	cmd_size += sprintf(cmd + cmd_size, "%010d", fileSize); 		// size
-	cmd_size += sprintf(cmd + cmd_size, "0000"); 
-	cmd_size += sprintf(cmd + cmd_size, "\r\n"); 		// stop : 0d0a
+	cmd_size += sprintf(cmd + cmd_size, "at$$rfid=");
+	cmd_size += sprintf(cmd + cmd_size, "0000038"); 			// length
+	cmd_size += sprintf(cmd + cmd_size, "H2"); 					// command
+
+	cmd_size += sprintf(cmd + cmd_size, "%010d", fileSize); 	// size
+
+	getfilenameformat24(name, filename);
+	// memset(name, '0', 24);
+	// strncpy(name,name1, strlen(name1));
+
+	cmd_size += sprintf(cmd + cmd_size, "%24s", name); 	// filename
+	cmd_size += sprintf(cmd + cmd_size, "0000");  				// reserved
+	cmd_size += sprintf(cmd + cmd_size, "\r\n"); 				// stop : 0d0a
 	printf("cmd rfid reader!!!! [%s]\r\n", cmd);
 	uart_write(g_rfid_fd, cmd, cmd_size);
 
@@ -167,7 +206,7 @@ int set_alloc_rfid_download_DBInfo(int fileSize)
 //  TL500 -> HIR2000B 
 //  서버로 부터 다운 받은 DB 파일을 나누어서 보낸다.
 // -------------------------------------------
-int set_alloc_rfid_download_DBfile(char *filename)
+int set_alloc_rfid_download_DBfile(char *downloadfile, char *filename)
 {	
 	unsigned short total_count;
 	unsigned short cur_count;
@@ -180,7 +219,7 @@ int set_alloc_rfid_download_DBfile(char *filename)
 	int pack_idx;
 	int uresult;
 
-	fp = fopen(filename , "r"); 	
+	fp = fopen(downloadfile, "r"); 	
 	g_rfid_fd = init_alloc_rfid_reader();
 
 	fseek(fp, 0, SEEK_END);
@@ -194,7 +233,7 @@ int set_alloc_rfid_download_DBfile(char *filename)
 	
 	print_yellow("total_count = [%d]\n", total_count);
 	
-	set_alloc_rfid_download_DBInfo(file_size);
+	set_alloc_rfid_download_DBInfo(file_size, filename);
 
 	cur_count = 1;
 	fseek(fp, 0, SEEK_SET);
