@@ -1,0 +1,9 @@
+[user]
+model_name=allocation
+date=150914
+report_ip=218.153.6.213
+report_port=7431
+collect_interval_keyon = 30
+report_interval_keyon = 60
+collect_interval_keyoff = 30
+report_interval_keyoff = 30
