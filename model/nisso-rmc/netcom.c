@@ -194,6 +194,7 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 	}
 
     write_vaild_data();
+	system("sync &");
 
 	return res;
 }
