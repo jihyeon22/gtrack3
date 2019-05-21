@@ -293,6 +293,8 @@ else ifeq ($(SUB),alm2)
 SERVER_ABBR   :=      ALM2
 else ifeq ($(SUB),alc3)
 SERVER_ABBR   :=      ALC3
+else ifeq ($(SUB),alc4)
+SERVER_ABBR   :=      ALC4
 else ifeq ($(SUB),nis0)
 SERVER_ABBR   :=      NIS0
 else ifeq ($(SUB),nis1)

@@ -4,10 +4,10 @@
 // #define ALLOCTION_FTP_ID "iotdm"
 // #define ALLOCTION_FTP_PW "dmiot"
 
-#define ALLOCTION_FTP_IP "121.126.218.212"
-#define ALLOCTION_FTP_PORT "3232"
+#define ALLOCTION_FTP_IP "218.153.6.212"
+#define ALLOCTION_FTP_PORT "3032"
 #define ALLOCTION_FTP_ID "dsme"
-#define ALLOCTION_FTP_PW "eodnwhtjs1!"
+#define ALLOCTION_FTP_PW "appadm2012!@#"
 
 #define DOWNLOAD_FILEPATH "test"
 #define DOWNLOAD_FILENAME "20190320.db"

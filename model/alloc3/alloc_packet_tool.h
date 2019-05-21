@@ -92,5 +92,6 @@ unsigned char convert_angle(float azimuth);
 int get_geofence_status(); //jwrho
 
 static allocation_ftpserver_info_t ftp_server_info;
+void delete_ftpfolder(char *dname);
 
 #endif /* __ALLOCATION_PACKET_TOOL_HEADER__ */

@@ -1177,21 +1177,35 @@ int save_ftpserver_info(packet_frame_t result)
 
 	printf("dirname=%s\n", dname);
 
-	fp = fopen(DestFile , "r"); 	
+	fp = fopen(DestFile , "r");
 
-	if (fp == NULL) {
-		char strmkdir[36]; 
-		char strRm[36];
-		char tempname[36];
+	int size = 0;
+	if (fp != NULL)
+	{
+		fseek(fp, 0, SEEK_END);
+    	size = ftell(fp);
 
-		sprintf(strmkdir, "mkdir -p %s",dname);
-		system(strmkdir);
+		print_yellow("size : %d !!!\n", size); 	
+	}
+	else
+	{
+		print_yellow("size12 : %d !!!\n", size); 	
+	}
+	
+	if (fp == NULL || size < 10) {
+		// char strmkdir[36]; 
+		// char strRm[36];
+		// char tempname[36];
 
-		sprintf(strRm, "rm %s/*.*",dname);
-		system(strRm);
-		print_yellow("Ftp_startClient\n" );
+		// sprintf(strmkdir, "mkdir -p %s",dname);
+		// system(strmkdir);
+
+		// sprintf(strRm, "rm %s/*.*",dname);
+		// system(strRm);
+		// print_yellow("Ftp_startClient\n" );
 
 		//fclose(fp);
+		delete_ftpfolder(dname);
 
 		devel_webdm_send_log("[alloc Packet] DB FileName : %s start ftp client", (char*)ftp_server_info.filename);
 		Ftp_startClient((char *)ftp_server_info.ftp_ip, (char *)ftp_server_info.ftp_port, 
@@ -1201,7 +1215,8 @@ int save_ftpserver_info(packet_frame_t result)
 		set_alloc_rfid_download_DBfile((char*)DestFile, (char*)ftp_server_info.filename);	
 	}
 	else
-	{		
+	{	
+
 		fclose(fp);
 		devel_webdm_send_log("[alloc Packet] DB FileName : %s saved file !!!", ftp_server_info.filename);
 		print_yellow("%s: saved file !!! g_rfid_requestdb: %d, g_rfid_filename: %s\n" , DestFile, g_rfid_requestdb, g_rfid_filename);
@@ -1446,3 +1461,16 @@ int get_geofence_status()
 	return geo_fence_info.status;
 }
 //jwrho --
+
+void delete_ftpfolder(char *dname)
+{
+	char strmkdir[36]; 
+	char strRm[36];
+
+	sprintf(strmkdir, "mkdir -p %s",dname);
+	system(strmkdir);
+
+	sprintf(strRm, "rm %s/*.*",dname);
+	system(strRm);
+	print_yellow("Ftp_startClient\n" );
+}
