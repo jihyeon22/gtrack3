@@ -36,7 +36,8 @@
 extern int g_rfid_fd;
 extern int g_tl500_state;
 extern int g_rfid_requestdb;
-extern char g_rfid_filename[32];   
+extern char g_rfid_filename[32];
+extern int g_tl500_geofence_reset;   
 
 // A utility function to get maximum of two integers
 static int max (int a, int b) { return (a > b)? a: b; }
@@ -869,8 +870,19 @@ int save_geofence_info(packet_frame_t result)
 		printf("Geofence Save Complete!!!\r\n");
 	#endif
 		geo_fence_info.status = eGET_GEOFENCE_STAT_COMPLETE;
-		geo_fence_info.recent_geo_fence = get_recent_geo_fence();
+
+		print_yellow("geo_fence_info.recent_geo_fence1 :  %d \n", geo_fence_info.recent_geo_fence);
+		// 정류장  in 하기 전 까지는 정류장 정보를 기억 하지 않도록 수정
+		//geo_fence_info.recent_geo_fence = get_recent_geo_fence();
+
+		set_recent_geo_fence(-1); 
+		geo_fence_info.recent_geo_fence = -1;//get_recent_geo_fence();
+
+		print_yellow("geo_fence_info.recent_geo_fence 2:  %d \n", geo_fence_info.recent_geo_fence);
 		
+		
+		g_tl500_geofence_reset = 1;
+
 		storage_save_file(GEOFENCE_SAVED_FILE, (void*)&geo_fence_info, sizeof(allocation_geofence_info_t));
 		
 		set_geofence_data();
@@ -1193,18 +1205,7 @@ int save_ftpserver_info(packet_frame_t result)
 	}
 	
 	if (fp == NULL || size < 10) {
-		// char strmkdir[36]; 
-		// char strRm[36];
-		// char tempname[36];
-
-		// sprintf(strmkdir, "mkdir -p %s",dname);
-		// system(strmkdir);
-
-		// sprintf(strRm, "rm %s/*.*",dname);
-		// system(strRm);
-		// print_yellow("Ftp_startClient\n" );
-
-		//fclose(fp);
+		
 		delete_ftpfolder(dname);
 
 		devel_webdm_send_log("[alloc Packet] DB FileName : %s start ftp client", (char*)ftp_server_info.filename);

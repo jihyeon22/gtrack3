@@ -43,6 +43,7 @@ int g_rfid_request_flag = 0;
 int g_rfid_complelte_flag = 0;
 int g_tl500_state = 0; 
 int g_rfid_requestdb = 0;
+int g_tl500_geofence_reset = 0;
 		
 static int flag_run_thread_main = 1;
 
@@ -263,6 +264,8 @@ void gps_parse_one_context_callback(void)
 				{
 					pkt_send_geofence_in(gpsdata,fence_num);
 					print_red (" pkt_send_geofence_in fence_num : %d \r\n", fence_num);
+
+					g_tl500_geofence_reset = 0;
 				}
 				
 			}

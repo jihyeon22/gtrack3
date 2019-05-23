@@ -49,7 +49,7 @@ int get_report_interval()
 	if(ign_on == POWER_IGNITION_OFF)
 		interval_time = conf->model.report_interval_keyoff;
 	else
-		interval_time = conf->model.report_interval_keyon;
+		interval_time = conf->model.report_interval_keyon;	
 	
 	return interval_time;
 }

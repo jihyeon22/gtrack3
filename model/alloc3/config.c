@@ -306,7 +306,7 @@ void load_config_user_default(void)
 	config.model.report_port = 7431;
 
 	config.model.collect_interval_keyon = 30;
-	config.model.report_interval_keyon = 60;
+	config.model.report_interval_keyon = 30;
 	config.model.collect_interval_keyoff = 30;
 	config.model.report_interval_keyoff = 30;
 

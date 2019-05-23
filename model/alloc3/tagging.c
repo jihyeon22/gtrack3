@@ -23,6 +23,8 @@ static int tagging_num= 0;
 
 static pthread_mutex_t tagging_mutex = PTHREAD_MUTEX_INITIALIZER;
 
+extern int g_tl500_geofence_reset; 
+
 void _clear_tagging(void)
 {
 	memset(tagging_array, 0, sizeof(tagging_array));
@@ -122,17 +124,23 @@ int tagging_add_rfid(char *rfid_pat, int geo_fence, char *rfid_date)
 
 	if(geo_fence == -1)
 	{
+		print_yellow("geo_fence  -1 \n"); 
+		temp_fence_id[0] = '0';
+	}
+	else if (g_tl500_geofence_reset == 1)
+	{
+		print_yellow("geo_fence_in : %d\n", geo_fence); 
 		temp_fence_id[0] = '0';
 	}
 	else
 	{
+		print_yellow("geo_fence : %d\n", geo_fence); 
 		get_geo_fence_id(geo_fence, temp_fence_id);
 	}
 
 
 	tagging_array_index += sprintf(tagging_array+tagging_array_index, "%s%s,%.14s,%.15s", comma, temp_fence_id, rfid_date, rfid_pat);
-
-
+	
 	print_yellow("tagging_add_rfid : %s%s,%.14s,%.15s\n", comma, temp_fence_id, rfid_date, rfid_pat); 
 	tagging_num++;
 

@@ -134,7 +134,7 @@ int get_alloc_rfid_alivecheck(char* buff)
 	memset(filename, '0', 24);
 	memset(g_rfid_filename, '0', 24);
 	strncpy(filename, buff + 8, 24);
-	strncpy(g_rfid_filename, filename, 24);
+	sprintf(g_rfid_filename, "%s", filename);
 	//sprintf(filename, "%.24s", buff + 8);
 	
 	print_red("get_alloc_rfid_alivecheck filename : %s\n",filename);
