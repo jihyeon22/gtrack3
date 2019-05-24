@@ -139,6 +139,8 @@ int get_alloc_rfid_alivecheck(char* buff)
 	
 	print_red("get_alloc_rfid_alivecheck filename : %s\n",filename);
 	print_red("g_rfid_filename : %s\n",g_rfid_filename);
+
+	set_circulating_bus(0);
 	return 0;
 }
 
@@ -164,7 +166,7 @@ int set_alloc_rfid_alivecheck(int state)
 		timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, timeinfo->tm_mday, 
 		timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec); // time
 
-	cmd_size += sprintf(cmd + cmd_size,"%d", g_tl500_state); 		// state 1byte
+	cmd_size += sprintf(cmd + cmd_size,"%d", state); 		// state 1byte
 	cmd_size += sprintf(cmd + cmd_size, "\r\n"); 		// stop : 0d0a
 
 	uart_write(g_rfid_fd, cmd, cmd_size);
@@ -173,6 +175,62 @@ int set_alloc_rfid_alivecheck(int state)
 	
 	return 0;
 }
+// -------------------------------------------
+//  TL500 -> HIR2000B 
+//  Alive Check에 time 및 상태 정보를 준다. 
+// -------------------------------------------
+int get_alloc_rfid_circulating_bus(char* buff)
+{
+	char version[8];
+	char filename[32];
+
+	strncpy(version, buff, 8);
+
+	memset(filename, '0', 24);
+	memset(g_rfid_filename, '0', 24);
+	strncpy(filename, buff + 8, 24);
+	sprintf(g_rfid_filename, "%s", filename);
+	//sprintf(filename, "%.24s", buff + 8);
+	
+	print_red("get_alloc_rfid_alivecheck filename : %s\n",filename);
+	print_red("get_alloc_rfid_circulating_bus : %s\n",g_rfid_filename);
+
+	set_circulating_bus(1);
+	return 0;
+}
+
+// -------------------------------------------
+//  TL500 -> HIR2000B 
+//  순환 버스 일 때 time 및 상태 정보를 준다. 
+// -------------------------------------------
+int set_alloc_rfid_circulating_bus(int state)
+{
+	char cmd[1024] = {0,};
+	int cmd_size = 0;
+	time_t system_time;
+	struct tm *timeinfo;
+	
+	cmd_size += sprintf(cmd + cmd_size, RFID_READER_STX);
+	cmd_size += sprintf(cmd + cmd_size, "0000015"); 	// length
+	cmd_size += sprintf(cmd + cmd_size, "H5"); 		// command
+	
+	time(&system_time);
+	timeinfo = localtime ( &system_time );
+
+	cmd_size += sprintf(cmd + cmd_size, "%04d%02d%02d%02d%02d%02d", 
+		timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, timeinfo->tm_mday, 
+		timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec); // time
+
+	cmd_size += sprintf(cmd + cmd_size,"%d", state); 		// state 1byte
+	cmd_size += sprintf(cmd + cmd_size, "\r\n"); 		// stop : 0d0a
+
+	uart_write(g_rfid_fd, cmd, cmd_size);
+
+	print_yellow("set_alloc_rfid_circulating_bus!!!! [%s]\r\n", cmd);
+	
+	return 0;
+}
+
 // -------------------------------------------
 //  TL500 -> HIR2000B 
 //  서버로 부터 다운 받은 DB 파일에 정보를 준다.

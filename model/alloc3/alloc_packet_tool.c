@@ -154,6 +154,7 @@ int load_file_passenger_info(char* version)
 		init_passenger_info();
 	}
 
+	load_circulating_bus_info();
 	return 0;
 }
 
@@ -1204,7 +1205,18 @@ int save_ftpserver_info(packet_frame_t result)
 		print_yellow("size12 : %d !!!\n", size); 	
 	}
 	
-	if (fp == NULL || size < 10) {
+	int circulating_bus = 0;
+
+	circulating_bus = get_circulating_bus();
+
+	print_yellow("circulating_bus :  %d !!!\n", circulating_bus );
+
+	if (circulating_bus)
+	{
+		devel_webdm_send_log("[alloc Packet] circulating_bus !!!");
+		print_yellow("circulating_bus :  %d !!!\n", circulating_bus );
+	}
+	else if (fp == NULL || size < 10) {
 		
 		delete_ftpfolder(dname);
 

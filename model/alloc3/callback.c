@@ -133,6 +133,9 @@ void button1_callback(void)
 	// 		ttm.tm_year + 1900, ttm.tm_mon + 1, ttm.tm_mday, 
 	// 		ttm.tm_hour, ttm.tm_min, ttm.tm_sec);
 	print_yellow("cmd rfid reader2!!!! [%s]\r\n", cmd);
+
+	//set_circulating_bus(0);
+	load_circulating_bus_info();
 	// jhcho test ]]
 
 
@@ -146,6 +149,8 @@ void button1_callback(void)
 void button2_callback(void)
 {
 	printf("gtrack calback ::: button2_callback !!!\r\n");
+
+	set_circulating_bus(1);
 #if GEO_TEST
 	set_recent_geo_fence(get_recent_geo_fence()-1);
 	tagging_add_list();
@@ -333,6 +338,9 @@ void main_loop_callback(void)
 	int at_recov_cnt = 1024;
 	time_t system_on_time = tools_get_kerneltime();
 
+	// 대우 조선 해양에서 APN 을 lte.ktfwing.com 으로 변경 요청함.
+	at_set_apn_form_cgdcont(1, AT_APN_IP_TYPE_IPV4, "lte.ktfwing.com");
+
 	init_gps_manager(); //jwrho
 	init_geo_fence(eGEN_FENCE_DEBUG_MODE);
 
@@ -414,8 +422,8 @@ void main_loop_callback(void)
 			}
 			else if (strcmp(command, "H5") == 0 )
 			{
-				printf("DB Download command: %s buff:%s /rfid_len : %d]\n", command, buff, data_len);
-				set_alloc_rfid_download_DBInfo(1234, buff);
+				get_alloc_rfid_circulating_bus(buff);
+				set_alloc_rfid_circulating_bus(3);
 			}
 			else if (strcmp(command, "H2") == 0 )
 			{

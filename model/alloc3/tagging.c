@@ -124,12 +124,12 @@ int tagging_add_rfid(char *rfid_pat, int geo_fence, char *rfid_date)
 
 	if(geo_fence == -1)
 	{
-		print_yellow("geo_fence  -1 \n"); 
+		print_yellow("geo_fence  -1\n"); 
 		temp_fence_id[0] = '0';
 	}
 	else if (g_tl500_geofence_reset == 1)
 	{
-		print_yellow("geo_fence_in : %d\n", geo_fence); 
+		print_yellow("geo_fence_in\n"); 
 		temp_fence_id[0] = '0';
 	}
 	else

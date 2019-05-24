@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
+#include <stdbool.h>
 
 #include "config.h"
 #include "alloc_packet.h"
@@ -11,8 +12,14 @@
 #include <at/at_util.h>
 #include <board/power.h>
 #include <base/config.h>
+#include <util/storage.h>
+
+
+#include "alloc_util.h"
 
 #include "color_printf.h"
+
+static int g_circulating_bus = 0;
 
 int roundNo(float num)
 {
@@ -86,5 +93,38 @@ void getfilenameformat24(char *name, char *path)
 	strncpy(name1, strrchr(path,'/')+1, 8);
 	printf("name1 : %s\n", name1);
 	strncpy(name, name1, strlen(name1));
+}
+
+int get_circulating_bus(void)
+{
+	return g_circulating_bus;
+}
+void set_circulating_bus(int circulating)
+{
+	g_circulating_bus = circulating;
+	print_yellow("g_circulating_bus1 : %d\n", g_circulating_bus);
+	save_circulating_bus_info();
+}
+int load_circulating_bus_info()
+{
+	int ret;
+	ret = storage_load_file(CIRCULATING_BUS_STATUS_FILE, &g_circulating_bus, sizeof(int));
+
+	print_yellow("g_circulating_bus3 : %d, %d\n", g_circulating_bus, ret);
+	if(ret != ERR_NONE)
+	{
+		ret = save_circulating_bus_info();
+	}
+	
+	return ret;
+}
+int save_circulating_bus_info()
+{
+	int ret;
+	print_yellow("save_circulating_bus_info \n");
+	ret = storage_save_file(CIRCULATING_BUS_STATUS_FILE, &g_circulating_bus, sizeof(int));
+	print_yellow("g_circulating_bus3 : %d\n", g_circulating_bus);
+	system("sync &");
+	return ret;
 }
 
