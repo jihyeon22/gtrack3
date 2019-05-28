@@ -1182,6 +1182,21 @@ int save_ftpserver_info(packet_frame_t result)
 	strncpy((char*)ftp_server_info.filename, tr, strlen(tr));
 	printf("   - ftp_server_info.filename [%s]\r\n", ftp_server_info.filename);
 	
+	int circulating_bus = 0;
+	circulating_bus = get_circulating_bus();
+
+	print_yellow("circulating_bus :  %d !!!\n", circulating_bus );
+
+	if (circulating_bus)
+	{
+		devel_webdm_send_log("[alloc Packet] circulating_bus !!!");
+		print_yellow("circulating_bus :  %d !!!\n", circulating_bus );
+		g_tl500_state = 3;
+
+		return 1;
+
+	}
+
 	sprintf(DestFile, "%s%s", USER_DATA_DIR, ftp_server_info.filename);
 	print_yellow("%s: opened file.\n" , DestFile);
 
@@ -1205,18 +1220,19 @@ int save_ftpserver_info(packet_frame_t result)
 		print_yellow("size12 : %d !!!\n", size); 	
 	}
 	
-	int circulating_bus = 0;
+	// int circulating_bus = 0;
 
-	circulating_bus = get_circulating_bus();
+	// circulating_bus = get_circulating_bus();
 
-	print_yellow("circulating_bus :  %d !!!\n", circulating_bus );
+	// print_yellow("circulating_bus :  %d !!!\n", circulating_bus );
 
-	if (circulating_bus)
-	{
-		devel_webdm_send_log("[alloc Packet] circulating_bus !!!");
-		print_yellow("circulating_bus :  %d !!!\n", circulating_bus );
-	}
-	else if (fp == NULL || size < 10) {
+	// if (circulating_bus)
+	// {
+	// 	devel_webdm_send_log("[alloc Packet] circulating_bus !!!");
+	// 	print_yellow("circulating_bus :  %d !!!\n", circulating_bus );
+	// }
+	// else 
+	if (fp == NULL || size < 10) {
 		
 		delete_ftpfolder(dname);
 
