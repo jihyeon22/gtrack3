@@ -24,13 +24,13 @@
 #define FILENAME_SIZE 256
 #define END_OF_PROTOCOL "\r\n"
 
-void Ftp_initializeClient();
-void Ftp_startClient(char *ip, char *port, char *id, char *pw, char *filename, char *desfilename);
+int Ftp_initializeClient();
+int Ftp_startClient(char *ip, char *port, char *id, char *pw, char *filename, char *desfilename);
 
-void Ftp_openConnect(char *serverIp, char *serverPort, char *id, char *pw); 
-void Ftp_getFile(char *serverfilename, char *desfilename);
-void Ftp_quit();
-void Ftp_passiveMode(char *ip, int *port);
+int Ftp_openConnect(char *serverIp, char *serverPort, char *id, char *pw); 
+int Ftp_getFile(char *serverfilename, char *desfilename);
+int Ftp_quit();
+int Ftp_passiveMode(char *ip, int *port);
 
 
 

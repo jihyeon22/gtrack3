@@ -1062,13 +1062,12 @@ int save_ftpserver_info(packet_frame_t result)
 	char *temp_bp = NULL;
 	char *tr = NULL;
 	
-	//char tmp_data_buff[512] = {0,};
-	
 	int err = 0;
 	
 	char* buff_p = (char*)result.packet_content;
 	char *dirc, *dname;
-	char DestFile[FILENAME_SIZE];
+	char destfile[FILENAME_SIZE];
+	char testfile[FILENAME_SIZE];
 
 	FILE *fp;
 
@@ -1197,15 +1196,15 @@ int save_ftpserver_info(packet_frame_t result)
 
 	}
 
-	sprintf(DestFile, "%s%s", USER_DATA_DIR, ftp_server_info.filename);
-	print_yellow("%s: opened file.\n" , DestFile);
+	sprintf(destfile, "%s%s", USER_DATA_DIR, ftp_server_info.filename);
+	print_yellow("%s: opened file.\n" , destfile);
 
-	dirc = strdup(DestFile);
+	dirc = strdup(destfile);
 	dname = dirname(dirc);
 
 	printf("dirname=%s\n", dname);
 
-	fp = fopen(DestFile , "r");
+	fp = fopen(destfile , "r");
 
 	int size = 0;
 	if (fp != NULL)
@@ -1233,33 +1232,43 @@ int save_ftpserver_info(packet_frame_t result)
 	// }
 	// else 
 	if (fp == NULL || size < 10) {
-		
+		int ret = 0;
+		// jhcho_test [[ ]]
+		// sprintf(ftp_server_info.filename, "%s1", ftp_server_info.filename);
+		// print_yellow("ftp_server_info.filename :  %s !!!\n", ftp_server_info.filename);
+		// jhcho_test ]]
+
 		delete_ftpfolder(dname);
 
-		devel_webdm_send_log("[alloc Packet] DB FileName : %s start ftp client", (char*)ftp_server_info.filename);
-		Ftp_startClient((char *)ftp_server_info.ftp_ip, (char *)ftp_server_info.ftp_port, 
+		devel_webdm_send_log("[alloc Packet] FTP DB FileName : %s start ftp client", (char*)ftp_server_info.filename);
+		ret = Ftp_startClient((char *)ftp_server_info.ftp_ip, (char *)ftp_server_info.ftp_port, 
 				(char *)ftp_server_info.ftp_id, (char *)ftp_server_info.ftp_pw, 
-				(char *)ftp_server_info.filename, (char *)DestFile);
+				(char *)ftp_server_info.filename, (char *)destfile);
 
-		set_alloc_rfid_download_DBfile((char*)DestFile, (char*)ftp_server_info.filename);	
+		print_yellow("Ftp_startClient ret :  %d !!!\n", ret);
+		LOGI(LOG_TARGET, "Ftp_startClient ret :  %d !!!\n", ret);
+		
+		if(ret >= 0)
+			set_alloc_rfid_download_DBfile((char*)destfile, (char*)ftp_server_info.filename);	
 	}
 	else
 	{	
 
 		fclose(fp);
-		devel_webdm_send_log("[alloc Packet] DB FileName : %s saved file !!!", ftp_server_info.filename);
-		print_yellow("%s: saved file !!! g_rfid_requestdb: %d, g_rfid_filename: %s\n" , DestFile, g_rfid_requestdb, g_rfid_filename);
+		devel_webdm_send_log("[alloc Packet] FTP DB FileName : %s saved file !!!", ftp_server_info.filename);
+		print_yellow("%s: saved file !!! g_rfid_requestdb: %d, g_rfid_filename: %s\n" , destfile, g_rfid_requestdb, g_rfid_filename);
 
 		if(g_rfid_requestdb > 0)
 		{
 			print_yellow("g_rfid_requestdb !!!\n" );
-			set_alloc_rfid_download_DBfile((char*)DestFile, (char*)ftp_server_info.filename);
+			LOGI(LOG_TARGET, "g_rfid_requestdb update !!!\n");
+			set_alloc_rfid_download_DBfile((char*)destfile, (char*)ftp_server_info.filename);
 			g_rfid_requestdb = 0;
 		}		
 
 	}
 
-	//set_alloc_rfid_download_DBfile(DestFile, ftp_server_info.filename);	
+	//set_alloc_rfid_download_DBfile(destfile, ftp_server_info.filename);	
 	
 	g_tl500_state = 3;
 

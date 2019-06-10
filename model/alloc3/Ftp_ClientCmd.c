@@ -15,47 +15,83 @@
 int sock, dtpSock;
 int mode;
 
-void Ftp_initializeClient() {
+int Ftp_initializeClient() {
 	printf("initialized\n");
+	return 0;
 }
 
 // ftp client start 
-void Ftp_startClient(char *ip, char *port, char *id, char *pw, char *filename, char *desfilename) {	
-	Ftp_initializeClient();	
-	//Ftp_openConnect(ip, port);
-	Ftp_openConnect(ip, port, id, pw);
+int Ftp_startClient(char *ip, char *port, char *id, char *pw, char *filename, char *desfilename) {
+	int ret = 0;
 
-	Ftp_getFile(filename, desfilename);
+	ret = Ftp_initializeClient();
+	if(ret < 0)
+		return ret;
+  	
+	//Ftp_openConnect(ip, port);
+	ret = Ftp_openConnect(ip, port, id, pw);
+	if(ret < 0)
+		return ret;
+
+	ret = Ftp_getFile(filename, desfilename);
+	if(ret < 0)
+		return ret;
+
+	return ret;
 }
 
 // ftp server connect 
-void Ftp_openConnect(char *serverIp, char *serverPort, char *id, char *pw) {
+int Ftp_openConnect(char *serverIp, char *serverPort, char *id, char *pw) {
+	int ret = 0;
 	char sendBuffer[BUFFER_SIZE];
 	char recvBuffer[BUFFER_SIZE];
-	
+
 	// connect to server
 	sock = connectServer(serverIp, atoi(serverPort));
-	recvProtocol(sock, recvBuffer, BUFFER_SIZE-1);	
+	if(sock == -1)
+	{
+		printf("FTP connect failed !!!\n");
+		devel_webdm_send_log("FTP sever connect failed !!!");
+		return -1;
+	}
+	recvProtocol(sock, recvBuffer, BUFFER_SIZE-1);
 
 	sprintf(sendBuffer, "User %s\r\n", id);
 	sendProtocol(sock, sendBuffer);
 	recvProtocol(sock, recvBuffer, BUFFER_SIZE);
 	printf(recvBuffer);
+
 	// send password
 	sprintf(sendBuffer, "PASS %s\r\n", pw);
 	sendProtocol(sock, sendBuffer);
 	recvProtocol(sock, recvBuffer, BUFFER_SIZE);
 	printf(recvBuffer);
-		
+	if(strstr(recvBuffer,"User cannot log in") != NULL)
+	{
+		printf("[FTP] User cannot log in!!!\n");
+		devel_webdm_send_log("[FTP] FTP User cannot log in!!!");
+		return -1;
+	}
+
 	// get server os information	
 	sprintf(sendBuffer, "SYST%s", END_OF_PROTOCOL);
 	sendProtocol(sock, sendBuffer);
 	recvProtocol(sock, recvBuffer, BUFFER_SIZE-1);
 	printf(recvBuffer);
+
+	if(strstr(recvBuffer,"Please login with USER and PASS") != NULL)
+	{
+		printf("[FTP] Please login with USER and PASS!!!\n");
+		devel_webdm_send_log("[FTP] Please login with USER and PASS!!!");
+		return -1;
+	}
+
+	return ret;
 }
 
 // send EPSV or PASS to Server
-void Ftp_passiveMode(char *ip, int *port) {
+int Ftp_passiveMode(char *ip, int *port) {
+	int ret = 0;
 	char sendBuffer[BUFFER_SIZE];
 	char recvBuffer[BUFFER_SIZE];
 	int host0, host1, host2, host3;
@@ -73,9 +109,12 @@ void Ftp_passiveMode(char *ip, int *port) {
 	
 	printf("ip : %s\n", ip);
 	printf("dtp port : %d\n", *port);
+
+	return ret;
 }
 
-void Ftp_getFile(char *serverfilename, char *desfilename) {
+int Ftp_getFile(char *serverfilename, char *desfilename) {
+	int ret = 0;
 	int port;
 	unsigned int fileSize;
 	char ip[16], fileName[50];//DestFile[FILENAME_SIZE], fileName[50];
@@ -101,17 +140,30 @@ void Ftp_getFile(char *serverfilename, char *desfilename) {
 	recvProtocol(sock, recvBuffer, BUFFER_SIZE);
 	printf(recvBuffer);
 	
-	downloadFile(dtpSock, desfilename, fileSize);
-	
-	// recv complete message from PI server
-	recvProtocol(sock, recvBuffer, BUFFER_SIZE);
-	printf(recvBuffer);
+	if(strstr(recvBuffer,"cannot find the file") != NULL)
+	{
+		printf("FTP cannot find the file : %s\n", fileName);
+		devel_webdm_send_log("FTP cannot find the file : %s", fileName);
+		close(dtpSock);		
 
-	close(dtpSock);
+		return -1;
+	}
+	else
+	{
+		downloadFile(dtpSock, desfilename, fileSize);
+	
+		// recv complete message from PI server
+		recvProtocol(sock, recvBuffer, BUFFER_SIZE);
+		printf(recvBuffer);
+		close(dtpSock);
+	}
+	
+	return ret;
 }
 
 // ftp client exit 
-void Ftp_quit() {
+int Ftp_quit() {
+	int ret = 0;
 	char sendBuffer[BUFFER_SIZE];
 	char recvBuffer[BUFFER_SIZE];
 	printf("quit\n");
@@ -123,6 +175,8 @@ void Ftp_quit() {
 	
 	close(sock);
 	exit(0);
+
+	return ret;
 }
 
 

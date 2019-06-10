@@ -21,17 +21,20 @@ int connectServer(char *serverIp, short port) {
 	
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
 		perror("sock failed");
-		exit(1);
+		printf("ftp sock failed\n");
+		//exit(1);
+		return -1;
 	}
 	
 	memset(&servAddr, 0, sizeof(servAddr));
 	servAddr.sin_family = AF_INET;
 	servAddr.sin_addr.s_addr = inet_addr(serverIp);
 	servAddr.sin_port = htons(port);
-	
+
 	if (connect(sock, (struct sockaddr*)&servAddr, sizeof(servAddr)) == -1) {
 		perror("connect failed");
-		exit(1);
+		printf("ftp connect failed\n");
+		return -1;
 	}
 	
 	return sock;
