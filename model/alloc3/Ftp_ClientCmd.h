@@ -9,14 +9,11 @@
 #define ALLOCTION_FTP_ID "dsme"
 #define ALLOCTION_FTP_PW "appadm2012!@#"
 
-#define DOWNLOAD_FILEPATH "test"
+#define DOWNLOAD_FILEPATH "dsme"
 #define DOWNLOAD_FILENAME "20190320.db"
 #define DOWNLOAD_SAVED_FILEINFO		CONCAT_STR(USER_DATA_DIR, "/alloc_ftpinfo.txt")
 
 #define DOWNLOAD_SAVED_FILENAME	"/factory/mds/data/dsme/20190320.db"
-
-// #define DOWNLOAD_FILEPATH "home/TEST/"
-// #define DOWNLOAD_FILENAME "test_45000.db"
 
 #define ALLOCTION_FTP_HOST "virtual.mdstec.com"
 

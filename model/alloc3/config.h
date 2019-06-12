@@ -46,4 +46,6 @@ void load_config_base_default(void);
 void load_config_model_default(void);
 void load_config_user_default(void);
 
+int load_config_base_webdm(void);
+
 #endif

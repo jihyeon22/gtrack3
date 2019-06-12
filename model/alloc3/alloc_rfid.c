@@ -13,8 +13,6 @@
 #include "alloc_util.h"
 
 #include <sys/ioctl.h>
-// jhcho test
-#include "color_printf.h"
 
 int g_rfid_fd = -1;
 extern int g_tl500_state;
@@ -77,7 +75,7 @@ int get_alloc_rfid_reader(char *command, char* buff)
 	
 	readcnt = uart_read(g_rfid_fd, (unsigned char *) read_buff , 512, 60);
 
-	print_yellow("readcnt : %d\r\n", readcnt);
+	printf("readcnt : %d\r\n", readcnt);
 	if ( !(readcnt > 0) )
 	{
 		return -1;
@@ -111,7 +109,7 @@ int get_alloc_rfid_reader(char *command, char* buff)
 	memset(buff, '0', data_lenth);
 	strncpy(buff, start_idx + 9 + 7 + 2, data_lenth);
 
-	print_yellow("data_lenth : %d buff : %s\n", data_lenth, buff);
+	printf("data_lenth : %d buff : %s\n", data_lenth, buff);
 	// data의 길이는 없지만, data_lenth 이 0인 경우에는 command 처리를 못 하므로 임의 넣어줌.
 	if (strcmp(command, "H4") == 0)
 	{
@@ -137,8 +135,8 @@ int get_alloc_rfid_alivecheck(char* buff)
 	sprintf(g_rfid_filename, "%s", filename);
 	//sprintf(filename, "%.24s", buff + 8);
 	
-	print_red("get_alloc_rfid_alivecheck filename : %s\n",filename);
-	print_red("g_rfid_filename : %s\n",g_rfid_filename);
+	printf("get_alloc_rfid_alivecheck filename : %s\n",filename);
+	printf("g_rfid_filename : %s\n",g_rfid_filename);
 
 	set_circulating_bus(0);
 	return 0;
@@ -171,7 +169,7 @@ int set_alloc_rfid_alivecheck(int state)
 
 	uart_write(g_rfid_fd, cmd, cmd_size);
 
-	print_yellow("set_alloc_rfid_alivecheck!!!! [%s]\r\n", cmd);
+	printf("set_alloc_rfid_alivecheck!!!! [%s]\r\n", cmd);
 	
 	return 0;
 }
@@ -192,8 +190,8 @@ int get_alloc_rfid_circulating_bus(char* buff)
 	sprintf(g_rfid_filename, "%s", filename);
 	//sprintf(filename, "%.24s", buff + 8);
 	
-	print_red("get_alloc_rfid_alivecheck filename : %s\n",filename);
-	print_red("get_alloc_rfid_circulating_bus : %s\n",g_rfid_filename);
+	printf("get_alloc_rfid_alivecheck filename : %s\n",filename);
+	printf("get_alloc_rfid_circulating_bus : %s\n",g_rfid_filename);
 
 	set_circulating_bus(1);
 	return 0;
@@ -226,7 +224,7 @@ int set_alloc_rfid_circulating_bus(int state)
 
 	uart_write(g_rfid_fd, cmd, cmd_size);
 
-	print_yellow("set_alloc_rfid_circulating_bus!!!! [%s]\r\n", cmd);
+	printf("set_alloc_rfid_circulating_bus!!!! [%s]\r\n", cmd);
 	
 	return 0;
 }
@@ -283,13 +281,13 @@ int set_alloc_rfid_download_DBfile(char *downloadfile, char *filename)
 	fseek(fp, 0, SEEK_END);
     file_size = ftell(fp);
 
-	print_yellow("alloc file_size = [%d]\n", file_size);
+	printf("alloc file_size = [%d]\n", file_size);
 
 	total_count = file_size / FILE_DIV_VAL;
 	if(file_size % FILE_DIV_VAL != 0)
 		total_count += 1;
 	
-	print_yellow("total_count = [%d]\n", total_count);
+	printf("total_count = [%d]\n", total_count);
 	
 	set_alloc_rfid_download_DBInfo(file_size, filename);
 
@@ -300,7 +298,7 @@ int set_alloc_rfid_download_DBfile(char *downloadfile, char *filename)
 				
 		pack_idx = 0;
 		if(cur_count > total_count) {
-			print_yellow("while exit #1 cur_count : %d\n", cur_count);
+			printf("while exit #1 cur_count : %d\n", cur_count);
 			break;
 		}
 		
@@ -363,7 +361,7 @@ int get_alloc_rfid_tagging(char *buff, int datalen)
 	memset(tagginginfo, 0x00, 32);
 	tagginglen = datalen-time_len;
 	strncpy(tagginginfo, buff+time_len, tagginglen);
-	print_red(" -- time: %s  tagging data: %s  tagginglen : %d \r\n", time, tagginginfo, tagginglen);
+	printf(" -- time: %s  tagging data: %s  tagginglen : %d \r\n", time, tagginginfo, tagginglen);
 
 	find_rfid(tagginginfo, tagginglen, time);
 	//tagging_add_rfid(tagginginfo, get_recent_geo_fence(), time);

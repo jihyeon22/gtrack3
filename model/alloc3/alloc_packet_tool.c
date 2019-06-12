@@ -1067,7 +1067,6 @@ int save_ftpserver_info(packet_frame_t result)
 	char* buff_p = (char*)result.packet_content;
 	char *dirc, *dname;
 	char destfile[FILENAME_SIZE];
-	char testfile[FILENAME_SIZE];
 
 	FILE *fp;
 
@@ -1217,26 +1216,10 @@ int save_ftpserver_info(packet_frame_t result)
 	else
 	{
 		print_yellow("size12 : %d !!!\n", size); 	
-	}
-	
-	// int circulating_bus = 0;
+	}	
 
-	// circulating_bus = get_circulating_bus();
-
-	// print_yellow("circulating_bus :  %d !!!\n", circulating_bus );
-
-	// if (circulating_bus)
-	// {
-	// 	devel_webdm_send_log("[alloc Packet] circulating_bus !!!");
-	// 	print_yellow("circulating_bus :  %d !!!\n", circulating_bus );
-	// }
-	// else 
 	if (fp == NULL || size < 10) {
 		int ret = 0;
-		// jhcho_test [[ ]]
-		// sprintf(ftp_server_info.filename, "%s1", ftp_server_info.filename);
-		// print_yellow("ftp_server_info.filename :  %s !!!\n", ftp_server_info.filename);
-		// jhcho_test ]]
 
 		delete_ftpfolder(dname);
 

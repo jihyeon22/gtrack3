@@ -27,6 +27,7 @@ void _deinit_essential_functions(void);
 static int _server_ip_set(int argc, char **argv, char *phonenum);
 static int _rpt_cycle_keyon(int argc, char **argv, char *phonenum);
 static int _mdt_status (int argc, char **argv, char *phonenum);
+static int _rpt_dm_setup (int argc, char **argv, char *phonenum);
 static int _rpt_cycle2(int argc, char **argv, char *phonenum);
 
 #ifdef BOARD_NEO_W200K
@@ -136,6 +137,10 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 	else if(!strcmp(model_argv[0], szSMS_REQUEST_STATUS))
 	{
 		ret = _mdt_status(model_argc, model_argv, phonenum);
+	}
+	else if(!strcmp(model_argv[0], szSMS_REPORT_DM_SETUP))
+	{
+		ret = _rpt_dm_setup(model_argc, model_argv, phonenum);
 	}
 	else
 	{
@@ -326,6 +331,61 @@ static int _mdt_status (int argc, char **argv, char *phonenum)
 
 	return 0;
 }
+static int _rpt_dm_setup (int argc, char **argv, char *phonenum)
+{
+	int ret = 0;
+	int setup;
+	unsigned char *buff = NULL;
+
+	if(argc != 3)
+	{
+		LOGE(LOG_TARGET, "<%s> Incorrect SMS", __FUNCTION__);
+		return -1;
+	}
+
+	LOGD(LOG_TARGET, "_rpt_dm_setup response = %s \n",argv[3]);
+
+	ret = atoi(argv[1]);
+	if(ret == 1)
+	{
+		setup = 1;
+		save_config("webdm:enable", "1");
+		save_config("webdm:tx_power", "1");
+		save_config("webdm:tx_ignition","1");
+		save_config("webdm:tx_report", "0"); // report 0 default
+		save_config("webdm:tx_log", "1");
+	}
+	else if (ret == 0)
+	{
+		setup = 0;
+		save_config("webdm:enable", "0");
+		save_config("webdm:tx_power", "0");
+		save_config("webdm:tx_ignition","0");
+		save_config("webdm:tx_report", "0");
+		save_config("webdm:tx_log", "0");
+	}
+	else
+	{
+		setup = load_config_base_webdm();
+	}
+	
+	if(atoi(argv[3]) == 0)
+	{
+		return 0;
+	}
+
+	if(validation_check_phonenum(argv[2], strlen(argv[2])) < 0)
+	{
+		return -1;
+	}
+
+	mkpkt_sms_resp_dm_data(&buff, setup);
+	at_send_sms(argv[2], (const char *)buff);
+	free(buff);
+
+	return 0;
+}
+
 
 static int _rpt_cycle2 (int argc, char **argv, char *phonenum)
 {

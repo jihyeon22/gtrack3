@@ -32,11 +32,6 @@
 #include "alloc_rfid.h"
 #include "tagging.h"
 
-// jhcho test
-#include "color_printf.h"
-#include "Ftp_ClientCmd.h"
-
-
 static int _process_poweroff(char *log);
 
 int g_rfid_request_flag = 0;
@@ -49,7 +44,6 @@ static int flag_run_thread_main = 1;
 
 static time_t prev_gps_active_time = 0;
 
-BOOL g_geofencedown = false;
 // feature check
 // #define GEO_TEST 0
 // #ifndef USE_EXTGPIO_EVT
@@ -107,37 +101,7 @@ void button1_callback(void)
 {
 	configurationModel_t *conf = get_config_model();
 
-	print_yellow("gtrack calback ::: button1_callback !!!\r\n");
-
-	// jhcho test [[ 
-	g_geofencedown = true;
-
-	struct timeval tv;
-	struct tm ttm;
-
-	time_t system_time;
-	struct tm *timeinfo;
-	char cmd[128] = {0,};
-
-	localtime_r(&tv.tv_sec, &ttm);
-	
-	time(&system_time);
-	timeinfo = localtime ( &system_time );
-
-	sprintf(cmd, "%04d%02d%02d%02d%02d%02d", 
-		timeinfo->tm_year + 1900, timeinfo->tm_mon + 1, timeinfo->tm_mday, 
-		timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
-
-
-	// sprintf(cmd, "%04d%02d%02d%02d%02d%02d", 
-	// 		ttm.tm_year + 1900, ttm.tm_mon + 1, ttm.tm_mday, 
-	// 		ttm.tm_hour, ttm.tm_min, ttm.tm_sec);
-	print_yellow("cmd rfid reader2!!!! [%s]\r\n", cmd);
-
-	//set_circulating_bus(0);
-	load_circulating_bus_info();
-	// jhcho test ]]
-
+	printf("gtrack calback ::: button1_callback !!!\r\n");
 
 #if GEO_TEST
 	set_recent_geo_fence(get_recent_geo_fence()+1);
@@ -268,7 +232,6 @@ void gps_parse_one_context_callback(void)
 				if(get_geofence_status() == eGET_GEOFENCE_STAT_COMPLETE) //jwrho
 				{
 					pkt_send_geofence_in(gpsdata,fence_num);
-					print_red (" pkt_send_geofence_in fence_num : %d \r\n", fence_num);
 
 					g_tl500_geofence_reset = 0;
 				}
@@ -280,7 +243,6 @@ void gps_parse_one_context_callback(void)
 				if(get_geofence_status() == eGET_GEOFENCE_STAT_COMPLETE) //jwrho
 				{
 					pkt_send_geofence_out(gpsdata,fence_num);
-					print_red ("pkt_send_geofence_out fence_num : %d \r\n", fence_num);
 				}
 			}
 		}
@@ -437,7 +399,7 @@ void main_loop_callback(void)
 			else if (strcmp(command, "H4") == 0 )
 			{
 				g_rfid_requestdb++;
-				print_red("command : %s, g_rfid_requestdb : %d\n", command,  g_rfid_requestdb);
+				printf("command : %s, g_rfid_requestdb : %d\n", command,  g_rfid_requestdb);
 				set_alloc_rfid_request_DBAck(3);
 				pkt_send_get_rfid();
 				

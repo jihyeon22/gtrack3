@@ -41,6 +41,7 @@ enum alloc_protocol_id_code
 	ePROTOCOL_ID_GET_PASSENGER = 'P',
 	ePROTOCOL_ID_RESP_SMS	   = 'B',
 	ePROTOCOL_ID_BUS_STOP_INFO = 'V', //jwrho
+	ePROTOCOL_ID_RESP_DM 	   = 'D', //jwrho
 };
 
 
@@ -197,6 +198,7 @@ int mkpkt_get_passenger(unsigned char ** buff, char* phonenum, char* version_inf
 int mkpkt_sms_resp_tcp_data(unsigned char ** buff, char *phonenum);
 int mkpkt_bus_stop_info_tcp_data(unsigned char ** buff, char *phonenum); //jwrho
 int mkpkt_sms_resp_sms_data(unsigned char ** buff);
+int mkpkt_sms_resp_dm_data(unsigned char ** buff, int setup);
 void pkt_send_period_report(gpsData_t gpsdata);
 void pkt_send_tagging(void);
 void pkt_send_btn_passenger_full(void);

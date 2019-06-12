@@ -34,9 +34,6 @@
 #include "geofence.h"
 
 
-// jhcho test
-#include "color_printf.h"
-
 ////////////////////////////////////////////////////////////////////////////////////////
 // define......
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -49,7 +46,7 @@
 // global var
 ////////////////////////////////////////////////////////////////////////////////////////
 extern int g_rfid_complelte_flag;
-extern BOOL g_geofencedown;
+
 ////////////////////////////////////////////////////////////////////////////////////////
 // period pkt info
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -215,15 +212,6 @@ int mkpkt_report_data(	unsigned char ** buff, char ev_code, char* ev_data, char 
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%d", total_dist_cm);
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", PACKET_SPILT);
 	
-	// ePKT_PERI_IDX_TEMP1,				// 5
-	if (g_geofencedown == true)
-	{
-		g_geofencedown = false;
-		temp1 = 877;
-		print_yellow("877 \r\n");
-	}
-	
-
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%d", temp1);
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", PACKET_SPILT);
 	
@@ -546,7 +534,48 @@ int mkpkt_sms_resp_sms_data(unsigned char ** buff)
 	printf("buff is [%s] / [%d] \r\n", *buff, pkt_size);
 	return pkt_size;
 }
+// ----------------------------------------------------------------------------------------
+//  packet define..
+// ----------------------------------------------------------------------------------------
+int mkpkt_sms_resp_dm_data(unsigned char ** buff, int setup)
+{
+	int pkt_size = 0;
+	
+	char tmp_buff_1[TMP_1_DATA_BUFF_SIZE] = {0,};
 
+	configurationModel_t *conf = get_config_model();
+
+	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", PACKET_START_CHAR );
+
+	printf("ePROTOCOL_ID_RESP_DM : %c\n", ePROTOCOL_ID_RESP_DM);
+	// ePKT_PERI_IDX_PROTCOL_ID
+	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", ePROTOCOL_ID_RESP_DM);
+	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", PACKET_SPILT);
+
+	// // ePKT_PERI_IDX_MSG_TYPE
+	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%d", setup);
+	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", PACKET_SPILT);	
+
+	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", SMS_END_CHAR );
+
+	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", PACKET_END_CHAR );
+	
+	printf("tmp_buff_1 is [%s] / [%d] \r\n", tmp_buff_1, pkt_size);
+	*buff = malloc(pkt_size+1);
+	
+	memcpy(*buff, tmp_buff_1, pkt_size);
+	(*buff)[pkt_size] = '\0';
+
+	int i = 0;
+	for(i = 0; i<= pkt_size; i++)
+	{
+		printf("%x", (*buff)[i]);
+	}
+	printf("\n");
+	
+	printf("buff is [%s] / [%d] \r\n", *buff, pkt_size);
+	return pkt_size;
+}
 // ==============================================================
 // ==============================================================
 void pkt_send_period_report(gpsData_t gpsdata)
@@ -578,7 +607,6 @@ void pkt_send_tagging(void)
 	{
 		LOGI(LOG_TARGET, "MAKE PKT : TAGGING\r\n");
 
-		print_yellow("pkt_send_tagging\r\n");
 		sender_add_data_to_buffer(PACKET_TYPE_TAGGING, data, ePIPE_1);	
 	}
 }
