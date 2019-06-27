@@ -192,6 +192,16 @@ int mkpkt_report_data(	unsigned char ** buff, char ev_code, char* ev_data, char 
 		pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", eNOSIGNAL_GPS);
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", PACKET_SPILT);
 	
+	if(gpsdata.lat == 0 || gpsdata.lon == 0)
+	{
+		gpsData_t last_gpsdata;
+		gps_valid_data_get(&last_gpsdata);
+
+        gpsdata.lat = last_gpsdata.lat;
+		gpsdata.lon = last_gpsdata.lon;
+
+		printf("last gpsdata[%.7f]/[%.7f]\r\n", gpsdata.lat, gpsdata.lon);
+	}
 	// ePKT_PERI_IDX_GPS_LAT				// 11
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%.7f", gpsdata.lat);
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", PACKET_SPILT);

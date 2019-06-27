@@ -20,8 +20,6 @@
 #include "alloc_packet.h"
 #include "alloc_packet_tool.h"
 
-#include "color_printf.h"
-
 // ----------------------------------------
 //  LOGD(LOG_TARGET, LOG_TARGET,  Target
 // ----------------------------------------
@@ -123,7 +121,7 @@ int _recv_data(int sock, int op, char* rcv_buff, int rcv_len, unsigned char* ack
 		}
 		case eRCV_PKT_ID_STOP_INFO:
 			LOGT(LOG_TARGET, "BIN RECV : GEOFENCE \r\n");
-			print_yellow("eRCV_PKT_ID_STOP_INFO \r\n");
+			printf("eRCV_PKT_ID_STOP_INFO \r\n");
 		
 			pkt_ret = save_geofence_info(result);
 			if ( get_geo_fence_info_stat() == eGET_GEOFENCE_STAT_COMPLETE)
@@ -141,7 +139,7 @@ int _recv_data(int sock, int op, char* rcv_buff, int rcv_len, unsigned char* ack
 		break;
 		case eRCV_PKT_ID_FTP_INFO:
 			LOGT(LOG_TARGET, "BIN RECV : FTP \r\n");
-			print_yellow("eRCV_PKT_ID_FTP_INFO \r\n");
+			printf("eRCV_PKT_ID_FTP_INFO \r\n");
 		
 			pkt_ret = save_ftpserver_info(result);
 			if ( pkt_ret > 1)
@@ -156,6 +154,13 @@ int _recv_data(int sock, int op, char* rcv_buff, int rcv_len, unsigned char* ack
 				return _RCV_DATA_DONE;
 			}
 			
+		break;
+		case eRCV_PKT_ID_FIRMWARE_UPDATE:
+			LOGT(LOG_TARGET, "BIN RECV : FIRMWARE_UPDATE \r\n");
+			printf("FIRMWARE_UPDATE \r\n");
+		
+			pkt_ret = updatefirmware_daewoo(result);
+
 		break;
 		case eRCV_PKT_ID_SEND_PERIOD:
 			LOGT(LOG_TARGET, "BIN RECV : PERIOD \r\n");

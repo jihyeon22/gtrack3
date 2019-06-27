@@ -13,14 +13,14 @@
 //      FEATURE_INVALD_GPS_COPY_LAST_FIX_GPS
 // inactive gps replace latest credible gps position
 // time field have to create with current system time.
-//#define FEATURE_INVALD_GPS_COPY_LAST_FIX_GPS
+#define FEATURE_INVALD_GPS_COPY_LAST_FIX_GPS
 //======================================================
 
 //======================================================
 //      FEATURE_INVALD_GPS_COPY_LAST_FIX_GPS
 // inactive gps replace latest credible gps position
 // time field have to create with current system time.
-#define FEATURE_INVALID_GPS_COPY_ZERO
+// #define FEATURE_INVALID_GPS_COPY_ZERO
 //======================================================
 
 //======================================================

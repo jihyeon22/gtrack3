@@ -161,10 +161,11 @@ enum rcv_bin_pktid{
 	eRCV_PKT_ID_SEND_PERIOD = '2',
 	eRCV_PKT_ID_STOP_INFO = '3',
 	eRCV_PKT_ID_FTP_INFO = '4',
+	eRCV_PKT_ID_FIRMWARE_UPDATE = '5',
 	//eNOSIGNAL_GPS = 3
 };
 
-#define VERSION_APP_HARDCODING "00.84"
+#define VERSION_APP_HARDCODING "00.87"
 
 #pragma pack(push, 1)
 

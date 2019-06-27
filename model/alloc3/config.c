@@ -318,5 +318,6 @@ int load_config_base_webdm(void)
 	configurationBase_t *conf_base = get_config_base();
 
 	printf("conf_base->webdm.enable : %d \n", conf_base->webdm.enable);
-	printf("conf_base->common.sms_passwd : %s \n", conf_base->common.sms_passwd);
+
+	return conf_base->webdm.enable;
 }

@@ -14,8 +14,6 @@
 #include <util/storage.h>
 #include "logd/logd_rpc.h"
 
-#include "color_printf.h"
-
 #define DBG_MSG_SAVE_PASSENGER_INFO
 #define DBG_MSG_SAVE_GEOFENCE_INFO
 
@@ -27,6 +25,10 @@
 # include <limits.h>
 
 # include "Ftp_ClientCmd.h"
+
+#include <dm/update.h>
+#include <dm/update_api.h>
+#include <at/at_util.h>
  
 # define NO_OF_CHARS 256
  
@@ -872,15 +874,14 @@ int save_geofence_info(packet_frame_t result)
 	#endif
 		geo_fence_info.status = eGET_GEOFENCE_STAT_COMPLETE;
 
-		print_yellow("geo_fence_info.recent_geo_fence1 :  %d \n", geo_fence_info.recent_geo_fence);
+		printf("geo_fence_info.recent_geo_fence1 :  %d \n", geo_fence_info.recent_geo_fence);
 		// 정류장  in 하기 전 까지는 정류장 정보를 기억 하지 않도록 수정
 		//geo_fence_info.recent_geo_fence = get_recent_geo_fence();
 
 		set_recent_geo_fence(-1); 
 		geo_fence_info.recent_geo_fence = -1;//get_recent_geo_fence();
 
-		print_yellow("geo_fence_info.recent_geo_fence 2:  %d \n", geo_fence_info.recent_geo_fence);
-		
+		printf("geo_fence_info.recent_geo_fence 2:  %d \n", geo_fence_info.recent_geo_fence);		
 		
 		g_tl500_geofence_reset = 1;
 
@@ -1164,7 +1165,7 @@ int save_ftpserver_info(packet_frame_t result)
 
 	memset(&ftp_server_info.ftp_pw, '\0', 20);
 	strncpy((char*)ftp_server_info.ftp_pw, tr, strlen(tr));
-	printf("   - ftp_server_info.ftp_pw [%s]\r\n", ftp_server_info.ftp_pw);
+	//printf("   - ftp_server_info.ftp_pw [%s]\r\n", ftp_server_info.ftp_pw);
 
 	// ==============================================
 	// 7 : file name
@@ -1183,12 +1184,10 @@ int save_ftpserver_info(packet_frame_t result)
 	int circulating_bus = 0;
 	circulating_bus = get_circulating_bus();
 
-	print_yellow("circulating_bus :  %d !!!\n", circulating_bus );
-
 	if (circulating_bus)
 	{
 		devel_webdm_send_log("[alloc Packet] circulating_bus !!!");
-		print_yellow("circulating_bus :  %d !!!\n", circulating_bus );
+		printf("circulating_bus :  %d !!!\n", circulating_bus );
 		g_tl500_state = 3;
 
 		return 1;
@@ -1196,7 +1195,6 @@ int save_ftpserver_info(packet_frame_t result)
 	}
 
 	sprintf(destfile, "%s%s", USER_DATA_DIR, ftp_server_info.filename);
-	print_yellow("%s: opened file.\n" , destfile);
 
 	dirc = strdup(destfile);
 	dname = dirname(dirc);
@@ -1211,11 +1209,11 @@ int save_ftpserver_info(packet_frame_t result)
 		fseek(fp, 0, SEEK_END);
     	size = ftell(fp);
 
-		print_yellow("size : %d !!!\n", size); 	
+		printf("size : %d !!!\n", size); 	
 	}
 	else
 	{
-		print_yellow("size12 : %d !!!\n", size); 	
+		printf("fopen is null!!\n"); 	
 	}	
 
 	if (fp == NULL || size < 10) {
@@ -1228,7 +1226,7 @@ int save_ftpserver_info(packet_frame_t result)
 				(char *)ftp_server_info.ftp_id, (char *)ftp_server_info.ftp_pw, 
 				(char *)ftp_server_info.filename, (char *)destfile);
 
-		print_yellow("Ftp_startClient ret :  %d !!!\n", ret);
+		printf("Ftp_startClient ret :  %d !!!\n", ret);
 		LOGI(LOG_TARGET, "Ftp_startClient ret :  %d !!!\n", ret);
 		
 		if(ret >= 0)
@@ -1239,11 +1237,11 @@ int save_ftpserver_info(packet_frame_t result)
 
 		fclose(fp);
 		devel_webdm_send_log("[alloc Packet] FTP DB FileName : %s saved file !!!", ftp_server_info.filename);
-		print_yellow("%s: saved file !!! g_rfid_requestdb: %d, g_rfid_filename: %s\n" , destfile, g_rfid_requestdb, g_rfid_filename);
+		printf("%s: saved file !!! g_rfid_requestdb: %d, g_rfid_filename: %s\n" , destfile, g_rfid_requestdb, g_rfid_filename);
 
 		if(g_rfid_requestdb > 0)
 		{
-			print_yellow("g_rfid_requestdb !!!\n" );
+			printf("g_rfid_requestdb !!!\n" );
 			LOGI(LOG_TARGET, "g_rfid_requestdb update !!!\n");
 			set_alloc_rfid_download_DBfile((char*)destfile, (char*)ftp_server_info.filename);
 			g_rfid_requestdb = 0;
@@ -1271,12 +1269,143 @@ void print_ftpserver_info()
 	printf("ftp_server_info.ip is [%s] \r\n",ftp_server_info.ftp_ip);
 	printf("ftp_server_info.ftp_port is [%s] \r\n",ftp_server_info.ftp_port);
 	printf("ftp_server_info.ftp_id is [%s] \r\n",ftp_server_info.ftp_id);
-	printf("ftp_server_info.ftp_pw is [%s] \r\n",ftp_server_info.ftp_pw);
+	//printf("ftp_server_info.ftp_pw is [%s] \r\n",ftp_server_info.ftp_pw);
 	printf("ftp_server_info.ftp_port is [%s] \r\n",ftp_server_info.filename);
 	
 	printf("------------------------------------------------------\r\n");
 }
+int updatefirmware_daewoo(packet_frame_t result)
+{
+	char token[ ] = ",";
+	//char token_1[ ] = "\r\n";
+	char *temp_bp = NULL;
+	char *tr = NULL;
+	
+	int err = 0;
+	dm_res res = DM_FAIL;
+	UPDATE_VERS update_data;
+	update_data.version = UPDATE_VCMD;
+	
+	char* buff_p = (char*)result.packet_content;
+	char pftp_ip[20] = {0,};
+	char pftp_port[20] = {0,};
+	int  d_ftp_port = 0;
+	char pftp_id[20] = {0,};
+	char pftp_pw[20] = {0,};
+	char pftp_filename[32] = {0,};	
 
+	FILE *fp;
+
+	// ==============================================
+	// 0 : pkt command 
+	// ==============================================
+	tr = strtok_r(buff_p, token, &temp_bp);
+	if ( (tr == NULL) )
+	{
+		err = -1;
+		goto CMD_PARSE_FAIL;
+	}
+
+	// ==============================================
+	// 2 : ip
+	// ==============================================
+	tr = strtok_r(NULL, token, &temp_bp);
+	if ( (tr == NULL) )
+	{
+		err = -6;
+		goto CMD_PARSE_FAIL;
+	}
+	
+	//tp_server_info.ftp_ip = tr;
+
+	memset(&pftp_ip, '\0', 20);
+	strncpy((char*)pftp_ip, tr, strlen(tr));
+	printf("   - pftp_ip [%s]\r\n", pftp_ip);
+
+	// ==============================================
+	// 3 : port
+	// ==============================================
+	tr = strtok_r(NULL, token, &temp_bp);
+	if ( (tr == NULL) )
+	{
+		err = -8;
+		goto CMD_PARSE_FAIL;
+	}
+
+	memset(&pftp_port, '\0', 20);
+	strncpy((char*)pftp_port, tr, strlen(tr));
+	printf("   - p_ftp_port [%s]\r\n", pftp_port);
+	d_ftp_port = atoi(pftp_port);
+	printf("   - d_ftp_port [%d]\r\n", d_ftp_port);
+
+	// ==============================================
+	// 4 : ID
+	// ==============================================
+	tr = strtok_r(NULL, token, &temp_bp);
+	if ( (tr == NULL) )
+	{
+		err = -10;
+		goto CMD_PARSE_FAIL;
+	}
+
+	memset(&pftp_id, '\0', 20);
+	strncpy((char*)pftp_id, tr, strlen(tr));
+	printf("   - d_ftp_id[%s]\r\n", pftp_id);
+
+	// ==============================================
+	// 5 : pw
+	// ==============================================
+	tr = strtok_r(NULL, token, &temp_bp);
+	if ( (tr == NULL) )
+	{
+		err = -12;
+		goto CMD_PARSE_FAIL;
+	}
+
+	memset(&pftp_pw, '\0', 20);
+	strncpy((char*)pftp_pw, tr, strlen(tr));
+	printf("   - d_ftp_pw [%s]\r\n", pftp_pw);
+
+	// ==============================================
+	// 6 : file name
+	// ==============================================
+	tr = strtok_r(NULL, token, &temp_bp);
+	if ( (tr == NULL) )
+	{
+		err = -14;
+		goto CMD_PARSE_FAIL;
+	}
+	
+	memset(&pftp_filename, '\0', 32);
+	strncpy((char*)pftp_filename, tr, strlen(tr));
+	printf("   - ftp_server_info.filename [%s]\r\n", pftp_filename);
+
+	res =  dm_update_ftp_download(pftp_ip, d_ftp_port, pftp_id, pftp_pw, pftp_filename);
+
+
+	if (res == DM_OK) {
+		//_deinit_essential_functions();
+		//terminate_app_callback();
+		
+		res = version_update(&update_data);
+		if(res == success)
+		{
+			res = DM_OK;
+		}
+		else
+		{
+			printf("[dmlib] %s : update process failture\n", __func__);
+			res = DM_FAIL;
+		}
+	}
+
+	poweroff(__FUNCTION__, sizeof(__FUNCTION__));
+
+
+CMD_PARSE_FAIL:
+	
+	return 1;
+}
 ////////////////////////////////////////////////////////////////////////////////////////
 // pkt util
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -1493,5 +1622,5 @@ void delete_ftpfolder(char *dname)
 
 	sprintf(strRm, "rm %s/*.*",dname);
 	system(strRm);
-	print_yellow("Ftp_startClient\n" );
+	printf("delete_ftpfolder\n" );
 }

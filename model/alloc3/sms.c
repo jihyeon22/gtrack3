@@ -22,12 +22,17 @@
 #include "debug.h"
 #include "netcom.h"
 
+#include <dm/update.h>
+#include <dm/update_api.h>
+
+#include <at/at_util.h>
 
 void _deinit_essential_functions(void);
 static int _server_ip_set(int argc, char **argv, char *phonenum);
 static int _rpt_cycle_keyon(int argc, char **argv, char *phonenum);
 static int _mdt_status (int argc, char **argv, char *phonenum);
 static int _rpt_dm_setup (int argc, char **argv, char *phonenum);
+static int _ftp_update (int argc, char **argv, char *phonenum);
 static int _rpt_cycle2(int argc, char **argv, char *phonenum);
 
 #ifdef BOARD_NEO_W200K
@@ -56,9 +61,7 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 	}
 	//remove space ++
 
-	printf("%c[1;33m",27); 
 	printf("parse_model_sms\r\n"); 
-	printf("%c[0m\n",27);
 
 	//LOGE(LOG_TARGET, "TEST........CODE++++++++++++++++");
 	//extern void alloc_geo_fence_info_init();
@@ -141,6 +144,15 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 	else if(!strcmp(model_argv[0], szSMS_REPORT_DM_SETUP))
 	{
 		ret = _rpt_dm_setup(model_argc, model_argv, phonenum);
+	}
+	else if(!strcmp(model_argv[0], szSMS_FTP_UPDATE))
+	{
+		ret = _ftp_update(model_argc, model_argv, phonenum);
+		poweroff(__FUNCTION__, sizeof(__FUNCTION__));
+	}
+	else if(!strcmp(model_argv[0], szSMS_reset_sms))
+	{
+		ret = at_send_initsms(model_argv[1]);
 	}
 	else
 	{
@@ -334,7 +346,7 @@ static int _mdt_status (int argc, char **argv, char *phonenum)
 static int _rpt_dm_setup (int argc, char **argv, char *phonenum)
 {
 	int ret = 0;
-	int setup;
+	int setup = 0;
 	unsigned char *buff = NULL;
 
 	if(argc != 3)
@@ -366,6 +378,7 @@ static int _rpt_dm_setup (int argc, char **argv, char *phonenum)
 	}
 	else
 	{
+		setup = 2;
 		setup = load_config_base_webdm();
 	}
 	
@@ -384,6 +397,44 @@ static int _rpt_dm_setup (int argc, char **argv, char *phonenum)
 	free(buff);
 
 	return 0;
+}
+static int _ftp_update (int argc, char **argv, char *phonenum)
+{
+	dm_res res = DM_FAIL;
+	UPDATE_VERS update_data;
+	update_data.version = UPDATE_VCMD;
+	int port = 0;
+
+	if(argc != 5)
+	{
+		LOGE(LOG_TARGET, "<%s> Incorrect SMS", __FUNCTION__);
+		return -1;
+	}
+	port = atoi(argv[2]);
+
+	LOGD(LOG_TARGET, "_ftp_update ip = %s, port: %d, id : %s, file:%s \n",argv[1], port, argv[3], argv[5]);
+
+	res =  dm_update_ftp_download(argv[1], port, argv[3], argv[4], argv[5]);
+
+	if (res == DM_OK) {
+		//_deinit_essential_functions();
+		//terminate_app_callback();
+		
+		res = version_update(&update_data);
+		if(res == success)
+		{
+			res = DM_OK;
+		}
+		else
+		{
+			printf("[dmlib] %s : update process failture\n", __func__);
+			res = DM_FAIL;
+		}
+	}
+
+	//poweroff(__FUNCTION__, sizeof(__FUNCTION__));
+	return 0;
+
 }
 
 

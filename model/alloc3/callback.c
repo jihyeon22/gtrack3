@@ -19,6 +19,8 @@
 #include <util/stackdump.h>
 #include "logd/logd_rpc.h"
 
+#include <alloc3_mdt800/gpsmng.h>
+
 #include <netcom.h>
 #include <callback.h>
 #include <config.h>
@@ -194,9 +196,14 @@ static int g_geofence_max_wait_count = 30;
 void gps_parse_one_context_callback(void)
 {
 	int interval_time = get_report_interval();
-	
-	
+
+	gps_condition_t ret = eUNKNOWN_GPS_DATA;		
 	gpsData_t gpsdata;
+	gpsData_t pdata;
+	gpsData_t last_gpsdata;
+ 
+    static int gps_fail_cnt = 0;
+
 	fence_notification_t fnoti;
 	int fence_num = -1;
 
@@ -247,10 +254,16 @@ void gps_parse_one_context_callback(void)
 			}
 		}
 	}
+	else if (gpsdata.active == eINACTIVE) // jhcho_gps_0 
+	{
+		gps_valid_data_get(&last_gpsdata);
 
-	//printf("packet time [%d]/[%d]\r\n", cycle_report, interval_time);
-	//print_yellow("packet time [%d]/[%d]\r\n", cycle_report, interval_time);
-	
+        gpsdata.lat = last_gpsdata.lat;
+		gpsdata.lon = last_gpsdata.lon;
+
+		ret = inactive_gps_process(gpsdata, &pdata);
+	}
+
 	if(interval_time >0 && ++cycle_report >= interval_time)
 	{
 		LOGI(LOG_TARGET, "get_geofence_status() ==> [%d]\r\n", get_geofence_status()); //jwrho

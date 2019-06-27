@@ -17,8 +17,6 @@
 
 #include "alloc_util.h"
 
-#include "color_printf.h"
-
 static int g_circulating_bus = 0;
 
 int roundNo(float num)
@@ -102,7 +100,7 @@ int get_circulating_bus(void)
 void set_circulating_bus(int circulating)
 {
 	g_circulating_bus = circulating;
-	print_yellow("g_circulating_bus1 : %d\n", g_circulating_bus);
+	printf("g_circulating_bus1 : %d\n", g_circulating_bus);
 	save_circulating_bus_info();
 }
 int load_circulating_bus_info()
@@ -110,7 +108,7 @@ int load_circulating_bus_info()
 	int ret;
 	ret = storage_load_file(CIRCULATING_BUS_STATUS_FILE, &g_circulating_bus, sizeof(int));
 
-	print_yellow("g_circulating_bus3 : %d, %d\n", g_circulating_bus, ret);
+	printf(" load_circulating_bus_info circulating_bus3 : %d, %d\n", g_circulating_bus, ret);
 	if(ret != ERR_NONE)
 	{
 		ret = save_circulating_bus_info();
@@ -121,9 +119,8 @@ int load_circulating_bus_info()
 int save_circulating_bus_info()
 {
 	int ret;
-	print_yellow("save_circulating_bus_info \n");
 	ret = storage_save_file(CIRCULATING_BUS_STATUS_FILE, &g_circulating_bus, sizeof(int));
-	print_yellow("g_circulating_bus3 : %d\n", g_circulating_bus);
+	printf("save_circulating_bus_info g_circulating_bus: %d\n", g_circulating_bus);
 	system("sync &");
 	return ret;
 }
