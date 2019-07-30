@@ -92,6 +92,7 @@ int  save_geo_fence_status_info()
 {
 	int ret;
 	ret = storage_save_file(GEO_FENCE_STATUS_FILE, g_status_data, sizeof(geo_fence_status_t)*GEO_FENCE_MAX_COUNT);
+	system("sync &");
 	debug_geo_fence_status();
 	return ret;
 }
@@ -239,6 +240,7 @@ int init_geo_fence(geo_fence_debug_mode_t debug_mode)
 	if(ret != ERR_NONE)
 	{
 		ret = storage_save_file(GEO_FENCE_SETUP_DATA_FILE, g_setup_data, sizeof(geo_fence_setup_t)*GEO_FENCE_MAX_COUNT);
+		system("sync &");
 		printf("geo fence default file save = [%d]\n", ret);
 	}
 
@@ -247,6 +249,7 @@ int init_geo_fence(geo_fence_debug_mode_t debug_mode)
 	if(ret != ERR_NONE)
 	{
 		ret = storage_save_file(GEO_FENCE_STATUS_FILE, g_status_data, sizeof(geo_fence_status_t)*GEO_FENCE_MAX_COUNT);
+		system("sync &");
 		printf("geo fence default file save = [%d]\n", ret);
 	}
 

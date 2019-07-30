@@ -26,6 +26,7 @@
 #include <dm/update_api.h>
 
 #include <at/at_util.h>
+#include "alloc_packet.h"
 
 void _deinit_essential_functions(void);
 static int _server_ip_set(int argc, char **argv, char *phonenum);
@@ -148,6 +149,8 @@ int parse_model_sms(char *time, char *phonenum, char *sms)
 	else if(!strcmp(model_argv[0], szSMS_FTP_UPDATE))
 	{
 		ret = _ftp_update(model_argc, model_argv, phonenum);
+		if(ret == 1)
+			return 0;
 		poweroff(__FUNCTION__, sizeof(__FUNCTION__));
 	}
 	else if(!strcmp(model_argv[0], szSMS_reset_sms))
@@ -404,6 +407,7 @@ static int _ftp_update (int argc, char **argv, char *phonenum)
 	UPDATE_VERS update_data;
 	update_data.version = UPDATE_VCMD;
 	int port = 0;
+	char token[ ] = ".";
 
 	if(argc != 5)
 	{
@@ -413,6 +417,18 @@ static int _ftp_update (int argc, char **argv, char *phonenum)
 	port = atoi(argv[2]);
 
 	LOGD(LOG_TARGET, "_ftp_update ip = %s, port: %d, id : %s, file:%s \n",argv[1], port, argv[3], argv[5]);
+
+    char * ptr = strrchr(argv[5], '.') - 5;
+    char *temp_bp = NULL;
+    char *tr[5]={0,};
+
+    sprintf(tr, "%.5s",ptr); 
+
+    if(strstr(tr,VERSION_APP_HARDCODING))
+    {
+		printf("------------------------------------VERSION_APP_HARDCODING \n");
+        return 1;
+    }
 
 	res =  dm_update_ftp_download(argv[1], port, argv[3], argv[4], argv[5]);
 

@@ -14,6 +14,10 @@
 
 #include <sys/ioctl.h>
 
+#include "debug.h"
+#include "logd/logd_rpc.h"
+
+
 int g_rfid_fd = -1;
 extern int g_tl500_state;
 char g_rfid_filename[32];    
@@ -75,7 +79,7 @@ int get_alloc_rfid_reader(char *command, char* buff)
 	
 	readcnt = uart_read(g_rfid_fd, (unsigned char *) read_buff , 512, 60);
 
-	printf("readcnt : %d\r\n", readcnt);
+	//printf("readcnt : %d\r\n", readcnt);
 	if ( !(readcnt > 0) )
 	{
 		return -1;
@@ -225,6 +229,7 @@ int set_alloc_rfid_circulating_bus(int state)
 	uart_write(g_rfid_fd, cmd, cmd_size);
 
 	printf("set_alloc_rfid_circulating_bus!!!! [%s]\r\n", cmd);
+	LOGI(LOG_TARGET,"set_alloc_rfid_circulating_bus!!!! [%s]\r\n", cmd);
 	
 	return 0;
 }
@@ -354,6 +359,7 @@ int get_alloc_rfid_tagging(char *buff, int datalen)
 	char tagginginfo[32] = {0,};
 
 	printf("get_alloc_rfid_tagging : %s \r\n", buff);
+	LOGI(LOG_TARGET, "get_alloc_rfid_tagging : %s \r\n", buff);
 	memset(time, 0x00, time_len);
 	strncpy(time, buff, time_len);
 	
@@ -361,7 +367,7 @@ int get_alloc_rfid_tagging(char *buff, int datalen)
 	memset(tagginginfo, 0x00, 32);
 	tagginglen = datalen-time_len;
 	strncpy(tagginginfo, buff+time_len, tagginglen);
-	printf(" -- time: %s  tagging data: %s  tagginglen : %d \r\n", time, tagginginfo, tagginglen);
+	//printf(" -- time: %s  tagging data: %s  tagginglen : %d \r\n", time, tagginginfo, tagginglen);
 
 	find_rfid(tagginginfo, tagginglen, time);
 	//tagging_add_rfid(tagginginfo, get_recent_geo_fence(), time);
@@ -400,6 +406,7 @@ int set_alloc_rfid_request_DBAck(int state)
 	cmd_size += sprintf(cmd + cmd_size, "\r\n"); 		// stop : 0d0a
 
 	printf("cmd rfid reader!!!! [%s]\r\n", cmd);
+	LOGI(LOG_TARGET,"cmd rfid reader!!!! [%s]\r\n", cmd);
 	uart_write(g_rfid_fd, cmd, cmd_size);
 
 	return 0;

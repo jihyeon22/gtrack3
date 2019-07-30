@@ -165,7 +165,7 @@ enum rcv_bin_pktid{
 	//eNOSIGNAL_GPS = 3
 };
 
-#define VERSION_APP_HARDCODING "01.00"
+#define VERSION_APP_HARDCODING "01.05"
 
 #pragma pack(push, 1)
 

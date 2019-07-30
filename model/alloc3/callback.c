@@ -34,6 +34,9 @@
 #include "alloc_rfid.h"
 #include "tagging.h"
 
+// jhcho test 
+#include "color_printf.h"
+
 static int _process_poweroff(char *log);
 
 int g_rfid_request_flag = 0;
@@ -45,6 +48,11 @@ int g_tl500_geofence_reset = 0;
 static int flag_run_thread_main = 1;
 
 static time_t prev_gps_active_time = 0;
+
+// jhcho test 
+BOOL g_geofencedown = false;
+BOOL g_busstoptest = false;
+
 
 // feature check
 // #define GEO_TEST 0
@@ -105,6 +113,10 @@ void button1_callback(void)
 
 	printf("gtrack calback ::: button1_callback !!!\r\n");
 
+	// jhcho test [[ 
+    g_busstoptest = true;
+	// jhcho test ]]
+
 #if GEO_TEST
 	set_recent_geo_fence(get_recent_geo_fence()+1);
 	tagging_add_list();
@@ -115,8 +127,11 @@ void button1_callback(void)
 void button2_callback(void)
 {
 	printf("gtrack calback ::: button2_callback !!!\r\n");
-
-	set_circulating_bus(1);
+	
+	// jhcho test [[ 
+    g_geofencedown = true;
+	//set_circulating_bus(1);
+	// jhcho test ]]
 #if GEO_TEST
 	set_recent_geo_fence(get_recent_geo_fence()-1);
 	tagging_add_list();
@@ -188,11 +203,7 @@ void power_off_callback(void)
 
 static unsigned int cycle_report = 0;
 #define CALC_DISTANCE_INTERVAL_SEC	10
- 
-//jwrho ++
-static int g_geofence_chk_cnt = 0; 
-static int g_geofence_max_wait_count = 30;
-//jwrho --
+
 void gps_parse_one_context_callback(void)
 {
 	int interval_time = get_report_interval();
@@ -231,14 +242,20 @@ void gps_parse_one_context_callback(void)
 	// geo fense...
 	// -----------------------------------------------------	
 		fnoti = get_geofence_notification(&fence_num, gpsdata);
+		// jhcho_test
+		//print_blue("fence_num [%d], fnoti : %d, gpsdata.lat : %.7f, gpsdata.lon:%.7f", fence_num, fnoti, gpsdata.lat, gpsdata.lon);
 		if(fnoti != eFENCE_NONE_NOTIFICATION)
 		{
 			if(fnoti == eFENCE_IN_NOTIFICATION)
 			{
 				//devel_webdm_send_log("debug : geofence in noti [%d]", fence_num);
+				print_red("geofence in noti [%d]", fence_num);
 				if(get_geofence_status() == eGET_GEOFENCE_STAT_COMPLETE) //jwrho
 				{
 					pkt_send_geofence_in(gpsdata,fence_num);
+
+					// jhcho test 
+					print_red("==========================================pkt_send_geofence_in fence_num : %d, %f, %f\n", fence_num, gpsdata.lat, gpsdata.lon);
 
 					g_tl500_geofence_reset = 0;
 				}
@@ -247,9 +264,12 @@ void gps_parse_one_context_callback(void)
 			else if(fnoti == eFENCE_OUT_NOTIFICATION)
 			{
 				//devel_webdm_send_log("debug : geofence out noti [%d]", fence_num);
+				print_yellow("ggeofence out noti [%d]", fence_num);
 				if(get_geofence_status() == eGET_GEOFENCE_STAT_COMPLETE) //jwrho
 				{
 					pkt_send_geofence_out(gpsdata,fence_num);
+					// jhcho test 
+					print_yellow("==========================================pkt_send_geofence_out fence_num : %d\n", fence_num);
 				}
 			}
 		}
@@ -273,37 +293,41 @@ void gps_parse_one_context_callback(void)
 		cycle_report = 0;
 	}
 
+	// jhcho V 메시지는 테스트용 코드로 사용 안함.[[
 	//jwrho ++
-	if(get_geofence_status() == eGET_GEOFENCE_STAT_NULL)
-	{
-		LOGE(LOG_TARGET, "genfence null stat, [%d/%d]\r\n", g_geofence_chk_cnt, g_geofence_max_wait_count);
-		g_geofence_chk_cnt += 1;
-		if(g_geofence_chk_cnt > g_geofence_max_wait_count)
-		{
-			g_geofence_chk_cnt = 0;
+	// if(get_geofence_status() == eGET_GEOFENCE_STAT_NULL)
+	// {
+	// 	print_red("V message genfence null stat, [%d/%d]\r\n", g_geofence_chk_cnt, g_geofence_max_wait_count);
+	// 	LOGE(LOG_TARGET, "genfence null stat, [%d/%d]\r\n", g_geofence_chk_cnt, g_geofence_max_wait_count);
+	// 	g_geofence_chk_cnt += 1;
+	// 	if(g_geofence_chk_cnt > g_geofence_max_wait_count)
+	// 	{
+	// 		g_geofence_chk_cnt = 0;
 
-			if(g_geofence_max_wait_count < 60) { //1 min
-				g_geofence_max_wait_count = 60;
-			} else if(g_geofence_max_wait_count < 180) { //3 min
-				g_geofence_max_wait_count = 180;
-			} else if(g_geofence_max_wait_count < 300) { //5 min
-				g_geofence_max_wait_count = 300;
-			} else if(g_geofence_max_wait_count < 600) { //10 min
-				g_geofence_max_wait_count = 600;
-			} else if(g_geofence_max_wait_count < 1800) { //30 min
-				g_geofence_max_wait_count = 1800;
-			} else { //1 hour
-				g_geofence_max_wait_count = 3600;
-			}
-			sender_add_data_to_buffer(PACKET_TYPE_REQUEST_BUS_STOP_INFO, NULL, ePIPE_2);
-		}
-	}
-	else
-	{
-		g_geofence_max_wait_count = 30;
-		//LOGI(LOG_TARGET, "get_geofence_status() = [%d]\n", get_geofence_status());
-	}
+	// 		if(g_geofence_max_wait_count < 60) { //1 min
+	// 			g_geofence_max_wait_count = 60;
+	// 		} else if(g_geofence_max_wait_count < 180) { //3 min
+	// 			g_geofence_max_wait_count = 180;
+	// 		} else if(g_geofence_max_wait_count < 300) { //5 min
+	// 			g_geofence_max_wait_count = 300;
+	// 		} else if(g_geofence_max_wait_count < 600) { //10 min
+	// 			g_geofence_max_wait_count = 600;
+	// 		} else if(g_geofence_max_wait_count < 1800) { //30 min
+	// 			g_geofence_max_wait_count = 1800;
+	// 		} else { //1 hour
+	// 			g_geofence_max_wait_count = 3600;
+	// 		}
+	// 		
+	// 		sender_add_data_to_buffer(PACKET_TYPE_REQUEST_BUS_STOP_INFO, NULL, ePIPE_2);
+	// 	}
+	// }
+	// else
+	// {
+	// 	g_geofence_max_wait_count = 30;
+	// 	//LOGI(LOG_TARGET, "get_geofence_status() = [%d]\n", get_geofence_status());
+	// }
 	//jwrho --
+	// jhcho busstop test ]]
 		
 
 }
@@ -407,6 +431,7 @@ void main_loop_callback(void)
 			else if (strcmp(command, "H3") == 0 )
 			{
 				get_alloc_rfid_tagging(buff, data_len);
+				LOGW("Version command: %s buff:%s /rfid_len : %d]\n", command, buff, data_len);
 				// find_rfid(buff, data_len);
 			}
 			else if (strcmp(command, "H4") == 0 )

@@ -29,7 +29,14 @@
 #include <dm/update.h>
 #include <dm/update_api.h>
 #include <at/at_util.h>
- 
+
+// jhcho test 
+#include "color_printf.h"
+#include "netcom.h"
+#include <base/sender.h>
+
+#include <ctype.h>
+
 # define NO_OF_CHARS 256
  
 // -------------------------------------------------------------------------------
@@ -40,6 +47,10 @@ extern int g_tl500_state;
 extern int g_rfid_requestdb;
 extern char g_rfid_filename[32];
 extern int g_tl500_geofence_reset;   
+
+
+char _ex_buff[ MAX_RCV_PACKET_SIZE ] = {0,};
+int b_ex_buff = 0;
 
 // A utility function to get maximum of two integers
 static int max (int a, int b) { return (a > b)? a: b; }
@@ -553,14 +564,15 @@ int save_geofence_info(packet_frame_t result)
 	
 	char tmp_data_buff[512] = {0,};
 	
-	int err = 0;
-	
+	int err = 0;	
+
 	char* buff_p = (char *)result.packet_content;
 	int data_size = 0;
 	
 #ifdef DBG_MSG_SAVE_GEOFENCE_INFO
 	printf("save Genfence : start [%s] +++++ \r\n",buff_p);
-#endif	
+#endif
+
 	// check status
 	if ( geo_fence_info.status == eGET_GEOFENCE_STAT_COMPLETE )
 	{
@@ -568,6 +580,7 @@ int save_geofence_info(packet_frame_t result)
 		// 기존것을 지우고 새로 받는다는 이야기
 		alloc_geo_fence_info_init();
 		//return geo_fence_info.status;
+
 	}
 	
 	// ==============================================
@@ -720,15 +733,15 @@ int save_geofence_info(packet_frame_t result)
 			printf("         geo_fence_info.cur_pkt [%d] / cur_pkt_idx [%d]\r\n", target_pkt_idx, cur_pkt_idx);
 #endif
 
-			// check current index
-			if ( target_pkt_idx != cur_pkt_idx)
-			{
-#ifdef DBG_MSG_SAVE_GEOFENCE_INFO
-				printf("    -> Geofence cur pkt : pkt compare fail.. \r\n");
-#endif
-				err = -9;
-				goto CMD_PARSE_FAIL;
-			}
+// 			// check current index
+// 			if ( target_pkt_idx != cur_pkt_idx)
+// 			{
+// #ifdef DBG_MSG_SAVE_GEOFENCE_INFO
+// 				printf("    -> Geofence cur pkt : pkt compare fail.. \r\n");
+// #endif
+// 				err = -9;
+// 				goto CMD_PARSE_FAIL;
+// 			}
 			
 			geo_fence_info.cur_pkt = cur_pkt_idx;
 #ifdef DBG_MSG_SAVE_GEOFENCE_INFO
@@ -886,7 +899,8 @@ int save_geofence_info(packet_frame_t result)
 		g_tl500_geofence_reset = 1;
 
 		storage_save_file(GEOFENCE_SAVED_FILE, (void*)&geo_fence_info, sizeof(allocation_geofence_info_t));
-		
+		system("sync &");
+
 		set_geofence_data();
 		// skip... for data save
 	}
@@ -896,6 +910,36 @@ CMD_PARSE_FAIL:
 	if (err < 0)
 	{
 		alloc_geo_fence_info_init();
+		// jhcho busstop test [[
+		// alloc_evt_pkt_info_t evt_info;
+		// gpsData_t gpsdata;
+
+		// memset(&evt_info, 0, sizeof(evt_info));
+		
+		// gps_get_curr_data(&gpsdata);
+		// evt_info.gpsdata = gpsdata;
+		// evt_info.diff_distance =  mileage_get_m() * 100;
+		
+		// mileage_set_m(0);
+		
+		// print_yellow("err : %d\n", err);
+		// if(err == -10)
+		// 	err = -3;
+		
+		// // if(err == -3)
+		// // {
+		// // 	FILE *out;
+		// // 	out = fopen("test.txt", "w"); 
+
+		// // 	fprintf(out, "%s", temp_bp2); 
+
+		// // 	fclose(out); 
+		// // }
+
+		// evt_info.evt_code = -err + '0';
+		// print_yellow("evt_info.evt_code : %d\n", evt_info.evt_code);
+		// sender_add_data_to_buffer(PACKET_TYPE_EVENT, &evt_info, ePIPE_1);
+		// jhcho busstop test ]]
 	}
 	
 	return geo_fence_info.status;
@@ -1190,7 +1234,7 @@ int save_ftpserver_info(packet_frame_t result)
 		printf("circulating_bus :  %d !!!\n", circulating_bus );
 		g_tl500_state = 3;
 
-		return 1;
+		return 2;
 
 	}
 
@@ -1259,7 +1303,7 @@ CMD_PARSE_FAIL:
 		alloc_ftpserver_info_init();
 	}
 	
-	return 1;
+	return 2;
 }
 void print_ftpserver_info()
 {
@@ -1444,6 +1488,7 @@ char _alloc_get_binary_packet_id(packet_frame_t result)
 	char *tr = NULL;
 	
 	char err = 0;
+
 	char* buff_p = result.packet_content;
 	
 	//printf("start [%s]\r\n",buff_p);
@@ -1593,6 +1638,20 @@ int _alloc_get_packet_frame(const char* buff, int buff_len, packet_frame_t* resu
 	}
 	
 	result->size = j;
+
+	// jhcho 뒤에 {3, 이 더 붙는 경우 처리 [[
+	if((result->size + 2) <  buff_len)
+	{
+		int index = result->size + 2;
+		b_ex_buff = 1;
+		for (i = 0; i < (buff_len - index); i++)
+		{
+			_ex_buff[i] = _saved_buff[index + i + 1];
+		}
+		print_yellow("ex_buff : %s \n", _ex_buff);
+	}
+	// jhcho 뒤에 {3, 이 더 붙는 경우 처리 ]]
+	print_yellow("size : %d, buff_len : %d \n", result->size, buff_len);
 	
 	queue_bottom_idx = found_suffix % PKT_FRAME_QUEUE_BUFF_SIZE;
 	
@@ -1602,6 +1661,13 @@ int _alloc_get_packet_frame(const char* buff, int buff_len, packet_frame_t* resu
 	
 	//printf("cueue status end [%d] / [%d]\r\n", queue_top_idx, queue_bottom_idx);
 	//printf("_get_packet_frame ++++++++++++++++++ \r\n");
+
+	//buffer clearing jwrho ++
+	memset(_saved_buff, 0x00, sizeof(_saved_buff));
+	queue_top_idx = 1;
+	queue_bottom_idx = 0;	
+	printf("_alloc_get_packet_frame buffer clearing\n");
+	//jwrho--
 	return 0;
 }
 

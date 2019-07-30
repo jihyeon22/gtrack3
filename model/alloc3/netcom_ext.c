@@ -20,6 +20,9 @@
 #include "alloc_packet.h"
 #include "alloc_packet_tool.h"
 
+// jhcho test 
+#include "color_printf.h"
+
 // ----------------------------------------
 //  LOGD(LOG_TARGET, LOG_TARGET,  Target
 // ----------------------------------------
@@ -35,6 +38,9 @@
 #define _SEND_ACK_TIMEOUT_SEC		10
 #define _SEND_ACK_RETRY_CNT			10
 #define _SEND_ACK_TIMEOUT_SEC		10
+
+extern char _ex_buff[MAX_RCV_PACKET_SIZE];
+extern int b_ex_buff;
 
 void _deinit_essential_functions(void);
 
@@ -100,6 +106,7 @@ int _recv_data(int sock, int op, char* rcv_buff, int rcv_len, unsigned char* ack
 	// binary pkt receive
 	// -----------------------------------------
 	pkt_id = _alloc_get_binary_packet_id(result);
+
 	switch ( pkt_id )
 	{
 		case eRCV_PKT_ID_PASSENGER_INFO:
@@ -142,7 +149,7 @@ int _recv_data(int sock, int op, char* rcv_buff, int rcv_len, unsigned char* ack
 			printf("eRCV_PKT_ID_FTP_INFO \r\n");
 		
 			pkt_ret = save_ftpserver_info(result);
-			if ( pkt_ret > 1)
+			if ( pkt_ret > 0)
 			{
 				char ack_cmd_id[10] = {0,};
 				//print_ftpserver_info(ack_cmd_id);
@@ -240,7 +247,7 @@ int _recv_data(int sock, int op, char* rcv_buff, int rcv_len, unsigned char* ack
 		_deinit_essential_functions();
 		poweroff("Reset CMD\n", sizeof("Reset CMD\n"));
 	}
-	
+
 	return _RCV_DATA_CONTINUE;
 }
 
@@ -251,7 +258,7 @@ int transfer_packet_recv_call(int op, const transferSetting_t *setting, const un
 	int recv_cnt = 0;
 	int total_read_byte=0;
 	int err = 0;
-	char recv_buf[128] = {0,};
+	char recv_buf[512] = {0,};
 
 	int hsock;
 	struct sockaddr_in c_addr;
@@ -333,7 +340,7 @@ SEND_AGAIN_DATA:
 
 	printf("send pkt success!!!???\r\n");
 	
-	usleep(2500); //if recv packet straight,can't recv packet. so need some sleep time.
+	//usleep(2500); //if recv packet straight,can't recv packet. so need some sleep time.
 	while(1) 
 	{
 		memset(recv_buf,0x00, sizeof(recv_buf));
@@ -343,7 +350,31 @@ SEND_AGAIN_DATA:
 			unsigned char ack_buff[_MAX_ACK_BUFF];
 			int ack_len = 0;
 			int ret_case = 0;
-			//printf("receive pkt success!!!\r\n");
+	// 		char *test = "01223504922,3,397,2,2,288,34.87146118138792,128.69749546051025,100,115,34.868598788943096,128.7009705294622,50,117,34.868644387067626,128.70590686798096,80,144,34.868257070302214,128.710777759552,100,143,34.87080276392767,128.71423244476318,50,142,34.87327444167583,128.7165606021881,50,233,34.87874918879827,128.71925354003906,70,141,34.8811959835985,128.72294425964355,180,140,34.887450540158795,128.7255007714454,100}";
+	// 		char test2[3] = "{3,";	
+	// //		
+	// 		// // //printf("receive pkt success!!!\r\n");
+	// 		sprintf(recv_buf, "%s", test);	
+	// 		bytecount = strlen(recv_buf);
+
+	// 		b_ex_buff = 1;
+	// 		sprintf(_ex_buff, "%s", test2);
+
+	// 		printf("recv_buf[%s/%c\n", _ex_buff, PACKET_START_CHAR);
+			// jhcho {3, [[ 	
+			if((recv_buf[0] != PACKET_START_CHAR) && b_ex_buff > 0 )
+			{
+				char temp_buf[512] = {0,};
+				sprintf(temp_buf, "%s%s", _ex_buff, recv_buf);
+				bytecount = bytecount + strlen(_ex_buff);
+				memset(recv_buf, 0x0, sizeof(recv_buf));
+				sprintf(recv_buf, "%s", temp_buf);
+
+				printf("recv_buf[%s/%c]\n", temp_buf, PACKET_START_CHAR);	
+				b_ex_buff = 0;
+				memset(_ex_buff, 0x0, sizeof(_ex_buff));	
+			} 
+			// jhcho {3, ]]
 			ret_case = _recv_data(hsock, op, recv_buf, bytecount, ack_buff, &ack_len);
 			switch(ret_case)
 			{

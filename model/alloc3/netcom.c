@@ -25,6 +25,8 @@
 #include "tagging.h"
 #include "geofence.h"
 
+// jhcho test 
+#include "color_printf.h"
 // ----------------------------------------
 //  LOGD(LOG_TARGET, LOG_TARGET,  Target
 // ----------------------------------------
@@ -46,7 +48,6 @@ int make_packet(char op, unsigned char **packet_buf, unsigned short *packet_len,
 			int pkt_len = 0;
 			
 			evtpkt_data = *(alloc_evt_pkt_info_t *)param;
-			//devel_webdm_send_log("PKT_EVENT op:%d", evtpkt_data.evt_code);
 
 			pkt_len = mkpkt_report_data(	packet_buf, 
 											evtpkt_data.evt_code,
@@ -277,6 +278,12 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 		printf(dbg_format, packet_buf, packet_len);
 		
 		ret = transfer_packet_recv_call(op, &network_param, packet_buf, packet_len);
+
+		if(ret < 0) {
+			printf("op[%d] __send_packet error return\n", op);
+			//LOGE(LOG_TARGET, "op[%d] __send_packet error return\n", op);
+			return -1;
+		}
 
 		//jwrho ++
 		if(op == PACKET_TYPE_REQUEST_BUS_STOP_INFO)

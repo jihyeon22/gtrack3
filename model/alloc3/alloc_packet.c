@@ -33,6 +33,8 @@
 #include "tagging.h"
 #include "geofence.h"
 
+// jhcho test 
+#include "color_printf.h"
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // define......
@@ -46,6 +48,11 @@
 // global var
 ////////////////////////////////////////////////////////////////////////////////////////
 extern int g_rfid_complelte_flag;
+
+// jhcho test 
+extern BOOL g_geofencedown;
+extern BOOL g_busstoptest;
+
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // period pkt info
@@ -221,6 +228,31 @@ int mkpkt_report_data(	unsigned char ** buff, char ev_code, char* ev_data, char 
 	// ePKT_PERI_IDX_TOTAL_DIST,		// 6
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%d", total_dist_cm);
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", PACKET_SPILT);
+	
+	// jhcho test 
+	if (g_busstoptest == true)
+	{
+		g_busstoptest = false;
+        //temp1 = 877;
+		//temp1 = 876;
+			temp1 = 875;
+        print_yellow("875 \r\n");
+
+	}
+	if (g_geofencedown == true)
+    {
+        g_geofencedown = false;
+        //temp1 = 877;
+		temp1 = 877;
+        print_yellow("877 \r\n");
+    }  
+
+	// if(ev_code == '3')
+	// {
+	// 	print_yellow("3 %d\r\n", g_busstoperr);
+
+	// 	temp1 = g_busstoperr;
+	// }
 	
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%d", temp1);
 	pkt_size += sprintf(tmp_buff_1 + pkt_size, "%c", PACKET_SPILT);

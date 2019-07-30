@@ -13,6 +13,8 @@
 
 #include "alloc_packet_tool.h"
 
+// jhcho test 
+#include "color_printf.h"
 
 static int tagging_geo_fence = -1;
 static int tagging_count = 0;
@@ -23,6 +25,7 @@ static int tagging_num= 0;
 static pthread_mutex_t tagging_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 extern int g_tl500_geofence_reset; 
+
 
 void _clear_tagging(void)
 {
@@ -80,19 +83,26 @@ int tagging_add_rfid(char *rfid_pat, int geo_fence, char *rfid_date)
 
 	pthread_mutex_lock(&tagging_mutex);
 
+
 	if(tagging_array_index + strlen(comma) + rfid_len  > RFID_LIST_SIZE)
 	{
+		print_yellow("need_push_list %d, %d, rfid_len : %d \n", tagging_array_index, strlen(comma), rfid_len);
 		need_push_list = 1;
 	}
 
 	if(geo_fence != tagging_geo_fence && tagging_geo_fence >= 0)
 	{
+		print_yellow("need_push_list geo_fence: %d, tagging_geo_fence : %d \n", geo_fence, tagging_geo_fence);
 		need_push_list = 1;
 	}
 
-	if(need_push_list)
+	if(need_push_list )
 	{
+		// 지우기 전에 tagging list 보냄.
+		pkt_send_tagging();
 		item = _get_tagging_data_malloc();
+		print_yellow("need_push_list _clear_tagging \n");
+
 		_clear_tagging();
 		if(item)
 		{
@@ -103,6 +113,7 @@ int tagging_add_rfid(char *rfid_pat, int geo_fence, char *rfid_date)
 				free(item);
 			}
 		}
+
 	}
 
 	if(tagging_array_index)
@@ -120,6 +131,7 @@ int tagging_add_rfid(char *rfid_pat, int geo_fence, char *rfid_date)
 	tagging_geo_fence = geo_fence;
 
 	char temp_fence_id[12] = {0};
+	gpsData_t gpsdata;
 
 	if(geo_fence == -1)
 	{
@@ -136,14 +148,40 @@ int tagging_add_rfid(char *rfid_pat, int geo_fence, char *rfid_date)
 		printf("geo_fence : %d\n", geo_fence); 
 		get_geo_fence_id(geo_fence, temp_fence_id);
 	}
+	
+	gps_get_curr_data(&gpsdata);
 
+	if(gpsdata.lat == 0 || gpsdata.lon == 0)
+	{
+		gpsData_t last_gpsdata;
+		gps_valid_data_get(&last_gpsdata);
+
+        gpsdata.lat = last_gpsdata.lat;
+		gpsdata.lon = last_gpsdata.lon;
+
+		printf("last gpsdata[%.7f]/[%.7f]\r\n", gpsdata.lat, gpsdata.lon);
+	}
 
 	tagging_array_index += sprintf(tagging_array+tagging_array_index, "%s%s,%.14s,%.15s", comma, temp_fence_id, rfid_date, rfid_pat);
 	
-	printf("tagging_add_rfid : %s%s,%.14s,%.15s\n", comma, temp_fence_id, rfid_date, rfid_pat); 
+	//tagging_array_index += sprintf(tagging_array+tagging_array_index, "%s%s,%.14s,%.15s,%.7f,%.7f", comma, temp_fence_id, rfid_date, rfid_pat, gpsdata.lat, gpsdata.lon);
+	
+	printf("tagging_add_rfid : %s%s,%.14s,%.15s,%.7f,%.7f\n", comma, temp_fence_id, rfid_date, rfid_pat, gpsdata.lat, gpsdata.lon); 
+
 	tagging_num++;
 
 	pthread_mutex_unlock(&tagging_mutex);
+
+	print_yellow("tagging_array_index %d, tagging_count : %d tagging_num : %d\n", tagging_array_index, tagging_count, tagging_num);
+	
+	// tagging cnt 가 5개 인 경우 서버로 보냄. %s%s,%.14s,%.15s,%.7f,%.7f 사이즈가 될 경우 보냄.
+	if( tagging_num >= 5 || tagging_array_index > (RFID_LIST_SIZE-57)) 
+	{
+		print_yellow("tagging_num %d \n", tagging_num);
+		tagging_add_list();
+		pkt_send_tagging();
+	}
+
 	return 0;
 }
 
@@ -158,6 +196,7 @@ int tagging_add_count(int geo_fence)
 	if(geo_fence != tagging_geo_fence && tagging_geo_fence >= 0)
 	{
 		item = _get_tagging_data_malloc();
+		print_yellow("need_push_list _clear_tagging 2\n");
 		_clear_tagging();
 		if(item)
 		{
@@ -187,6 +226,7 @@ void tagging_add_list(void)
 	pthread_mutex_lock(&tagging_mutex);
 	
 	item = _get_tagging_data_malloc();
+
 	_clear_tagging();
 	if(item)
 	{
