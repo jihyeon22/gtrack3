@@ -11,6 +11,9 @@
 #include "logd/logd_rpc.h"
 #include <base/gpstool.h>
 
+// // jhcho_busstop_test
+// #include "color_printf.h"
+
 geo_fence_debug_mode_t g_debug_mode = eGEN_FENCE_NORMAL_MODE;
 
 geo_fence_setup_t g_setup_data[GEO_FENCE_MAX_COUNT];
@@ -24,6 +27,8 @@ static int first_geo_fence = -1;
 void _init_geo_fence_data()
 {
 	int i;
+	// // jhcho_busstop_test
+	// print_blue("_init_geo_fence_data \n");
 	for(i = 0; i < GEO_FENCE_MAX_COUNT; i++)
 	{
 		g_setup_data[i].enable = eGEN_FENCE_DISABLE;
@@ -33,6 +38,8 @@ void _init_geo_fence_data()
 		g_setup_data[i].setup_fence_status = eFENCE_SETUP_UNKNOWN;
 		
 		g_status_data[i].cur_fence_status = eFENCE_OUT_NOTIFICATION;
+
+		//print_blue("g_status_data i: %d, %d,  %d \n", i, g_setup_data[i].setup_fence_status, g_status_data[i].cur_fence_status );
 
 		g_geo_fence_event_hold_count[i] = 0;
 	}
@@ -93,7 +100,7 @@ int  save_geo_fence_status_info()
 	int ret;
 	ret = storage_save_file(GEO_FENCE_STATUS_FILE, g_status_data, sizeof(geo_fence_status_t)*GEO_FENCE_MAX_COUNT);
 	system("sync &");
-	debug_geo_fence_status();
+	//debug_geo_fence_status();
 	return ret;
 }
 
@@ -142,8 +149,11 @@ fence_notification_t _get_notification(int idx, gpsData_t *cur_gps)
 		case eFENCE_SETUP_ENTRY_EXIT:
 		case eFENCE_SETUP_ENTRY:
 		case eFENCE_SETUP_EXIT:
+	//		print_blue("eFENCE_SETUP_ENTRY_EXIT[%d] : %d \n", idx, g_setup_data[idx].setup_fence_status);
 			break;
 		default:
+			// jhcho_busstop_test
+//			print_blue("eFENCE_NONE_NOTIFICATION \n");
 			result = eFENCE_NONE_NOTIFICATION;
 			break;
 	}
@@ -155,10 +165,13 @@ fence_notification_t _get_notification(int idx, gpsData_t *cur_gps)
 */
 	if(result != eFENCE_NONE_NOTIFICATION)
 	{
+		// jhcho_busstop_test
+		//print_blue("result : %d, cur_fence_status[%d] : %d \n", result, idx, g_status_data[idx].cur_fence_status);
 		if(result != g_status_data[idx].cur_fence_status)
 		{
 			g_status_data[idx].cur_fence_status = result;
-			//_save_geo_fence_status_info();
+			// jhcho_busstop_test
+			//save_geo_fence_status_info();
 
 			if(g_setup_data[idx].setup_fence_status == eFENCE_SETUP_ENTRY)
 			{
@@ -186,6 +199,7 @@ fence_notification_t get_geofence_notification(int *pfence_num, gpsData_t cur_gp
 
 	for(i = 0; i < GEO_FENCE_MAX_COUNT; i++)
 	{
+
 		if(g_setup_data[i].enable == eGEN_FENCE_DISABLE)
 			continue;
 		
@@ -245,15 +259,20 @@ int init_geo_fence(geo_fence_debug_mode_t debug_mode)
 	}
 
 	ret = storage_load_file(GEO_FENCE_STATUS_FILE, g_status_data, sizeof(geo_fence_status_t)*GEO_FENCE_MAX_COUNT);
-	printf("geo fence %s load_file = [%d]\n", GEO_FENCE_STATUS_FILE, ret);
-	if(ret != ERR_NONE)
+	//printf("geo fence %s load_file = [%d]\n", GEO_FENCE_STATUS_FILE, ret);
+	// if(ret != ERR_NONE)
+	// {
+	// 	ret = storage_save_file(GEO_FENCE_STATUS_FILE, g_status_data, sizeof(geo_fence_status_t)*GEO_FENCE_MAX_COUNT);
+	// 	//system("sync &");
+	// 	printf("geo fence default file save = [%d]\n", ret);
+	// }
+	// jhcho init geofence 
+	int i = 0;
+	for(i = 0; i < GEO_FENCE_MAX_COUNT; i++)
 	{
-		ret = storage_save_file(GEO_FENCE_STATUS_FILE, g_status_data, sizeof(geo_fence_status_t)*GEO_FENCE_MAX_COUNT);
-		system("sync &");
-		printf("geo fence default file save = [%d]\n", ret);
+		g_status_data[i].cur_fence_status = eFENCE_OUT_NOTIFICATION;
+		//print_blue("g_status_data[%d].cur_fence_status: %d \n", i, g_status_data[i].cur_fence_status);
 	}
-
-
 	//_print_geo_fence_status();
 
 //jwrho--
@@ -303,5 +322,13 @@ void set_recent_geo_fence(int in)
 int get_first_geo_fence(void)
 {
 	return first_geo_fence;
+}
+int get_cur_fence_status(int idx)
+{
+	return g_status_data[idx].cur_fence_status;
+}
+void set_cur_fence_status_out(int idx)
+{
+	g_status_data[idx].cur_fence_status = eFENCE_OUT_NOTIFICATION;
 }
 

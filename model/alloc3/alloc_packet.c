@@ -235,7 +235,9 @@ int mkpkt_report_data(	unsigned char ** buff, char ev_code, char* ev_data, char 
 		g_busstoptest = false;
         //temp1 = 877;
 		//temp1 = 876;
-			temp1 = 875;
+		//	temp1 = 875;
+		temp1 = 878;
+			 
         print_yellow("875 \r\n");
 
 	}

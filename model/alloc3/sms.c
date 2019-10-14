@@ -430,7 +430,7 @@ static int _ftp_update (int argc, char **argv, char *phonenum)
         return 1;
     }
 
-	res =  dm_update_ftp_download(argv[1], port, argv[3], argv[4], argv[5]);
+	res = dm_update_ftp_download(argv[1], port, argv[3], argv[4], argv[5]);
 
 	if (res == DM_OK) {
 		//_deinit_essential_functions();
