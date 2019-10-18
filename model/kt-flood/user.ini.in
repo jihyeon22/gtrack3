@@ -1,0 +1,12 @@
+[user]
+model_name=kt-flood
+date=191018
+report_ip=211.39.208.131
+report_port=4001
+collect_interval_keyon = 60
+report_interval_keyon = 60
+collect_interval_keyoff = 60
+report_interval_keyoff = 60
+button1 = 11
+button2 = 13
+packet_type = 81
