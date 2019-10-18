@@ -144,6 +144,9 @@ SERVER_ABBR	:=	DSTH
 else ifeq ($(SERVER),kt-thermal)
 SERVER_ABBR	:=	KTTH
 USE_GPS_DEACTIVE_RESET=y
+else ifeq ($(SERVER),kt-flood)
+USE_GPS_MODEL=n
+SERVER_ABBR	:=	KTFD
 else ifeq ($(SERVER),uppp)
 #gps disable
 USE_GPS_MODEL=n 
