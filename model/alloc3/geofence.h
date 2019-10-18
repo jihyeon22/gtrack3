@@ -79,4 +79,6 @@ int save_geo_fence_setup_info();
 int get_recent_geo_fence(void);
 void set_recent_geo_fence(int in);
 int get_first_geo_fence(void);
+int get_cur_fence_status(int idx);
+void set_cur_fence_status_out(int idx);
 

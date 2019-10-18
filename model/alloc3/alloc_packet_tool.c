@@ -31,7 +31,7 @@
 #include <at/at_util.h>
 
 // jhcho test 
-#include "color_printf.h"
+// #include "color_printf.h"
 #include "netcom.h"
 #include <base/sender.h>
 
@@ -900,7 +900,9 @@ int save_geofence_info(packet_frame_t result)
 
 		storage_save_file(GEOFENCE_SAVED_FILE, (void*)&geo_fence_info, sizeof(allocation_geofence_info_t));
 		system("sync &");
-
+		
+		// jhcho test 
+		//devel_webdm_send_log("Geofence Save Complete!");
 		set_geofence_data();
 		// skip... for data save
 	}
@@ -977,6 +979,8 @@ int set_geofence_data()
 	
 	init_geo_fence(eGEN_FENCE_DEBUG_MODE); //jwrho
 
+	// // jhcho_busstop_test
+	// print_blue("set_geofence_data \n");
 	for (i = 0 ; i < geo_fence_info.total_geo_fence ; i++)
 	{
 		geo_fence_setup_t geo_fence_data = {0,};
@@ -988,7 +992,8 @@ int set_geofence_data()
 		geo_fence_data.enable = eGEN_FENCE_ENABLE;
 		
 		LOGI(LOG_TARGET, "SET GEOFENCE : [%d] lat [%f] / lon [%f]\n", i, geo_fence_data.latitude, geo_fence_data.longitude);
-		
+		// jhcho_busstop_test
+		//print_blue(" i: %d, %d \n", i, geo_fence_data.setup_fence_status);
 		set_geo_fence_setup_info(i, &geo_fence_data);
 	}
 
@@ -1648,10 +1653,10 @@ int _alloc_get_packet_frame(const char* buff, int buff_len, packet_frame_t* resu
 		{
 			_ex_buff[i] = _saved_buff[index + i + 1];
 		}
-		print_yellow("ex_buff : %s \n", _ex_buff);
+		printf("ex_buff : %s \n", _ex_buff);
 	}
 	// jhcho 뒤에 {3, 이 더 붙는 경우 처리 ]]
-	print_yellow("size : %d, buff_len : %d \n", result->size, buff_len);
+	//print_yellow("size : %d, buff_len : %d \n", result->size, buff_len);
 	
 	queue_bottom_idx = found_suffix % PKT_FRAME_QUEUE_BUFF_SIZE;
 	

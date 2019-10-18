@@ -114,8 +114,8 @@ void button1_callback(void)
 	printf("gtrack calback ::: button1_callback !!!\r\n");
 
 	// jhcho test [[ 
-    g_busstoptest = true;
-	// jhcho test ]]
+    // g_busstoptest = true;
+	// // jhcho test ]]
 
 #if GEO_TEST
 	set_recent_geo_fence(get_recent_geo_fence()+1);
@@ -129,8 +129,8 @@ void button2_callback(void)
 	printf("gtrack calback ::: button2_callback !!!\r\n");
 	
 	// jhcho test [[ 
-    g_geofencedown = true;
-	//set_circulating_bus(1);
+    // g_geofencedown = true;
+	// //set_circulating_bus(1);
 	// jhcho test ]]
 #if GEO_TEST
 	set_recent_geo_fence(get_recent_geo_fence()-1);
@@ -217,6 +217,8 @@ void gps_parse_one_context_callback(void)
 
 	fence_notification_t fnoti;
 	int fence_num = -1;
+	int last_fence_num = -1;
+	int last_fence_curstate = 0;
 
 	gps_get_curr_data(&gpsdata);
 
@@ -240,23 +242,41 @@ void gps_parse_one_context_callback(void)
 
 	// -----------------------------------------------------
 	// geo fense...
-	// -----------------------------------------------------	
+	// -----------------------------------------------------
+
+		// last_fence_num = get_recent_geo_fence();
+		// last_fence_curstate = get_cur_fence_status(last_fence_num);
+//		print_red("last_fence_num : %d\n", last_fence_num);
+
 		fnoti = get_geofence_notification(&fence_num, gpsdata);
 		// jhcho_test
-		//print_blue("fence_num [%d], fnoti : %d, gpsdata.lat : %.7f, gpsdata.lon:%.7f", fence_num, fnoti, gpsdata.lat, gpsdata.lon);
+//		print_blue("fence_num [%d], fnoti : %d, gpsdata.lat : %.7f, gpsdata.lon:%.7f g_tl500_geofence_reset:%d", fence_num, fnoti, gpsdata.lat, gpsdata.lon, g_tl500_geofence_reset);
 		if(fnoti != eFENCE_NONE_NOTIFICATION)
 		{
 			if(fnoti == eFENCE_IN_NOTIFICATION)
 			{
-				//devel_webdm_send_log("debug : geofence in noti [%d]", fence_num);
-				print_red("geofence in noti [%d]", fence_num);
+				
+				//print_red("geofence in noti [%d]\n", fence_num);
 				if(get_geofence_status() == eGET_GEOFENCE_STAT_COMPLETE) //jwrho
 				{
-					pkt_send_geofence_in(gpsdata,fence_num);
+					// jhcho geofence out [[
+					// print_red("last_fence_num 12 [%d][%d]\n", last_fence_num, last_fence_curstate);
+					// if(last_fence_num >= 0)
+					// {						
+					// 	if(last_fence_curstate == eFENCE_IN_NOTIFICATION)
+					// 	{
+					// 		devel_webdm_send_log("geofence out noti _ before in [%d] [%d]", last_fence_num, fence_num);
+					// 		pkt_send_geofence_out(gpsdata,last_fence_num);
+					// 		set_cur_fence_status_out(last_fence_num);
+							
+					// 	}
+					// }
+					// jhcho geofence out ]]
+					pkt_send_geofence_in(gpsdata, fence_num);
 
 					// jhcho test 
-					print_red("==========================================pkt_send_geofence_in fence_num : %d, %f, %f\n", fence_num, gpsdata.lat, gpsdata.lon);
-
+					//print_red("==========================================pkt_send_geofence_in fence_num : %d, %f, %f\n", fence_num, gpsdata.lat, gpsdata.lon);
+					//devel_webdm_send_log("debug : geofence in noti [%d]", fence_num);
 					g_tl500_geofence_reset = 0;
 				}
 				
@@ -264,12 +284,14 @@ void gps_parse_one_context_callback(void)
 			else if(fnoti == eFENCE_OUT_NOTIFICATION)
 			{
 				//devel_webdm_send_log("debug : geofence out noti [%d]", fence_num);
-				print_yellow("ggeofence out noti [%d]", fence_num);
+				//print_yellow("geofence out noti [%d]", fence_num);
 				if(get_geofence_status() == eGET_GEOFENCE_STAT_COMPLETE) //jwrho
 				{
 					pkt_send_geofence_out(gpsdata,fence_num);
+					// jhcho geofence out
+					//set_cur_fence_status_out(fence_num);
 					// jhcho test 
-					print_yellow("==========================================pkt_send_geofence_out fence_num : %d\n", fence_num);
+					//print_yellow("==========================================pkt_send_geofence_out fence_num : %d\n", fence_num);
 				}
 			}
 		}
