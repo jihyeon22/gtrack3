@@ -71,6 +71,7 @@ static time_t prev_gps_active_time = 0;
 static pthread_mutex_t avg_speed_mutex = PTHREAD_MUTEX_INITIALIZER ;
 
 int g_stat_key_on = 0;
+int g_stat_network_on = 0;
 
 // #define USE_CL_THERMAL_SENSOR
 
@@ -110,6 +111,7 @@ void init_model_callback(void)
 
 void network_on_callback(void)
 {
+	g_stat_network_on = 1;
 	devel_webdm_send_log("start %u %u\n", mileage_get_m(), (unsigned int)tools_get_kerneltime());
 }
 
@@ -169,6 +171,7 @@ void ignition_off_callback(void)
 	gpsData_t gpsdata;
 	
 	g_stat_key_on = 0;
+	g_stat_network_on = 0;
 
 	_wait_time_sync();
 
@@ -432,7 +435,7 @@ void main_loop_callback(void)
 #endif
 
         // main src dc check.
-        if ( power_get_power_source() == POWER_SRC_DC )
+        if ( power_get_power_source() == POWER_SRC_DC &&  g_stat_network_on == 1 )
         {
             rfid_main_senario();
         }

@@ -187,7 +187,7 @@ int send_packet(char op, unsigned char *packet_buf, int packet_len)
 		else
 			rfid_tool__set_senario_stat(e_RFID_DOWNLOAD_END);
 
-		return 0;
+		return res;
 	}
 
 	if ( op == PACKET_TYPE_HTTP_SET_BOARDING_LIST )
@@ -292,8 +292,8 @@ static int _setting_network_param(void)
 	gRFID_request.port = conf->model.request_rfid_port;
 	gRFID_request.retry_count_connect = 2;
 	gRFID_request.retry_count_send = 2;
-	gRFID_request.retry_count_receive = 0;
-	gRFID_request.timeout_secs = 1;
-	
+	gRFID_request.retry_count_receive = 3;
+	gRFID_request.timeout_secs = 10;
+	// time out 0-> 10
 	return 0;
 }
