@@ -257,6 +257,10 @@ USE_KJTEC_RFID=y
 else ifeq ($(SUB),clr1)
 SERVER_ABBR   :=      CLR1
 USE_KJTEC_RFID=y
+else ifeq ($(SUB),clr2)
+SERVER_ABBR   :=      CLR2
+USE_KJTEC_RFID=y
+USE_KJTEC_RFID_70000=y
 else ifeq ($(SUB),clra0)
 SERVER_ABBR   :=      CLRA0
 USE_KJTEC_RFID=y
@@ -474,6 +478,10 @@ ifeq ($(USE_KJTEC_RFID),y)
 CFLAGS  += -DUSE_KJTEC_RFID
 endif
 
+ifeq ($(USE_KJTEC_RFID_70000),y)
+CFLAGS  += -DUSE_KJTEC_RFID_70000
+endif
+
 ifeq ($(USE_SUP_RFID),y)
 CFLAGS  += -DUSE_SUP_RFID
 endif
@@ -577,6 +585,11 @@ endif
 ifeq ($(SERVER),cl-rfid)
 ifeq ($(USE_KJTEC_RFID),y)
 	$(Q)fakeroot cp -v $(MODEL_PATH)/rfid_fw/rfid_fw*.bin $(DESTDIR)$(WORK_PATH)/
+endif
+endif
+ifeq ($(SERVER),cl-rfid2)
+ifeq ($(USE_KJTEC_RFID),y)
+	$(Q)fakeroot cp -v $(MODEL_PATH)/ext/rfid/kjtec_rfid/rfid_fw/rfid_fw*.bin $(DESTDIR)$(WORK_PATH)/
 endif
 endif
 
