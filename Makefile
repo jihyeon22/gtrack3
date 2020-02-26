@@ -587,7 +587,8 @@ ifeq ($(USE_KJTEC_RFID),y)
 	$(Q)fakeroot cp -v $(MODEL_PATH)/rfid_fw/rfid_fw*.bin $(DESTDIR)$(WORK_PATH)/
 endif
 endif
-#firmware delete \xbuild3\out\root\system\mds\system\
+
+
 ifeq ($(SERVER),cl-rfid2)
 ifeq ($(USE_KJTEC_RFID_70000),y)
 	$(Q)fakeroot cp -v $(MODEL_PATH)/ext/rfid/kjtec_rfid/rfid_fw/rfid_fw_70000/rfid_fw*.bin $(DESTDIR)$(WORK_PATH)/
