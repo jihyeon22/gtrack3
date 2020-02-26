@@ -127,8 +127,12 @@ int kjtec_rfid_pkt__parse_req_passenger(unsigned char * buff, int len_buff)
     memset(&cur_user, 0x00, sizeof(RFID_USER_INFO_T));
 
     if ( buff == NULL )
+    {
         return -1;
+    }
     
+    // jhcho_test
+    LOGE(LOG_TARGET, "%s() [%d]=> dump pkt -------------------------------------------------\r\n", __func__, len_buff);
     if ( strstr(buff, "HTTP/1.1 200 OK") == NULL )
     {
         devel_webdm_send_log("DOWNLOAD USER : server ret fail cnt -1 [%d]", get_req_passenger_fail_cnt());
@@ -139,10 +143,10 @@ int kjtec_rfid_pkt__parse_req_passenger(unsigned char * buff, int len_buff)
         }
         return -1;
     }
-
-    printf("%s() [%d]=> dump pkt -------------------------------------------------\r\n", __func__, len_buff);
-    printf("%s\r\n", buff);
-    printf("-------------------------------------------------\r\n");
+// jhcho_test
+//    printf("%s() [%d]=> dump pkt -------------------------------------------------\r\n", __func__, len_buff);
+//    printf("%s\r\n", buff);
+//    printf("-------------------------------------------------\r\n");
 
     
     if ( strncmp("HTTP/1.1 200 OK", buff, strlen("HTTP/1.1 200 OK")  ) )
@@ -327,8 +331,9 @@ int make_clrfid_pkt__req_passenger(unsigned char **pbuf, unsigned short *packet_
 
 int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
 {
+    int res = 0;
 #ifdef USE_KJTEC_RFID
-    kjtec_rfid_pkt__parse_req_passenger(buff, len_buff);
+    res =  kjtec_rfid_pkt__parse_req_passenger(buff, len_buff);
 #endif
 
 #ifdef USE_SUP_RFID
@@ -338,7 +343,9 @@ int parse_clrfid_pkt__req_passenger(unsigned char * buff, int len_buff)
 #ifdef USE_CUST2_RFID
     // empty
 #endif
-    return 0;
+     // jhcho_test
+    LOGE(LOG_TARGET, "res parse_clrfid_pkt__req_passenger[%d]\r\n", res);
+    return res;
 
 }
 
