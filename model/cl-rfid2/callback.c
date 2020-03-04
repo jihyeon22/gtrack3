@@ -397,13 +397,11 @@ void main_loop_callback(void)
     
 	rfid_main_senario_init();
 
-//#ifdef USE_KJTEC_RFID_75000
+#ifdef USE_KJTEC_RFID_75000
 	printf("%c[1;33m",27);
 	printf("MAX_RFID_USER_SAVE : %d\n", MAX_RFID_USER_SAVE); 
 	printf("%c[0m\n",27);
-	
-
-//#endif 
+#endif 
 
 	while(flag_run_thread_main)
 	{
