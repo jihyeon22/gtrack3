@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 #ifndef __DTG_DATA_PACKET_DEF_HEADER__
 #define __DTG_DATA_PACKET_DEF_HEADER__
 
@@ -9,3 +10,16 @@
 
 
 
+=======
+#ifndef __DTG_DATA_PACKET_DEF_HEADER__
+#define __DTG_DATA_PACKET_DEF_HEADER__
+
+#define MSG_TYPE_DIAG_DATA					0x00000002
+#define MSG_TYPE_REGISTRATION				0x00000020
+#define MSG_TYPE_DE_REGISTRATION			0x00000040
+
+#endif
+
+
+
+>>>>>>> 13cf281973302551889b7b9d61bb8531c87af7bc

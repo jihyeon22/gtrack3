@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 [user]
 model_name=skyan1
 date=170104
@@ -6,3 +7,13 @@ report_port=50002
 report_interval_keyon = 60
 report_interval_keyoff = 3600
 
+=======
+[user]
+model_name=skyan1
+date=170104
+report_ip=118.220.16.91
+report_port=50002
+report_interval_keyon = 60
+report_interval_keyoff = 3600
+
+>>>>>>> 13cf281973302551889b7b9d61bb8531c87af7bc

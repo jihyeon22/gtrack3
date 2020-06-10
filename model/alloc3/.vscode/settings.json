@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {
     "files.associations": {
         "tagging.h": "c",
@@ -5,4 +6,13 @@
         "ftp_clientcmd.h": "c",
         "color_printf.h": "c"
     }
+=======
+{
+    "files.associations": {
+        "tagging.h": "c",
+        "config.h": "c",
+        "ftp_clientcmd.h": "c",
+        "color_printf.h": "c"
+    }
+>>>>>>> 13cf281973302551889b7b9d61bb8531c87af7bc
 }

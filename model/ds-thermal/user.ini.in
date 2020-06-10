@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 [user]
 model_name=ds-thermal
 date=170101
@@ -8,4 +9,16 @@ request_http_port=8090
 http_send_interval_keyon=60
 http_send_interval_keyoff=60
 thermal_sensor_interval=30
+=======
+[user]
+model_name=ds-thermal
+date=170101
+report_ip=null.co.kr
+report_port=1111
+request_http_ip=1.229.253.27
+request_http_port=8090
+http_send_interval_keyon=60
+http_send_interval_keyoff=60
+thermal_sensor_interval=30
+>>>>>>> 13cf281973302551889b7b9d61bb8531c87af7bc
 thermal_sensor_dev="/dev/ttyHSL2"
