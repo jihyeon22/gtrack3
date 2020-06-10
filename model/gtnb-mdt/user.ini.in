@@ -1,0 +1,9 @@
+[user]
+model_name=gtnb-mdt
+date=160318
+report_ip=211.106.67.26
+report_port=7221
+collect_interval_keyon = 60
+report_interval_keyon = 60
+collect_interval_keyoff = 3600
+report_interval_keyoff = 3600

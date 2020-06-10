@@ -1,0 +1,2 @@
+./xbuild2 system SERVER=etrace CORP=etrace VER=01.04
+./xbuild2 gtrack3 SERVER=asf CORP=asf VER=01.00

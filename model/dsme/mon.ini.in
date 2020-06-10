@@ -1,0 +1,20 @@
+[main_info]
+prg_cnt=2
+run_retry=10
+; interval time unit is sec : 60 = 1min
+check_process_interval=60
+
+[program_0]
+path=/system/mds/system/bin
+name=dlpkg3
+command_argc=0
+make_deamon=no
+check_process=no
+
+[program_1]
+path=/system/mds/system/bin
+name=gtrack3
+command_argc=0
+make_deamon=no
+check_process=yes
+

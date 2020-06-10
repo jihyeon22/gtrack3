@@ -1,0 +1,11 @@
+[user]
+model_name=cip-rmc
+date=150914
+report_ip=1.234.62.39
+report_port=6692
+request_ip=1.234.62.39
+request_port=6693
+collect_interval_keyon = 10
+report_interval_keyon = 60
+collect_interval_keyoff = 10
+report_interval_keyoff = 60

@@ -1,0 +1,9 @@
+[user]
+model_name=dsmemdt
+date=160318
+report_ip=152.149.8.161
+report_port=58733
+collect_interval_keyon = 60
+report_interval_keyon = 60
+collect_interval_keyoff = 3600
+report_interval_keyoff = 3600

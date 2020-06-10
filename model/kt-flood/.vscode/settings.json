@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "gpsmng.h": "c",
+        "gps_utill.h": "c",
+        "geofence.h": "c",
+        "file_mileage.h": "c",
+        "packet.h": "c",
+        "hdlc_async.h": "c",
+        "color_printf.h": "c",
+        "leakdata-list.h": "c",
+        "kt_flood_unit.h": "c"
+    }
+}

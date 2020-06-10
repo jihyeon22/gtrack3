@@ -1,0 +1,9 @@
+[user]
+model_name=cs
+date=160318
+report_ip=218.145.31.90
+report_port=15024
+collect_interval_keyon = 60
+report_interval_keyon = 60
+collect_interval_keyoff = 3600
+report_interval_keyoff = 3600

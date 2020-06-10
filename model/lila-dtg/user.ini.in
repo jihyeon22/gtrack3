@@ -1,0 +1,17 @@
+[user]
+model_name=lilad
+date=180821
+report_ip=121.144.167.192
+report_port=8900
+collect_interval_keyon = 60
+report_interval_keyon = 60
+collect_interval_keyoff = 60
+report_interval_keyoff = 60
+
+[dtg]
+report_ip=121.144.167.192
+report_port=8900
+collect_interval_keyon = 1
+report_interval_keyon = 180
+collect_interval_keyoff = 1
+report_interval_keyoff = 60
